@@ -6,7 +6,7 @@ Aragya Goyal -
 
 PJ Granieri -
 
-Aaron Kuchta -
+Aaron Kuchta - Here!
 
 Iyan Nekib -
 
