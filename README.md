@@ -4,7 +4,7 @@ Connor Marsh - Here!
 
 Aragya Goyal - Here!
 
-PJ Granieri -
+PJ Granieri - Here!
 
 Aaron Kuchta - Here!
 
