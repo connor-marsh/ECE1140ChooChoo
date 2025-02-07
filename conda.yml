@@ -1,0 +1,10 @@
+# to create environment do: "conda env create -f conda.yml"
+name TeamChooChoo
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pyqt=5.11.3
+  - rpyc=6.0.1
+  - numpy=2.2.1
