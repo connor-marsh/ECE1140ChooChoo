@@ -8,10 +8,13 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import *  # type: ignore
-from PySide2.QtGui import *  # type: ignore
-from PySide2.QtWidgets import *  # type: ignore
+# from PySide2.QtCore import *  # type: ignore
+# from PySide2.QtGui import *  # type: ignore
+# from PySide2.QtWidgets import *  # type: ignore
 
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -598,4 +601,3 @@ class Ui_MainWindow(object):
         self.RightDoorClosed.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">CLOSED</p></body></html>", None))
         self.menuTrain_ID_1.setTitle(QCoreApplication.translate("MainWindow", u"Train ID 1", None))
     # retranslateUi
-
