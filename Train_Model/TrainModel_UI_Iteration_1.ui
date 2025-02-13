@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>701</width>
-    <height>657</height>
+    <width>710</width>
+    <height>662</height>
    </rect>
   </property>
   <property name="font">
@@ -100,13 +100,32 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>11</pointsize>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(110, 255, 102);</string>
+      <string notr="true">QPushButton {
+    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                stop:0 #6eff66, stop:1 #1e7d1e); /* Light-to-dark green */
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
+    border: 2px solid #1e7d1e;
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5); /* Raised effect */
+    transition: background 0.3s ease;
+}
+
+QPushButton:pressed {
+    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                stop:0 #00cc00, stop:1 #006600); /* Darker green when pressed */
+    border: 2px solid #004d00;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow appears inset when pressed */
+}
+</string>
      </property>
      <property name="text">
       <string>Enabled</string>
@@ -126,14 +145,33 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>11</pointsize>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
        <strikeout>false</strikeout>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 106, 108);</string>
+      <string notr="true">QPushButton {
+    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                stop:0 #ff6a6c, stop:1 #d33032); /* Light-to-dark red */
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
+    border: 2px solid #d33032;
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5); /* Raised effect */
+    transition: background 0.3s ease;
+}
+
+QPushButton:pressed {
+    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                stop:0 #e84547, stop:1 #9c1e1f); /* Darker red when pressed */
+    border: 2px solid #7a1c1d;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow appears inset when pressed */
+}
+</string>
      </property>
      <property name="text">
       <string>Disabled</string>
@@ -220,14 +258,33 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>11</pointsize>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
        <kerning>true</kerning>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(110, 255, 102);</string>
+      <string notr="true">QPushButton {
+    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                stop:0 #6eff66, stop:1 #1e7d1e); /* Light-to-dark green */
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
+    border: 2px solid #1e7d1e;
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5); /* Raised effect */
+    transition: background 0.3s ease;
+}
+
+QPushButton:pressed {
+    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                stop:0 #00cc00, stop:1 #006600); /* Darker green when pressed */
+    border: 2px solid #004d00;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow appears inset when pressed */
+}
+</string>
      </property>
      <property name="text">
       <string>Enabled</string>
@@ -247,14 +304,33 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>11</pointsize>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
        <strikeout>false</strikeout>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 106, 108);</string>
+      <string notr="true">QPushButton {
+    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                stop:0 #ff6a6c, stop:1 #d33032); /* Light-to-dark red */
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
+    border: 2px solid #d33032;
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5); /* Raised effect */
+    transition: background 0.3s ease;
+}
+
+QPushButton:pressed {
+    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                stop:0 #e84547, stop:1 #9c1e1f); /* Darker red when pressed */
+    border: 2px solid #7a1c1d;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow appears inset when pressed */
+}
+</string>
      </property>
      <property name="text">
       <string>Disabled</string>
@@ -277,13 +353,32 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>11</pointsize>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(110, 255, 102);</string>
+      <string notr="true">QPushButton {
+    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                stop:0 #6eff66, stop:1 #1e7d1e); /* Light-to-dark green */
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
+    border: 2px solid #1e7d1e;
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5); /* Raised effect */
+    transition: background 0.3s ease;
+}
+
+QPushButton:pressed {
+    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                stop:0 #00cc00, stop:1 #006600); /* Darker green when pressed */
+    border: 2px solid #004d00;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow appears inset when pressed */
+}
+</string>
      </property>
      <property name="text">
       <string>Enabled</string>
@@ -303,14 +398,33 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>11</pointsize>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
        <strikeout>false</strikeout>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 106, 108);</string>
+      <string notr="true">QPushButton {
+    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                stop:0 #ff6a6c, stop:1 #d33032); /* Light-to-dark red */
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
+    border: 2px solid #d33032;
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5); /* Raised effect */
+    transition: background 0.3s ease;
+}
+
+QPushButton:pressed {
+    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                stop:0 #e84547, stop:1 #9c1e1f); /* Darker red when pressed */
+    border: 2px solid #7a1c1d;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow appears inset when pressed */
+}
+</string>
      </property>
      <property name="text">
       <string>Disabled</string>
@@ -342,21 +456,24 @@
      <enum>QFrame::Plain</enum>
     </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:36pt; font-weight:600; color:#aa007f;&quot;&gt;Rotating Ads Rotating Ads Rotating Ads&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string/>
     </property>
     <property name="textFormat">
      <enum>Qt::AutoText</enum>
+    </property>
+    <property name="pixmap">
+     <pixmap>pizza_hut_ad_1.jpg</pixmap>
     </property>
     <property name="scaledContents">
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QLabel" name="Announcement">
+   <widget class="QLabel" name="Announcement_2">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>224</x>
       <y>90</y>
-      <width>685</width>
+      <width>471</width>
       <height>47</height>
      </rect>
     </property>
@@ -370,7 +487,7 @@
      <enum>QFrame::Plain</enum>
     </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; font-weight:600;&quot;&gt;ANNOUNCEMENT: Next stop is Edgebrook in 10 minutes&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;Next stop is Edgebrook&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
    <widget class="QPushButton" name="button_emergency">
@@ -442,7 +559,7 @@ Brake</string>
    <widget class="Line" name="line_2">
     <property name="geometry">
      <rect>
-      <x>495</x>
+      <x>498</x>
       <y>150</y>
       <width>16</width>
       <height>461</height>
@@ -485,7 +602,7 @@ Brake</string>
       <rect>
        <x>0</x>
        <y>30</y>
-       <width>181</width>
+       <width>183</width>
        <height>351</height>
       </rect>
      </property>
@@ -496,8 +613,8 @@ Brake</string>
       <property name="spacing">
        <number>0</number>
       </property>
-      <item row="0" column="1">
-       <widget class="QLabel" name="CommandedSpeedValue">
+      <item row="7" column="0">
+       <widget class="QLabel" name="CrewCountLabel">
         <property name="font">
          <font>
           <pointsize>11</pointsize>
@@ -506,13 +623,13 @@ Brake</string>
          </font>
         </property>
         <property name="frameShape">
-         <enum>QFrame::Panel</enum>
+         <enum>QFrame::WinPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string>0</string>
-        </property>
-        <property name="indent">
-         <number>5</number>
+         <string>Crew Count</string>
         </property>
        </widget>
       </item>
@@ -534,6 +651,26 @@ Brake</string>
         <property name="text">
          <string>Passenger 
 Count</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="WidthLabel">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::WinPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Sunken</enum>
+        </property>
+        <property name="text">
+         <string>Width (ft)</string>
         </property>
        </widget>
       </item>
@@ -578,148 +715,8 @@ Count</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="HeightLabel">
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::WinPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Sunken</enum>
-        </property>
-        <property name="text">
-         <string>Height (ft)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QLabel" name="HeightValue">
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Panel</enum>
-        </property>
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="indent">
-         <number>5</number>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QLabel" name="WidthValue">
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Panel</enum>
-        </property>
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="indent">
-         <number>5</number>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1">
-       <widget class="QLabel" name="MassVehicleValue">
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Panel</enum>
-        </property>
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="indent">
-         <number>5</number>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="1">
-       <widget class="QLabel" name="CrewCountValue">
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Panel</enum>
-        </property>
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="indent">
-         <number>5</number>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="QLabel" name="PassengerCountValue">
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Panel</enum>
-        </property>
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="indent">
-         <number>5</number>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="SpeedLimitValue">
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Panel</enum>
-        </property>
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="indent">
-         <number>5</number>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="0">
-       <widget class="QLabel" name="LengthVahicleLabel">
+       <widget class="QLabel" name="LengthVehicleLabel">
         <property name="font">
          <font>
           <pointsize>11</pointsize>
@@ -736,46 +733,6 @@ Count</string>
         <property name="text">
          <string>Length of 
 Vehicle (ft)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="WidthLabel">
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::WinPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Sunken</enum>
-        </property>
-        <property name="text">
-         <string>Width (ft)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QLabel" name="LengthVehicleValue">
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Panel</enum>
-        </property>
-        <property name="text">
-         <string>0</string>
-        </property>
-        <property name="indent">
-         <number>5</number>
         </property>
        </widget>
       </item>
@@ -800,8 +757,8 @@ Vehicle (ft)</string>
         </property>
        </widget>
       </item>
-      <item row="7" column="0">
-       <widget class="QLabel" name="CrewCountLabel">
+      <item row="3" column="0">
+       <widget class="QLabel" name="HeightLabel">
         <property name="font">
          <font>
           <pointsize>11</pointsize>
@@ -816,7 +773,119 @@ Vehicle (ft)</string>
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string>Crew Count</string>
+         <string>Height (ft)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLCDNumber" name="CommandedSpeedValue">
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLCDNumber" name="SpeedLimitValue">
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLCDNumber" name="LengthVehicleValue">
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLCDNumber" name="HeightValue">
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLCDNumber" name="WidthValue">
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLCDNumber" name="MassVehicleValue">
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QLCDNumber" name="PassengerCountValue">
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QLCDNumber" name="CrewCountValue">
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
         </property>
        </widget>
       </item>
@@ -828,8 +897,8 @@ Vehicle (ft)</string>
      <rect>
       <x>270</x>
       <y>150</y>
-      <width>221</width>
-      <height>211</height>
+      <width>231</width>
+      <height>215</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="TrainControllerDetails">
@@ -853,6 +922,32 @@ Vehicle (ft)</string>
        </property>
        <property name="text">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Acceleration &lt;/p&gt;&lt;p&gt;(ft/s&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLCDNumber" name="lcdNumber_2">
+       <property name="frameShape">
+        <enum>QFrame::Panel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
+       </property>
+       <property name="segmentStyle">
+        <enum>QLCDNumber::Flat</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLCDNumber" name="lcdNumber_3">
+       <property name="frameShape">
+        <enum>QFrame::Panel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
+       </property>
+       <property name="segmentStyle">
+        <enum>QLCDNumber::Flat</enum>
        </property>
       </widget>
      </item>
@@ -882,40 +977,6 @@ Vehicle (ft)</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
-      <widget class="QLabel" name="PowerValue">
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="frameShape">
-        <enum>QFrame::WinPanel</enum>
-       </property>
-       <property name="text">
-        <string>0</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLabel" name="AccValue">
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="frameShape">
-        <enum>QFrame::WinPanel</enum>
-       </property>
-       <property name="text">
-        <string>0</string>
-       </property>
-      </widget>
-     </item>
      <item row="2" column="0">
       <widget class="QLabel" name="ActualSpeed">
        <property name="font">
@@ -939,20 +1000,19 @@ Vehicle (ft)</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
-      <widget class="QLabel" name="ASpeedValue">
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
+     <item row="0" column="1">
+      <widget class="QLCDNumber" name="lcdNumber">
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
        </property>
        <property name="frameShape">
-        <enum>QFrame::WinPanel</enum>
+        <enum>QFrame::Box</enum>
        </property>
-       <property name="text">
-        <string>0</string>
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
+       </property>
+       <property name="segmentStyle">
+        <enum>QLCDNumber::Flat</enum>
        </property>
       </widget>
      </item>
@@ -999,6 +1059,9 @@ Vehicle (ft)</string>
      <property name="frameShape">
       <enum>QFrame::WinPanel</enum>
      </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
      <property name="text">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;68 °F&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
@@ -1007,8 +1070,8 @@ Vehicle (ft)</string>
    <widget class="Line" name="line_3">
     <property name="geometry">
      <rect>
-      <x>270</x>
-      <y>362</y>
+      <x>273</x>
+      <y>365</y>
       <width>221</width>
       <height>16</height>
      </rect>
@@ -1022,8 +1085,8 @@ Vehicle (ft)</string>
      <rect>
       <x>270</x>
       <y>380</y>
-      <width>221</width>
-      <height>234</height>
+      <width>231</width>
+      <height>231</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="DoorsLightsBrakes">
@@ -1299,14 +1362,73 @@ Vehicle (ft)</string>
      </item>
     </layout>
    </widget>
+   <widget class="QLCDNumber" name="Clock_12">
+    <property name="geometry">
+     <rect>
+      <x>563</x>
+      <y>97</y>
+      <width>81</width>
+      <height>31</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="AM_PM">
+    <property name="geometry">
+     <rect>
+      <x>650</x>
+      <y>97</y>
+      <width>31</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>AM</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="Announcement_1">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>90</y>
+      <width>211</width>
+      <height>47</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="mouseTracking">
+     <bool>true</bool>
+    </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::WinPanel</enum>
+    </property>
+    <property name="text">
+     <string>ANNOUNCEMENT: </string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>701</width>
-     <height>22</height>
+     <width>710</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuTrain_ID_1">
