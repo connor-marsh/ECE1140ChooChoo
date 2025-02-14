@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'TrainModel_UI_Iteration_1aNMgWx.ui'
+## Form generated from reading UI file 'TrainModel_UI_Iteration_1LCuvsq.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.15.8
 ##
@@ -12,9 +12,9 @@
 # from PySide2.QtGui import *  # type: ignore
 # from PySide2.QtWidgets import *  # type: ignore
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *  # type: ignore
+from PyQt5.QtGui import *  # type: ignore
+from PyQt5.QtWidgets import *  # type: ignore
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -235,7 +235,8 @@ class Ui_MainWindow(object):
         self.Advertisements = QLabel(self.Main)
         self.Advertisements.setObjectName(u"Advertisements")
         self.Advertisements.setGeometry(QRect(10, 5, 685, 83))
-        self.Advertisements.setStyleSheet(u"background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(112, 170, 184, 255), stop:1 rgba(255, 255, 255, 255));")
+        self.Advertisements.setMinimumSize(QSize(0, 0))
+        self.Advertisements.setStyleSheet(u"")
         self.Advertisements.setFrameShape(QFrame.WinPanel)
         self.Advertisements.setFrameShadow(QFrame.Plain)
         self.Advertisements.setTextFormat(Qt.AutoText)
@@ -442,21 +443,21 @@ class Ui_MainWindow(object):
 
         self.TrainControllerDetails.addWidget(self.Acceleration, 1, 0, 1, 1)
 
-        self.lcdNumber_2 = QLCDNumber(self.gridLayoutWidget_2)
-        self.lcdNumber_2.setObjectName(u"lcdNumber_2")
-        self.lcdNumber_2.setFrameShape(QFrame.Panel)
-        self.lcdNumber_2.setFrameShadow(QFrame.Plain)
-        self.lcdNumber_2.setSegmentStyle(QLCDNumber.Flat)
+        self.AccValue = QLCDNumber(self.gridLayoutWidget_2)
+        self.AccValue.setObjectName(u"AccValue")
+        self.AccValue.setFrameShape(QFrame.Panel)
+        self.AccValue.setFrameShadow(QFrame.Plain)
+        self.AccValue.setSegmentStyle(QLCDNumber.Flat)
 
-        self.TrainControllerDetails.addWidget(self.lcdNumber_2, 1, 1, 1, 1)
+        self.TrainControllerDetails.addWidget(self.AccValue, 1, 1, 1, 1)
 
-        self.lcdNumber_3 = QLCDNumber(self.gridLayoutWidget_2)
-        self.lcdNumber_3.setObjectName(u"lcdNumber_3")
-        self.lcdNumber_3.setFrameShape(QFrame.Panel)
-        self.lcdNumber_3.setFrameShadow(QFrame.Plain)
-        self.lcdNumber_3.setSegmentStyle(QLCDNumber.Flat)
+        self.SpeedValue = QLCDNumber(self.gridLayoutWidget_2)
+        self.SpeedValue.setObjectName(u"SpeedValue")
+        self.SpeedValue.setFrameShape(QFrame.Panel)
+        self.SpeedValue.setFrameShadow(QFrame.Plain)
+        self.SpeedValue.setSegmentStyle(QLCDNumber.Flat)
 
-        self.TrainControllerDetails.addWidget(self.lcdNumber_3, 2, 1, 1, 1)
+        self.TrainControllerDetails.addWidget(self.SpeedValue, 2, 1, 1, 1)
 
         self.Power = QLabel(self.gridLayoutWidget_2)
         self.Power.setObjectName(u"Power")
@@ -477,14 +478,14 @@ class Ui_MainWindow(object):
 
         self.TrainControllerDetails.addWidget(self.ActualSpeed, 2, 0, 1, 1)
 
-        self.lcdNumber = QLCDNumber(self.gridLayoutWidget_2)
-        self.lcdNumber.setObjectName(u"lcdNumber")
-        self.lcdNumber.setLayoutDirection(Qt.LeftToRight)
-        self.lcdNumber.setFrameShape(QFrame.Box)
-        self.lcdNumber.setFrameShadow(QFrame.Plain)
-        self.lcdNumber.setSegmentStyle(QLCDNumber.Flat)
+        self.PowerValue = QLCDNumber(self.gridLayoutWidget_2)
+        self.PowerValue.setObjectName(u"PowerValue")
+        self.PowerValue.setLayoutDirection(Qt.LeftToRight)
+        self.PowerValue.setFrameShape(QFrame.Box)
+        self.PowerValue.setFrameShadow(QFrame.Plain)
+        self.PowerValue.setSegmentStyle(QLCDNumber.Flat)
 
-        self.TrainControllerDetails.addWidget(self.lcdNumber, 0, 1, 1, 1)
+        self.TrainControllerDetails.addWidget(self.PowerValue, 0, 1, 1, 1)
 
         self.CabinTemperature = QGroupBox(self.Main)
         self.CabinTemperature.setObjectName(u"CabinTemperature")
@@ -645,6 +646,20 @@ class Ui_MainWindow(object):
         self.Announcement_1.setAutoFillBackground(True)
         self.Announcement_1.setFrameShape(QFrame.WinPanel)
         MainWindow.setCentralWidget(self.Main)
+        self.FailureBox.raise_()
+        self.Announcement_2.raise_()
+        self.button_emergency.raise_()
+        self.line.raise_()
+        self.line_2.raise_()
+        self.LiveTrainData.raise_()
+        self.gridLayoutWidget_2.raise_()
+        self.CabinTemperature.raise_()
+        self.line_3.raise_()
+        self.gridLayoutWidget_3.raise_()
+        self.Clock_12.raise_()
+        self.AM_PM.raise_()
+        self.Announcement_1.raise_()
+        self.Advertisements.raise_()
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
         self.menubar.setGeometry(QRect(0, 0, 710, 21))

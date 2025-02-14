@@ -446,8 +446,17 @@ QPushButton:pressed {
       <height>83</height>
      </rect>
     </property>
+    <property name="minimumSize">
+     <size>
+      <width>0</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
     <property name="styleSheet">
-     <string notr="true">background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(112, 170, 184, 255), stop:1 rgba(255, 255, 255, 255));</string>
+     <string notr="true"/>
     </property>
     <property name="frameShape">
      <enum>QFrame::WinPanel</enum>
@@ -460,9 +469,6 @@ QPushButton:pressed {
     </property>
     <property name="textFormat">
      <enum>Qt::AutoText</enum>
-    </property>
-    <property name="pixmap">
-     <pixmap>pizza_hut_ad_1.jpg</pixmap>
     </property>
     <property name="scaledContents">
      <bool>false</bool>
@@ -926,7 +932,7 @@ Vehicle (ft)</string>
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLCDNumber" name="lcdNumber_2">
+      <widget class="QLCDNumber" name="AccValue">
        <property name="frameShape">
         <enum>QFrame::Panel</enum>
        </property>
@@ -939,7 +945,7 @@ Vehicle (ft)</string>
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QLCDNumber" name="lcdNumber_3">
+      <widget class="QLCDNumber" name="SpeedValue">
        <property name="frameShape">
         <enum>QFrame::Panel</enum>
        </property>
@@ -1001,7 +1007,7 @@ Vehicle (ft)</string>
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QLCDNumber" name="lcdNumber">
+      <widget class="QLCDNumber" name="PowerValue">
        <property name="layoutDirection">
         <enum>Qt::LeftToRight</enum>
        </property>
@@ -1086,7 +1092,7 @@ Vehicle (ft)</string>
       <x>270</x>
       <y>380</y>
       <width>231</width>
-      <height>231</height>
+      <height>234</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="DoorsLightsBrakes">
@@ -1421,6 +1427,20 @@ Vehicle (ft)</string>
      <string>ANNOUNCEMENT: </string>
     </property>
    </widget>
+   <zorder>FailureBox</zorder>
+   <zorder>Announcement_2</zorder>
+   <zorder>button_emergency</zorder>
+   <zorder>line</zorder>
+   <zorder>line_2</zorder>
+   <zorder>LiveTrainData</zorder>
+   <zorder>gridLayoutWidget_2</zorder>
+   <zorder>CabinTemperature</zorder>
+   <zorder>line_3</zorder>
+   <zorder>gridLayoutWidget_3</zorder>
+   <zorder>Clock_12</zorder>
+   <zorder>AM_PM</zorder>
+   <zorder>Announcement_1</zorder>
+   <zorder>Advertisements</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -1440,6 +1460,8 @@ Vehicle (ft)</string>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <resources/>
+ <resources>
+  <include location="Advertisement_1.qrc"/>
+ </resources>
  <connections/>
 </ui>
