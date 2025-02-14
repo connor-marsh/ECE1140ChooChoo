@@ -1,7 +1,7 @@
 import sys
 import os
-# from PySide2.QtWidgets import QApplication, QMainWindow
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PySide2.QtWidgets import QApplication, QMainWindow
+# from PyQt5.QtWidgets import QApplication, QMainWindow
 from TrainModel_UI_Iteration_1 import Ui_MainWindow
 
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'

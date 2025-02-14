@@ -1,26 +1,25 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'TrainModel_UI_Iteration_1LCuvsq.ui'
+## Form generated from reading UI file 'TrainModel_UI_Iteration_1iYwKcN.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.15.8
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-# from PySide2.QtCore import *  # type: ignore
-# from PySide2.QtGui import *  # type: ignore
-# from PySide2.QtWidgets import *  # type: ignore
+from PySide2.QtCore import *  # type: ignore
+from PySide2.QtGui import *  # type: ignore
+from PySide2.QtWidgets import *  # type: ignore
 
-from PyQt5.QtCore import *  # type: ignore
-from PyQt5.QtGui import *  # type: ignore
-from PyQt5.QtWidgets import *  # type: ignore
-
+# from PyQt5.QtCore import *  # type: ignore
+# from PyQt5.QtGui import *  # type: ignore
+# from PyQt5.QtWidgets import *  # type: ignore
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(710, 662)
+        MainWindow.resize(710, 655)
         font = QFont()
         font.setPointSize(8)
         MainWindow.setFont(font)
@@ -234,13 +233,13 @@ class Ui_MainWindow(object):
         self.Disabled3.setFlat(False)
         self.Advertisements = QLabel(self.Main)
         self.Advertisements.setObjectName(u"Advertisements")
-        self.Advertisements.setGeometry(QRect(10, 5, 685, 83))
+        self.Advertisements.setGeometry(QRect(10, 5, 228, 83))
         self.Advertisements.setMinimumSize(QSize(0, 0))
+        self.Advertisements.setAutoFillBackground(True)
         self.Advertisements.setStyleSheet(u"")
         self.Advertisements.setFrameShape(QFrame.WinPanel)
         self.Advertisements.setFrameShadow(QFrame.Plain)
         self.Advertisements.setTextFormat(Qt.AutoText)
-        self.Advertisements.setPixmap(QPixmap(u"pizza_hut_ad_1.jpg"))
         self.Advertisements.setScaledContents(False)
         self.Announcement_2 = QLabel(self.Main)
         self.Announcement_2.setObjectName(u"Announcement_2")
@@ -304,25 +303,91 @@ class Ui_MainWindow(object):
         self.LiveTrainDataGrid.setSpacing(0)
         self.LiveTrainDataGrid.setObjectName(u"LiveTrainDataGrid")
         self.LiveTrainDataGrid.setContentsMargins(5, 0, 0, 0)
-        self.CrewCountLabel = QLabel(self.gridLayoutWidget)
-        self.CrewCountLabel.setObjectName(u"CrewCountLabel")
+        self.MassVehicleLabel = QLabel(self.gridLayoutWidget)
+        self.MassVehicleLabel.setObjectName(u"MassVehicleLabel")
         font7 = QFont()
         font7.setPointSize(11)
         font7.setBold(False)
         font7.setWeight(50)
+        self.MassVehicleLabel.setFont(font7)
+        self.MassVehicleLabel.setFrameShape(QFrame.WinPanel)
+        self.MassVehicleLabel.setFrameShadow(QFrame.Sunken)
+
+        self.LiveTrainDataGrid.addWidget(self.MassVehicleLabel, 5, 0, 1, 1)
+
+        self.SpeedLimitValue = QLCDNumber(self.gridLayoutWidget)
+        self.SpeedLimitValue.setObjectName(u"SpeedLimitValue")
+        self.SpeedLimitValue.setFont(font2)
+        self.SpeedLimitValue.setSegmentStyle(QLCDNumber.Flat)
+
+        self.LiveTrainDataGrid.addWidget(self.SpeedLimitValue, 1, 1, 1, 1)
+
+        self.LengthVehicleLabel = QLabel(self.gridLayoutWidget)
+        self.LengthVehicleLabel.setObjectName(u"LengthVehicleLabel")
+        self.LengthVehicleLabel.setFont(font7)
+        self.LengthVehicleLabel.setFrameShape(QFrame.WinPanel)
+        self.LengthVehicleLabel.setFrameShadow(QFrame.Sunken)
+
+        self.LiveTrainDataGrid.addWidget(self.LengthVehicleLabel, 2, 0, 1, 1)
+
+        self.LengthVehicleValue = QLCDNumber(self.gridLayoutWidget)
+        self.LengthVehicleValue.setObjectName(u"LengthVehicleValue")
+        self.LengthVehicleValue.setFont(font2)
+        self.LengthVehicleValue.setSegmentStyle(QLCDNumber.Flat)
+
+        self.LiveTrainDataGrid.addWidget(self.LengthVehicleValue, 2, 1, 1, 1)
+
+        self.CommandedSpeedValue = QLCDNumber(self.gridLayoutWidget)
+        self.CommandedSpeedValue.setObjectName(u"CommandedSpeedValue")
+        self.CommandedSpeedValue.setFont(font2)
+        self.CommandedSpeedValue.setSegmentStyle(QLCDNumber.Flat)
+
+        self.LiveTrainDataGrid.addWidget(self.CommandedSpeedValue, 0, 1, 1, 1)
+
+        self.HeightValue = QLCDNumber(self.gridLayoutWidget)
+        self.HeightValue.setObjectName(u"HeightValue")
+        self.HeightValue.setFont(font2)
+        self.HeightValue.setSegmentStyle(QLCDNumber.Flat)
+
+        self.LiveTrainDataGrid.addWidget(self.HeightValue, 3, 1, 1, 1)
+
+        self.HeightLabel = QLabel(self.gridLayoutWidget)
+        self.HeightLabel.setObjectName(u"HeightLabel")
+        self.HeightLabel.setFont(font7)
+        self.HeightLabel.setFrameShape(QFrame.WinPanel)
+        self.HeightLabel.setFrameShadow(QFrame.Sunken)
+
+        self.LiveTrainDataGrid.addWidget(self.HeightLabel, 3, 0, 1, 1)
+
+        self.CrewCountValue = QLCDNumber(self.gridLayoutWidget)
+        self.CrewCountValue.setObjectName(u"CrewCountValue")
+        self.CrewCountValue.setFont(font2)
+        self.CrewCountValue.setSegmentStyle(QLCDNumber.Flat)
+
+        self.LiveTrainDataGrid.addWidget(self.CrewCountValue, 7, 1, 1, 1)
+
+        self.SpeedLimitLabel = QLabel(self.gridLayoutWidget)
+        self.SpeedLimitLabel.setObjectName(u"SpeedLimitLabel")
+        self.SpeedLimitLabel.setFont(font7)
+        self.SpeedLimitLabel.setFrameShape(QFrame.WinPanel)
+        self.SpeedLimitLabel.setFrameShadow(QFrame.Sunken)
+
+        self.LiveTrainDataGrid.addWidget(self.SpeedLimitLabel, 1, 0, 1, 1)
+
+        self.WidthValue = QLCDNumber(self.gridLayoutWidget)
+        self.WidthValue.setObjectName(u"WidthValue")
+        self.WidthValue.setFont(font2)
+        self.WidthValue.setSegmentStyle(QLCDNumber.Flat)
+
+        self.LiveTrainDataGrid.addWidget(self.WidthValue, 4, 1, 1, 1)
+
+        self.CrewCountLabel = QLabel(self.gridLayoutWidget)
+        self.CrewCountLabel.setObjectName(u"CrewCountLabel")
         self.CrewCountLabel.setFont(font7)
         self.CrewCountLabel.setFrameShape(QFrame.WinPanel)
         self.CrewCountLabel.setFrameShadow(QFrame.Sunken)
 
         self.LiveTrainDataGrid.addWidget(self.CrewCountLabel, 7, 0, 1, 1)
-
-        self.PassengerCountLabel = QLabel(self.gridLayoutWidget)
-        self.PassengerCountLabel.setObjectName(u"PassengerCountLabel")
-        self.PassengerCountLabel.setFont(font7)
-        self.PassengerCountLabel.setFrameShape(QFrame.WinPanel)
-        self.PassengerCountLabel.setFrameShadow(QFrame.Sunken)
-
-        self.LiveTrainDataGrid.addWidget(self.PassengerCountLabel, 6, 0, 1, 1)
 
         self.WidthLabel = QLabel(self.gridLayoutWidget)
         self.WidthLabel.setObjectName(u"WidthLabel")
@@ -340,72 +405,13 @@ class Ui_MainWindow(object):
 
         self.LiveTrainDataGrid.addWidget(self.CommandedSpeedLabel, 0, 0, 1, 1)
 
-        self.SpeedLimitLabel = QLabel(self.gridLayoutWidget)
-        self.SpeedLimitLabel.setObjectName(u"SpeedLimitLabel")
-        self.SpeedLimitLabel.setFont(font7)
-        self.SpeedLimitLabel.setFrameShape(QFrame.WinPanel)
-        self.SpeedLimitLabel.setFrameShadow(QFrame.Sunken)
+        self.PassengerCountLabel = QLabel(self.gridLayoutWidget)
+        self.PassengerCountLabel.setObjectName(u"PassengerCountLabel")
+        self.PassengerCountLabel.setFont(font7)
+        self.PassengerCountLabel.setFrameShape(QFrame.WinPanel)
+        self.PassengerCountLabel.setFrameShadow(QFrame.Sunken)
 
-        self.LiveTrainDataGrid.addWidget(self.SpeedLimitLabel, 1, 0, 1, 1)
-
-        self.LengthVehicleLabel = QLabel(self.gridLayoutWidget)
-        self.LengthVehicleLabel.setObjectName(u"LengthVehicleLabel")
-        self.LengthVehicleLabel.setFont(font7)
-        self.LengthVehicleLabel.setFrameShape(QFrame.WinPanel)
-        self.LengthVehicleLabel.setFrameShadow(QFrame.Sunken)
-
-        self.LiveTrainDataGrid.addWidget(self.LengthVehicleLabel, 2, 0, 1, 1)
-
-        self.MassVehicleLabel = QLabel(self.gridLayoutWidget)
-        self.MassVehicleLabel.setObjectName(u"MassVehicleLabel")
-        self.MassVehicleLabel.setFont(font7)
-        self.MassVehicleLabel.setFrameShape(QFrame.WinPanel)
-        self.MassVehicleLabel.setFrameShadow(QFrame.Sunken)
-
-        self.LiveTrainDataGrid.addWidget(self.MassVehicleLabel, 5, 0, 1, 1)
-
-        self.HeightLabel = QLabel(self.gridLayoutWidget)
-        self.HeightLabel.setObjectName(u"HeightLabel")
-        self.HeightLabel.setFont(font7)
-        self.HeightLabel.setFrameShape(QFrame.WinPanel)
-        self.HeightLabel.setFrameShadow(QFrame.Sunken)
-
-        self.LiveTrainDataGrid.addWidget(self.HeightLabel, 3, 0, 1, 1)
-
-        self.CommandedSpeedValue = QLCDNumber(self.gridLayoutWidget)
-        self.CommandedSpeedValue.setObjectName(u"CommandedSpeedValue")
-        self.CommandedSpeedValue.setFont(font2)
-        self.CommandedSpeedValue.setSegmentStyle(QLCDNumber.Flat)
-
-        self.LiveTrainDataGrid.addWidget(self.CommandedSpeedValue, 0, 1, 1, 1)
-
-        self.SpeedLimitValue = QLCDNumber(self.gridLayoutWidget)
-        self.SpeedLimitValue.setObjectName(u"SpeedLimitValue")
-        self.SpeedLimitValue.setFont(font2)
-        self.SpeedLimitValue.setSegmentStyle(QLCDNumber.Flat)
-
-        self.LiveTrainDataGrid.addWidget(self.SpeedLimitValue, 1, 1, 1, 1)
-
-        self.LengthVehicleValue = QLCDNumber(self.gridLayoutWidget)
-        self.LengthVehicleValue.setObjectName(u"LengthVehicleValue")
-        self.LengthVehicleValue.setFont(font2)
-        self.LengthVehicleValue.setSegmentStyle(QLCDNumber.Flat)
-
-        self.LiveTrainDataGrid.addWidget(self.LengthVehicleValue, 2, 1, 1, 1)
-
-        self.HeightValue = QLCDNumber(self.gridLayoutWidget)
-        self.HeightValue.setObjectName(u"HeightValue")
-        self.HeightValue.setFont(font2)
-        self.HeightValue.setSegmentStyle(QLCDNumber.Flat)
-
-        self.LiveTrainDataGrid.addWidget(self.HeightValue, 3, 1, 1, 1)
-
-        self.WidthValue = QLCDNumber(self.gridLayoutWidget)
-        self.WidthValue.setObjectName(u"WidthValue")
-        self.WidthValue.setFont(font2)
-        self.WidthValue.setSegmentStyle(QLCDNumber.Flat)
-
-        self.LiveTrainDataGrid.addWidget(self.WidthValue, 4, 1, 1, 1)
+        self.LiveTrainDataGrid.addWidget(self.PassengerCountLabel, 6, 0, 1, 1)
 
         self.MassVehicleValue = QLCDNumber(self.gridLayoutWidget)
         self.MassVehicleValue.setObjectName(u"MassVehicleValue")
@@ -421,12 +427,20 @@ class Ui_MainWindow(object):
 
         self.LiveTrainDataGrid.addWidget(self.PassengerCountValue, 6, 1, 1, 1)
 
-        self.CrewCountValue = QLCDNumber(self.gridLayoutWidget)
-        self.CrewCountValue.setObjectName(u"CrewCountValue")
-        self.CrewCountValue.setFont(font2)
-        self.CrewCountValue.setSegmentStyle(QLCDNumber.Flat)
+        self.GradePercentage = QLabel(self.gridLayoutWidget)
+        self.GradePercentage.setObjectName(u"GradePercentage")
+        self.GradePercentage.setFont(font7)
+        self.GradePercentage.setFrameShape(QFrame.WinPanel)
+        self.GradePercentage.setFrameShadow(QFrame.Sunken)
 
-        self.LiveTrainDataGrid.addWidget(self.CrewCountValue, 7, 1, 1, 1)
+        self.LiveTrainDataGrid.addWidget(self.GradePercentage, 8, 0, 1, 1)
+
+        self.CrewCountValue_2 = QLCDNumber(self.gridLayoutWidget)
+        self.CrewCountValue_2.setObjectName(u"CrewCountValue_2")
+        self.CrewCountValue_2.setFont(font2)
+        self.CrewCountValue_2.setSegmentStyle(QLCDNumber.Flat)
+
+        self.LiveTrainDataGrid.addWidget(self.CrewCountValue_2, 8, 1, 1, 1)
 
         self.gridLayoutWidget_2 = QWidget(self.Main)
         self.gridLayoutWidget_2.setObjectName(u"gridLayoutWidget_2")
@@ -513,7 +527,7 @@ class Ui_MainWindow(object):
         self.line_3.setFrameShadow(QFrame.Sunken)
         self.gridLayoutWidget_3 = QWidget(self.Main)
         self.gridLayoutWidget_3.setObjectName(u"gridLayoutWidget_3")
-        self.gridLayoutWidget_3.setGeometry(QRect(270, 380, 231, 231))
+        self.gridLayoutWidget_3.setGeometry(QRect(270, 380, 231, 234))
         self.DoorsLightsBrakes = QGridLayout(self.gridLayoutWidget_3)
         self.DoorsLightsBrakes.setObjectName(u"DoorsLightsBrakes")
         self.DoorsLightsBrakes.setContentsMargins(0, 0, 0, 0)
@@ -645,6 +659,26 @@ class Ui_MainWindow(object):
         self.Announcement_1.setMouseTracking(True)
         self.Announcement_1.setAutoFillBackground(True)
         self.Announcement_1.setFrameShape(QFrame.WinPanel)
+        self.Advertisements_2 = QLabel(self.Main)
+        self.Advertisements_2.setObjectName(u"Advertisements_2")
+        self.Advertisements_2.setGeometry(QRect(240, 5, 228, 83))
+        self.Advertisements_2.setMinimumSize(QSize(0, 0))
+        self.Advertisements_2.setAutoFillBackground(True)
+        self.Advertisements_2.setStyleSheet(u"")
+        self.Advertisements_2.setFrameShape(QFrame.WinPanel)
+        self.Advertisements_2.setFrameShadow(QFrame.Plain)
+        self.Advertisements_2.setTextFormat(Qt.AutoText)
+        self.Advertisements_2.setScaledContents(False)
+        self.Advertisements_3 = QLabel(self.Main)
+        self.Advertisements_3.setObjectName(u"Advertisements_3")
+        self.Advertisements_3.setGeometry(QRect(470, 5, 224, 83))
+        self.Advertisements_3.setMinimumSize(QSize(0, 0))
+        self.Advertisements_3.setAutoFillBackground(True)
+        self.Advertisements_3.setStyleSheet(u"")
+        self.Advertisements_3.setFrameShape(QFrame.WinPanel)
+        self.Advertisements_3.setFrameShadow(QFrame.Plain)
+        self.Advertisements_3.setTextFormat(Qt.AutoText)
+        self.Advertisements_3.setScaledContents(False)
         MainWindow.setCentralWidget(self.Main)
         self.FailureBox.raise_()
         self.Announcement_2.raise_()
@@ -660,6 +694,8 @@ class Ui_MainWindow(object):
         self.AM_PM.raise_()
         self.Announcement_1.raise_()
         self.Advertisements.raise_()
+        self.Advertisements_2.raise_()
+        self.Advertisements_3.raise_()
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
         self.menubar.setGeometry(QRect(0, 0, 710, 21))
@@ -699,18 +735,19 @@ class Ui_MainWindow(object):
         self.button_emergency.setText(QCoreApplication.translate("MainWindow", u"Emergency \n"
 "Brake", None))
         self.LiveTrainData.setTitle(QCoreApplication.translate("MainWindow", u"Live Train Data", None))
-        self.CrewCountLabel.setText(QCoreApplication.translate("MainWindow", u"Crew Count", None))
-        self.PassengerCountLabel.setText(QCoreApplication.translate("MainWindow", u"Passenger \n"
-"Count", None))
-        self.WidthLabel.setText(QCoreApplication.translate("MainWindow", u"Width (ft)", None))
-        self.CommandedSpeedLabel.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Commanded </p><p>Speed (mph)</p></body></html>", None))
-        self.SpeedLimitLabel.setText(QCoreApplication.translate("MainWindow", u"Speed Limit \n"
-"(mph)", None))
-        self.LengthVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Length of \n"
-"Vehicle (ft)", None))
         self.MassVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Mass of Vehicle \n"
 "(lbs)", None))
+        self.LengthVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Length of \n"
+"Vehicle (ft)", None))
         self.HeightLabel.setText(QCoreApplication.translate("MainWindow", u"Height (ft)", None))
+        self.SpeedLimitLabel.setText(QCoreApplication.translate("MainWindow", u"Speed Limit \n"
+"(mph)", None))
+        self.CrewCountLabel.setText(QCoreApplication.translate("MainWindow", u"Crew Count", None))
+        self.WidthLabel.setText(QCoreApplication.translate("MainWindow", u"Width (ft)", None))
+        self.CommandedSpeedLabel.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Commanded </p><p>Speed (mph)</p></body></html>", None))
+        self.PassengerCountLabel.setText(QCoreApplication.translate("MainWindow", u"Passenger \n"
+"Count", None))
+        self.GradePercentage.setText(QCoreApplication.translate("MainWindow", u"Grade (%)", None))
         self.Acceleration.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Acceleration </p><p>(ft/s<span style=\" vertical-align:super;\">2</span>)</p></body></html>", None))
         self.Power.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Current Engine</p><p>Power (W)</p></body></html>", None))
         self.ActualSpeed.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p><span style=\" font-size:12pt;\">Actual </span></p><p><span style=\" font-size:12pt;\">Speed (mph)</span></p></body></html>", None))
@@ -733,6 +770,8 @@ class Ui_MainWindow(object):
         self.RightDoorClosed.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">CLOSED</p></body></html>", None))
         self.AM_PM.setText(QCoreApplication.translate("MainWindow", u"AM", None))
         self.Announcement_1.setText(QCoreApplication.translate("MainWindow", u"ANNOUNCEMENT: ", None))
+        self.Advertisements_2.setText("")
+        self.Advertisements_3.setText("")
         self.menuTrain_ID_1.setTitle(QCoreApplication.translate("MainWindow", u"Train ID 1", None))
     # retranslateUi
 
