@@ -95,7 +95,7 @@
          </spacer>
         </item>
         <item row="3" column="2">
-         <widget class="QLineEdit" name="lineEdit_3">
+         <widget class="QLineEdit" name="commanded_wayside_speed_line_edit">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
             <horstretch>0</horstretch>
@@ -105,7 +105,7 @@
          </widget>
         </item>
         <item row="2" column="2">
-         <widget class="QLineEdit" name="lineEdit_2">
+         <widget class="QLineEdit" name="speed_limit_line_edit">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
             <horstretch>0</horstretch>
@@ -122,7 +122,7 @@
          </widget>
         </item>
         <item row="10" column="2">
-         <widget class="QLineEdit" name="lineEdit_10">
+         <widget class="QLineEdit" name="engine_failure_line_edit">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
             <horstretch>0</horstretch>
@@ -146,7 +146,7 @@
          </widget>
         </item>
         <item row="4" column="2">
-         <widget class="QLineEdit" name="lineEdit_4">
+         <widget class="QLineEdit" name="commanded_wayside_authority_line_edit">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
             <horstretch>0</horstretch>
@@ -171,12 +171,12 @@
         <item row="1" column="0">
          <widget class="QLabel" name="label_3">
           <property name="text">
-           <string>Current Velocity (m/s)</string>
+           <string>Actual Speed (m/s)</string>
           </property>
          </widget>
         </item>
         <item row="6" column="2">
-         <widget class="QLineEdit" name="lineEdit_6">
+         <widget class="QLineEdit" name="beacon_data_line_edit">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
             <horstretch>0</horstretch>
@@ -186,7 +186,7 @@
          </widget>
         </item>
         <item row="9" column="2">
-         <widget class="QLineEdit" name="lineEdit_9">
+         <widget class="QLineEdit" name="brake_failure_line_edit">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
             <horstretch>0</horstretch>
@@ -196,7 +196,7 @@
          </widget>
         </item>
         <item row="8" column="2">
-         <widget class="QLineEdit" name="lineEdit_8">
+         <widget class="QLineEdit" name="signal_failure_line_edit">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
             <horstretch>0</horstretch>
@@ -233,7 +233,7 @@
          </widget>
         </item>
         <item row="7" column="2">
-         <widget class="QLineEdit" name="lineEdit_7">
+         <widget class="QLineEdit" name="temperature_status_line_edit">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
             <horstretch>0</horstretch>
@@ -283,7 +283,7 @@
          </widget>
         </item>
         <item row="5" column="2">
-         <widget class="QLineEdit" name="lineEdit_5">
+         <widget class="QLineEdit" name="passenger_emergency_stop_line_edit">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
             <horstretch>0</horstretch>
@@ -293,7 +293,7 @@
          </widget>
         </item>
         <item row="1" column="2">
-         <widget class="QLineEdit" name="lineEdit">
+         <widget class="QLineEdit" name="actual_speed_line_edit">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
             <horstretch>0</horstretch>
@@ -362,7 +362,7 @@
          </spacer>
         </item>
         <item row="11" column="2">
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="input_apply_button">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
             <horstretch>0</horstretch>
@@ -430,8 +430,74 @@
       </item>
       <item row="2" column="1">
        <layout class="QGridLayout" name="gridLayout_4">
-        <item row="5" column="2">
-         <widget class="QLabel" name="label_25">
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_18">
+          <property name="text">
+           <string>Internal Lights Signal (bool)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="2" colspan="2">
+         <widget class="QLabel" name="annunciation_system_display">
+          <property name="frameShape">
+           <enum>QFrame::WinPanel</enum>
+          </property>
+          <property name="text">
+           <string>String</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_21">
+          <property name="text">
+           <string>Emergency Brakes (bool)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <spacer name="verticalSpacer_16">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="9" column="3">
+         <widget class="QLabel" name="operating_doors_close_light">
+          <property name="frameShape">
+           <enum>QFrame::WinPanel</enum>
+          </property>
+          <property name="text">
+           <string>Close</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="2">
+         <widget class="QLabel" name="emergency_brake_on_light">
+          <property name="frameShape">
+           <enum>QFrame::WinPanel</enum>
+          </property>
+          <property name="text">
+           <string>On</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="2">
+         <widget class="QLabel" name="air_conditioning_on_light">
           <property name="frameShape">
            <enum>QFrame::WinPanel</enum>
           </property>
@@ -456,23 +522,16 @@
           </property>
          </spacer>
         </item>
-        <item row="9" column="1">
-         <spacer name="verticalSpacer_18">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
+        <item row="8" column="3">
+         <widget class="QLabel" name="heating_signal_off_light">
+          <property name="frameShape">
+           <enum>QFrame::WinPanel</enum>
           </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_21">
           <property name="text">
-           <string>Emergency Brakes (bool)</string>
+           <string>Off</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
           </property>
          </widget>
         </item>
@@ -483,23 +542,16 @@
           </property>
          </widget>
         </item>
-        <item row="7" column="2">
-         <widget class="QLabel" name="label_27">
+        <item row="6" column="3">
+         <widget class="QLabel" name="internal_light_off_light">
           <property name="frameShape">
            <enum>QFrame::WinPanel</enum>
           </property>
           <property name="text">
-           <string>On</string>
+           <string>Off</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="label_18">
-          <property name="text">
-           <string>Internal Lights Signal (bool)</string>
           </property>
          </widget>
         </item>
@@ -516,27 +568,52 @@
           </property>
          </spacer>
         </item>
-        <item row="7" column="0">
-         <widget class="QLabel" name="label_19">
-          <property name="text">
-           <string>Air Conditioning Signal (bool)</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_16">
-          <property name="text">
-           <string>Annunciation System (string)</string>
-          </property>
-         </widget>
-        </item>
         <item row="8" column="2">
-         <widget class="QLabel" name="label_28">
+         <widget class="QLabel" name="heating_signal_on_light">
           <property name="frameShape">
            <enum>QFrame::WinPanel</enum>
           </property>
           <property name="text">
            <string>On</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="service_brakes_off_light">
+          <property name="frameShape">
+           <enum>QFrame::WinPanel</enum>
+          </property>
+          <property name="text">
+           <string>Off</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <spacer name="verticalSpacer_15">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="3" column="3">
+         <widget class="QLabel" name="emergency_brake_off_light">
+          <property name="frameShape">
+           <enum>QFrame::WinPanel</enum>
+          </property>
+          <property name="text">
+           <string>Off</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -556,114 +633,10 @@
           </property>
          </spacer>
         </item>
-        <item row="8" column="0">
-         <widget class="QLabel" name="label_20">
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_16">
           <property name="text">
-           <string>Heating Signal (bool)</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
-         <spacer name="verticalSpacer_15">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="6" column="3">
-         <widget class="QLabel" name="label_34">
-          <property name="frameShape">
-           <enum>QFrame::WinPanel</enum>
-          </property>
-          <property name="text">
-           <string>Off</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="3">
-         <widget class="QLabel" name="label_35">
-          <property name="frameShape">
-           <enum>QFrame::WinPanel</enum>
-          </property>
-          <property name="text">
-           <string>Off</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="3">
-         <widget class="QLabel" name="label_33">
-          <property name="frameShape">
-           <enum>QFrame::WinPanel</enum>
-          </property>
-          <property name="text">
-           <string>Off</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="1">
-         <spacer name="verticalSpacer_16">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="4" column="1">
-         <spacer name="verticalSpacer_14">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="8" column="3">
-         <widget class="QLabel" name="label_36">
-          <property name="frameShape">
-           <enum>QFrame::WinPanel</enum>
-          </property>
-          <property name="text">
-           <string>Off</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="2">
-         <widget class="QLabel" name="label_26">
-          <property name="frameShape">
-           <enum>QFrame::WinPanel</enum>
-          </property>
-          <property name="text">
-           <string>On</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <string>Annunciation System (string)</string>
           </property>
          </widget>
         </item>
@@ -674,21 +647,8 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="2">
-         <widget class="QLabel" name="label_29">
-          <property name="frameShape">
-           <enum>QFrame::WinPanel</enum>
-          </property>
-          <property name="text">
-           <string>On</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="3">
-         <widget class="QLabel" name="label_37">
+        <item row="5" column="3">
+         <widget class="QLabel" name="headlight_off_light">
           <property name="frameShape">
            <enum>QFrame::WinPanel</enum>
           </property>
@@ -700,8 +660,21 @@
           </property>
          </widget>
         </item>
+        <item row="5" column="2">
+         <widget class="QLabel" name="headlight_on_light">
+          <property name="frameShape">
+           <enum>QFrame::WinPanel</enum>
+          </property>
+          <property name="text">
+           <string>On</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
         <item row="9" column="2">
-         <widget class="QLabel" name="label_24">
+         <widget class="QLabel" name="operating_doors_open_light">
           <property name="frameShape">
            <enum>QFrame::WinPanel</enum>
           </property>
@@ -713,13 +686,13 @@
           </property>
          </widget>
         </item>
-        <item row="9" column="3">
-         <widget class="QLabel" name="label_31">
+        <item row="7" column="3">
+         <widget class="QLabel" name="air_conditioning_off_light">
           <property name="frameShape">
            <enum>QFrame::WinPanel</enum>
           </property>
           <property name="text">
-           <string>Close</string>
+           <string>Off</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -727,7 +700,7 @@
          </widget>
         </item>
         <item row="2" column="2">
-         <widget class="QLabel" name="label_23">
+         <widget class="QLabel" name="service_brakes_on_light">
           <property name="frameShape">
            <enum>QFrame::WinPanel</enum>
           </property>
@@ -739,12 +712,18 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_14">
-          <property name="text">
-           <string>Service Brakes (bool)</string>
+        <item row="9" column="1">
+         <spacer name="verticalSpacer_18">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
           </property>
-         </widget>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
         </item>
         <item row="2" column="1">
          <spacer name="verticalSpacer_12">
@@ -759,25 +738,55 @@
           </property>
          </spacer>
         </item>
-        <item row="2" column="3">
-         <widget class="QLabel" name="label_30">
+        <item row="8" column="0">
+         <widget class="QLabel" name="label_20">
+          <property name="text">
+           <string>Heating Signal (bool)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_14">
+          <property name="text">
+           <string>Service Brakes (bool)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_19">
+          <property name="text">
+           <string>Air Conditioning Signal (bool)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <spacer name="verticalSpacer_14">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="6" column="2">
+         <widget class="QLabel" name="internal_light_on_light">
           <property name="frameShape">
            <enum>QFrame::WinPanel</enum>
           </property>
           <property name="text">
-           <string>Off</string>
+           <string>On</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
           </property>
          </widget>
         </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_13">
-          <property name="text">
-           <string>Power (W)</string>
-          </property>
-         </widget>
+        <item row="1" column="2" colspan="2">
+         <widget class="QLCDNumber" name="power_lcd"/>
         </item>
         <item row="1" column="1">
          <spacer name="verticalSpacer_11">
@@ -792,19 +801,10 @@
           </property>
          </spacer>
         </item>
-        <item row="1" column="2" colspan="2">
-         <widget class="QLCDNumber" name="lcdNumber"/>
-        </item>
-        <item row="4" column="2" colspan="2">
-         <widget class="QLabel" name="label_22">
-          <property name="frameShape">
-           <enum>QFrame::WinPanel</enum>
-          </property>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_13">
           <property name="text">
-           <string>String</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <string>Commanded Power (W)</string>
           </property>
          </widget>
         </item>

@@ -39,7 +39,7 @@
          <item row="0" column="0">
           <layout class="QGridLayout" name="gridLayout_3">
            <item row="0" column="1">
-            <widget class="QLabel" name="label_14">
+            <widget class="QLabel" name="next_station_label">
              <property name="font">
               <font>
                <pointsize>11</pointsize>
@@ -87,13 +87,16 @@
             </widget>
            </item>
            <item row="1" column="1">
-            <widget class="QLabel" name="label_16">
+            <widget class="QLabel" name="announcement_light">
              <property name="font">
               <font>
                <pointsize>11</pointsize>
                <weight>75</weight>
                <bold>true</bold>
               </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color: rgb(250, 255, 185);</string>
              </property>
              <property name="frameShape">
               <enum>QFrame::WinPanel</enum>
@@ -121,7 +124,7 @@
             </widget>
            </item>
            <item row="2" column="1">
-            <widget class="QLCDNumber" name="lcdNumber_7">
+            <widget class="QLCDNumber" name="global_clock_lcd">
              <property name="mode">
               <enum>QLCDNumber::Dec</enum>
              </property>
@@ -173,7 +176,7 @@
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QSlider" name="horizontalSlider_2">
+          <widget class="QSlider" name="control_mode_switch">
            <property name="maximum">
             <number>1</number>
            </property>
@@ -240,7 +243,7 @@
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QLabel" name="label_28">
+          <widget class="QLabel" name="signal_failure_light">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
              <horstretch>0</horstretch>
@@ -278,7 +281,7 @@
           </spacer>
          </item>
          <item row="1" column="4">
-          <widget class="QLabel" name="label_29">
+          <widget class="QLabel" name="brake_failure_light">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
              <horstretch>0</horstretch>
@@ -303,7 +306,7 @@
           </widget>
          </item>
          <item row="1" column="7">
-          <widget class="QLabel" name="label_30">
+          <widget class="QLabel" name="engine_failure_light">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
              <horstretch>0</horstretch>
@@ -384,7 +387,7 @@
           </widget>
          </item>
          <item row="2" column="0" colspan="8">
-          <widget class="QPushButton" name="pushButton_7">
+          <widget class="QPushButton" name="emergency_button">
            <property name="enabled">
             <bool>true</bool>
            </property>
@@ -494,7 +497,7 @@
        <item row="0" column="0">
         <layout class="QGridLayout" name="gridLayout_15">
          <item row="1" column="1">
-          <widget class="QLineEdit" name="lineEdit_2">
+          <widget class="QLineEdit" name="ki_line_edit">
            <property name="placeholderText">
             <string>Enter Value Here...</string>
            </property>
@@ -508,7 +511,7 @@
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QLineEdit" name="lineEdit">
+          <widget class="QLineEdit" name="kp_line_edit">
            <property name="placeholderText">
             <string>Enter Value Here...</string>
            </property>
@@ -522,7 +525,7 @@
           </widget>
          </item>
          <item row="0" column="2" rowspan="2">
-          <widget class="QPushButton" name="pushButton_8">
+          <widget class="QPushButton" name="control_constants_apply_button">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
              <horstretch>0</horstretch>
@@ -597,7 +600,7 @@
           </widget>
          </item>
          <item row="4" column="3">
-          <widget class="QLabel" name="label_6">
+          <widget class="QLabel" name="service_brake_off_light">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -620,7 +623,7 @@
           </widget>
          </item>
          <item row="3" column="2">
-          <widget class="QLCDNumber" name="lcdNumber">
+          <widget class="QLCDNumber" name="target_speed_lcd">
            <property name="frameShape">
             <enum>QFrame::Box</enum>
            </property>
@@ -630,14 +633,14 @@
           </widget>
          </item>
          <item row="2" column="2" colspan="3">
-          <widget class="QLCDNumber" name="lcdNumber_3">
+          <widget class="QLCDNumber" name="speed_limit_lcd">
            <property name="styleSheet">
             <string notr="true">background-color: rgb(255, 170, 0);</string>
            </property>
           </widget>
          </item>
          <item row="3" column="3">
-          <widget class="QSpinBox" name="spinBox_2">
+          <widget class="QSpinBox" name="target_speed_spin_box">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
              <horstretch>0</horstretch>
@@ -647,7 +650,7 @@
           </widget>
          </item>
          <item row="1" column="2" colspan="3">
-          <widget class="QLCDNumber" name="lcdNumber_2">
+          <widget class="QLCDNumber" name="actual_speed_lcd">
            <property name="styleSheet">
             <string notr="true">background-color: rgb(255, 170, 0);</string>
            </property>
@@ -657,7 +660,7 @@
           </widget>
          </item>
          <item row="4" column="2">
-          <widget class="QLabel" name="label_4">
+          <widget class="QLabel" name="service_brake_on_light">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -689,7 +692,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Speed Limit (mph)</string>
+            <string>Actual Speed (mph)</string>
            </property>
           </widget>
          </item>
@@ -800,13 +803,13 @@
           </spacer>
          </item>
          <item row="5" column="2" colspan="3">
-          <widget class="QLCDNumber" name="lcdNumber_6"/>
+          <widget class="QLCDNumber" name="output_power_lcd"/>
          </item>
          <item row="6" column="2" colspan="3">
-          <widget class="QLCDNumber" name="lcdNumber_5"/>
+          <widget class="QLCDNumber" name="authority_lcd"/>
          </item>
          <item row="3" column="4">
-          <widget class="QPushButton" name="pushButton_9">
+          <widget class="QPushButton" name="target_speed_apply_button">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
              <horstretch>0</horstretch>
@@ -842,60 +845,6 @@
       <layout class="QGridLayout" name="gridLayout_9">
        <item row="0" column="0">
         <layout class="QGridLayout" name="gridLayout_13">
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_5">
-           <property name="font">
-            <font>
-             <pointsize>11</pointsize>
-             <weight>75</weight>
-             <italic>false</italic>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Cabin Temperature (F)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QPushButton" name="pushButton_4">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Off</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QPushButton" name="pushButton_2">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Off</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QPushButton" name="pushButton_3">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>On</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="0">
           <widget class="QLabel" name="label">
            <property name="font">
@@ -917,8 +866,60 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_3">
+         <item row="1" column="3">
+          <widget class="QPushButton" name="interior_lights_off_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Off</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QPushButton" name="interior_lights_on_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>On</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="3">
+          <widget class="QPushButton" name="door_right_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Right</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QPushButton" name="headlights_off_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Off</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_5">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -928,12 +929,12 @@
             </font>
            </property>
            <property name="text">
-            <string>Doors</string>
+            <string>Cabin Temperature (F)</string>
            </property>
           </widget>
          </item>
          <item row="2" column="2">
-          <widget class="QPushButton" name="pushButton_6">
+          <widget class="QPushButton" name="doors_left_button">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
              <horstretch>0</horstretch>
@@ -941,7 +942,7 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Right</string>
+            <string>Left</string>
            </property>
           </widget>
          </item>
@@ -960,24 +961,36 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
-          <widget class="QPushButton" name="pushButton_5">
+         <item row="3" column="2">
+          <widget class="QLCDNumber" name="cabin_temperature_lcd"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_3">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>75</weight>
+             <italic>false</italic>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Doors</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3">
+          <widget class="QSpinBox" name="cabin_temperature_spin_box">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="text">
-            <string>Left</string>
-           </property>
           </widget>
          </item>
-         <item row="3" column="2">
-          <widget class="QSpinBox" name="spinBox"/>
-         </item>
-         <item row="0" column="1">
-          <widget class="QPushButton" name="pushButton">
+         <item row="0" column="2">
+          <widget class="QPushButton" name="headlights_on_button">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
              <horstretch>0</horstretch>
@@ -990,22 +1003,6 @@
           </widget>
          </item>
          <item row="3" column="1">
-          <widget class="QLCDNumber" name="lcdNumber_4"/>
-         </item>
-         <item row="2" column="3">
-          <spacer name="verticalSpacer_9">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item row="3" column="3">
           <spacer name="verticalSpacer_10">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -1018,8 +1015,8 @@
            </property>
           </spacer>
          </item>
-         <item row="0" column="3">
-          <spacer name="verticalSpacer_7">
+         <item row="2" column="1">
+          <spacer name="verticalSpacer_9">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -1031,8 +1028,21 @@
            </property>
           </spacer>
          </item>
-         <item row="1" column="3">
+         <item row="1" column="1">
           <spacer name="verticalSpacer_8">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="0" column="1">
+          <spacer name="verticalSpacer_7">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
