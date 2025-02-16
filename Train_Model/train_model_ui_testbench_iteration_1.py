@@ -446,15 +446,15 @@ class Ui_TestMainWindow(object):
 
         self.Inputs.setItem(11, QFormLayout.LabelRole, self.verticalSpacer_30)
 
-        # self.TemperatureLabel = QLabel(self.gridLayoutWidget)
-        # self.TemperatureLabel.setObjectName(u"TemperatureLabel")
+        self.EmergencyLabel = QLabel(self.gridLayoutWidget)
+        self.EmergencyLabel.setObjectName(u"EmergencyStopLabel")
 
-        # self.Inputs.setWidget(20, QFormLayout.LabelRole, self.TemperatureLabel)
+        self.Inputs.setWidget(20, QFormLayout.LabelRole, self.EmergencyLabel)
 
-        # self.Temperature = QLineEdit(self.gridLayoutWidget)
-        # self.Temperature.setObjectName(u"Temperature")
+        self.EmergencyStop = QCheckBox(self.gridLayoutWidget)
+        self.EmergencyStop.setObjectName(u"EmergencyStop")
 
-        # self.Inputs.setWidget(20, QFormLayout.FieldRole, self.Temperature)
+        self.Inputs.setWidget(20, QFormLayout.FieldRole, self.EmergencyStop)
 
         self.verticalSpacer_31 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
@@ -531,7 +531,8 @@ class Ui_TestMainWindow(object):
         self.RightDoors.setText(QCoreApplication.translate("MainWindow", u"ENABLE", None))
         self.ServiceBrakesLabel.setText(QCoreApplication.translate("MainWindow", u"Service Brakes", None))
         self.ServiceBrakes.setText(QCoreApplication.translate("MainWindow", u"ENABLE", None))
-        # self.TemperatureLabel.setText(QCoreApplication.translate("MainWindow", u"Temperature", None))
+        self.EmergencyLabel.setText(QCoreApplication.translate("MainWindow", u"Emergency Stop (bool)", None))
+        self.EmergencyStop.setText(QCoreApplication.translate("MainWindow", u"DISABLE", None))
         self.INPUTS.setText(QCoreApplication.translate("MainWindow", u"INPUTS", None))
     # retranslateUi
 

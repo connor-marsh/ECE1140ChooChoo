@@ -84,6 +84,22 @@ class TestBenchApp(QMainWindow):
         self.ui = TestBenchUI()
         self.ui.setupUi(self)
         self.train_app = train_app
+        
+        # Configure the testbench emergency release checkbox:
+        self.ui.EmergencyStop.setCheckable(True)
+        self.ui.EmergencyStop.setEnabled(False)   # Initially disabled
+        self.ui.EmergencyStop.setChecked(False)     # Initially not active
+        self.ui.EmergencyStop.toggled.connect(self.handle_emergency_release)
+
+    def handle_emergency_release(self, checked: bool):
+        # When the testbench checkbox is unchecked, release the emergency.
+        if not checked:
+            # Re-enable the main UI emergency button and uncheck it.
+            self.train_app.train_ui.button_emergency.setEnabled(True)
+            self.train_app.train_ui.button_emergency.setChecked(False)
+            self.ui.PEmergencyStop.setText("Not Displayed")
+            # Disable the testbench checkbox again.
+            self.ui.EmergencyStop.setEnabled(False)
 
     def read_inputs(self):
         # Get inputs from UI, converting as needed.
@@ -106,7 +122,7 @@ class TestBenchApp(QMainWindow):
         auth_str = self.ui.WaysideAuthority.text()  # Authority input
         auth_val = self.train_app.to_float(auth_str, 0.0)
         if abs(auth_val) > 0.0001:
-            self.ui.WaysideAuthority_2.setText("Displayed")
+            self.ui.WaysideAuthority_2.setText(f"{(auth_val*3.281):.2f} (feet)")
         else:
             self.ui.WaysideAuthority_2.setText("Not Displayed")
 
@@ -169,7 +185,8 @@ class TrainModelApp(QMainWindow):
         # Configure emergency brake button to be checkable
         self.train_ui.button_emergency.setCheckable(True)
         self.init_failure_buttons()
-        self.train_ui.button_emergency.toggled.connect(self.mark_emergency_displayed)
+        # self.train_ui.button_emergency.toggled.connect(self.mark_emergency_displayed)
+        self.train_ui.button_emergency.toggled.connect(self.handle_emergency_button)
 
     def update_from_testbench(self):
         """Reads inputs from the testbench, updates physics, and refreshes UI."""
@@ -225,7 +242,7 @@ class TrainModelApp(QMainWindow):
             target_a = a_base
 
         # Gradually ramp the current acceleration toward the target value.
-        ramp_rate = 1.0  # m/s^3, adjust this value for smoother or faster transitions
+        ramp_rate = 5.0  # m/s^3, adjust this value for smoother or faster transitions
         accel_diff = target_a - self.current_acceleration
         max_delta = ramp_rate * dt
         if abs(accel_diff) < max_delta:
@@ -241,6 +258,40 @@ class TrainModelApp(QMainWindow):
         new_velocity = old_velocity + (dt / 2.0) * (a + self.previous_acceleration)
         if new_velocity < 0:
             new_velocity = 0
+            
+        # # determine the maximum allowed speed:
+        # # if a speed limit is set (nonzero) and commanded speed is higher than the limit, follow the speed limit.
+        # if speed_limit > 0 and wayside_speed > speed_limit:
+        #     max_allowed_speed = speed_limit
+        # else:
+        #     max_allowed_speed = wayside_speed
+
+        # # ensure actual velocity never exceeds the maximum allowed speed
+        # if new_velocity > max_allowed_speed:
+        #     new_velocity = max_allowed_speed
+
+        # when velocity is constant, acc. decays
+        # define a small threshold and decay factor.
+        # threshold = 0.0001
+        # decay_factor = 0.9
+
+        # # if the max allowed speed is near zero, override acceleration and velocity.
+        # if max_allowed_speed < threshold:
+        #     a = 0
+        #     new_velocity = 0
+        # # if we're at (or nearly at) the max allowed speed and acceleration is positive, gradually decay the acceleration.
+        # elif new_velocity >= max_allowed_speed - threshold and a > 0:
+        #     if not hasattr(self, 'decayed_acceleration'):
+        #         self.decayed_acceleration = a
+        #     else:
+        #         self.decayed_acceleration *= decay_factor
+        #     a = self.decayed_acceleration
+        #     new_velocity = old_velocity + a * dt
+        #     new_velocity = min(new_velocity, max_allowed_speed)
+        # # if not at the limit, reset any decayed acceleration for a fresh start.
+        # else:
+        #     if hasattr(self, 'decayed_acceleration'):
+        #         del self.decayed_acceleration
 
         # If both commanded speed and power are near zero, force zero acceleration and velocity.
         threshold = 0.0001
@@ -266,11 +317,11 @@ class TrainModelApp(QMainWindow):
             a = self.SERVICE_DECEL
             self.train_ui.ServiceBrakesOff.setStyleSheet("background-color: none; color: black;")
             self.train_ui.ServiceBrakesOn.setStyleSheet("background-color: yellow; color: black;")
-            self.train_ui.button_emergency.setEnabled(False)
+            # self.train_ui.button_emergency.setEnabled(False)
         else:
             self.train_ui.ServiceBrakesOn.setStyleSheet("background-color: none; color: black;")
             self.train_ui.ServiceBrakesOff.setStyleSheet("background-color: yellow; color: black;")
-            self.train_ui.button_emergency.setEnabled(True)
+            # self.train_ui.button_emergency.setEnabled(True)
 
         # Update cabin temperature based on heating or AC signals.
         degrees_per_second = 0.005  # Temperature change per second factor
@@ -383,14 +434,20 @@ class TrainModelApp(QMainWindow):
         elif button_name == "Disabled3":
             self.testbench.ui.EngineFailure.setText(text_to_set)
             self.train_ui.Enabled3.setEnabled(not checked)
-
-    def mark_emergency_displayed(self, pressed: bool):
-        """When the emergency brake is toggled, update the testbench and UI accordingly."""
+            
+    def handle_emergency_button(self, pressed: bool):
         if pressed:
+            # Lock the emergency button in the main UI.
+            self.train_ui.button_emergency.setEnabled(False)
+            # Update testbench indicator.
             self.testbench.ui.PEmergencyStop.setText("Displayed")
             self.testbench.ui.ServiceBrakes.setChecked(False)
             self.testbench.ui.ServiceBrakes.setEnabled(False)
+            # Enable the testbench release control and set it to "active".
+            self.testbench.ui.EmergencyStop.setEnabled(True)
+            self.testbench.ui.EmergencyStop.setChecked(True)
         else:
+            # (This branch is unlikely to be used since the button is locked when pressed.)
             self.testbench.ui.PEmergencyStop.setText("Not Displayed")
             self.testbench.ui.ServiceBrakes.setEnabled(True)
 
