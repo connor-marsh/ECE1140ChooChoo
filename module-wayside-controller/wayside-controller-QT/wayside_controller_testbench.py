@@ -1,25 +1,29 @@
 """Connor Murray breh"""
 import sys
+import math
 from PyQt5.QtWidgets import QApplication, QMainWindow, QListWidgetItem
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtGui import QIntValidator
 from wayside_controller_testbench_ui import Ui_MainWindow
 
 """Describe the class"""
 class WaysideTestbenchApp(QMainWindow):
     
     # Constants
-    NUMBER_OF_BLOCKS = 15 # constant value
+    NUMBER_OF_BLOCKS = 15 
+    MAX_SPEED_LIMIT = 50 # kmh
+    MAX_AUTHORITY = 500 # meters
 
     # Variables
     current_block_index = None # index to the lists below
     block_occupancies = ["Unoccupied"] * NUMBER_OF_BLOCKS # List containing the block occupancies
-    suggested_authorities = ["Not Set"] * NUMBER_OF_BLOCKS # List containing the suggested authorities
-    suggested_speeds = ["Not Set"] * NUMBER_OF_BLOCKS # List contianing the suggested speeds
+    suggested_authorities = [None] * NUMBER_OF_BLOCKS # List containing the suggested authorities
+    suggested_speeds = [None] * NUMBER_OF_BLOCKS # List contianing the suggested speeds
 
     # Signals specifying which block and the value to update with
-    block_occupancy = pyqtSignal(int, str) # (index, value)
-    suggested_authority = pyqtSignal(int, str) # (index, value)
-    suggested_speed = pyqtSignal(int, str) # (index, value)
+    block_occupancy_signal = pyqtSignal(int, str) # (index, value)
+    suggested_authority_signal = pyqtSignal(int, str) # (index, value)
+    suggested_speed_signal = pyqtSignal(int, str) # (index, value)
 
 
     def __init__(self):
@@ -27,12 +31,21 @@ class WaysideTestbenchApp(QMainWindow):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        
+        self.setup_validators()
+
         # Connecting the list signals to the slot
         self.ui.select_block_list.itemClicked.connect(self.handle_block_selection)
         self.ui.suggested_speed_confirm_button.clicked.connect(self.handle_speed_confirmation)
         self.ui.suggested_authority_confirm_button.clicked.connect(self.handle_authority_confirmation)
         self.ui.block_occupancy_confirm_button.clicked.connect(self.handle_occupancy_confirmation)
+
+    def setup_validators(self):
+        speed_validator = QIntValidator(0, int(self.MAX_SPEED_LIMIT * 0.621)) # convert to mph since entry is done in mph
+        self.ui.suggested_speed_line_edit.setValidator(speed_validator)
+
+        authority_validator = QIntValidator(0, int(self.MAX_AUTHORITY *  3.28))
+        self.ui.suggested_authority_line_edit.setValidator(authority_validator)
+
 
     @pyqtSlot(QListWidgetItem)  
     def handle_block_selection(self, selected_block):
@@ -50,7 +63,7 @@ class WaysideTestbenchApp(QMainWindow):
             self.ui.block_occupancy_combo_box.setCurrentIndex(3) # match combo box to the user input of track failure
 
         # Update the suggested speed fields to match the corresponding blocks user input, otherwise clear the block since it has nothing 
-        if self.suggested_speeds[self.current_block_index] == "Not Set":
+        if self.suggested_speeds[self.current_block_index] == None:
             self.ui.suggested_speed_line_edit.clear()
             self.ui.suggested_authority_line_edit.clear()
         else:
@@ -58,7 +71,7 @@ class WaysideTestbenchApp(QMainWindow):
             self.ui.suggested_authority_line_edit.setText(self.suggested_authorities[self.current_block_index])
 
         # Update the suggested authority fields to match the corresponding blocks user input, otherwise clear the block since it has nothing 
-        if self.suggested_authorities[self.current_block_index] == "Not Set":
+        if self.suggested_authorities[self.current_block_index] == None:
             self.ui.suggested_authority_line_edit.clear()
         else:
             self.ui.suggested_authority_line_edit.setText(self.suggested_authorities[self.current_block_index])
@@ -68,21 +81,21 @@ class WaysideTestbenchApp(QMainWindow):
         if self.current_block_index is not None: # Making sure the confirmation button only updates when a block is selected
             # When the confirm button is clicked update the speed and emit a signal
             self.suggested_speeds[self.current_block_index] = self.ui.suggested_speed_line_edit.text()
-            self.suggested_speed.emit(self.current_block_index, self.ui.suggested_speed_line_edit.text())
+            self.suggested_speed_signal.emit(self.current_block_index, self.ui.suggested_speed_line_edit.text())
     
     @pyqtSlot()  
     def handle_authority_confirmation(self):
         if self.current_block_index is not None: # Making sure the confirmation button only updates when a block is selected
             # When the confirm button is clicked update the authority and emit a signal
             self.suggested_authorities[self.current_block_index] = self.ui.suggested_authority_line_edit.text()
-            self.suggested_authority.emit(self.current_block_index, self.ui.suggested_authority_line_edit.text())
+            self.suggested_authority_signal.emit(self.current_block_index, self.ui.suggested_authority_line_edit.text())
     
     @pyqtSlot()
     def handle_occupancy_confirmation(self):
         if self.current_block_index is not None: # Making sure the confirmation button only updates when a block is selected
             # When the confirm button is clicked update the occupancy in accordance with the current state of the combo box
             self.block_occupancies[self.current_block_index] = self.ui.block_occupancy_combo_box.currentText()
-            self.block_occupancy.emit(self.current_block_index, self.ui.block_occupancy_combo_box.currentText())
+            self.block_occupancy_signal.emit(self.current_block_index, self.ui.block_occupancy_combo_box.currentText())
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
