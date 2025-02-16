@@ -94,8 +94,8 @@
         <layout class="QGridLayout" name="gridLayout_11">
          <item row="0" column="0">
           <layout class="QGridLayout" name="gridLayout_3">
-           <item row="1" column="1">
-            <widget class="QLabel" name="announcement_light">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_9">
              <property name="font">
               <font>
                <pointsize>11</pointsize>
@@ -103,17 +103,8 @@
                <bold>true</bold>
               </font>
              </property>
-             <property name="styleSheet">
-              <string notr="true">background-color: rgb(250, 255, 185);</string>
-             </property>
-             <property name="frameShape">
-              <enum>QFrame::WinPanel</enum>
-             </property>
              <property name="text">
-              <string>On  Air</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
+              <string>Next Station:</string>
              </property>
             </widget>
            </item>
@@ -128,40 +119,6 @@
              </property>
              <property name="text">
               <string>Global Clock:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLabel" name="next_station_label">
-             <property name="font">
-              <font>
-               <pointsize>11</pointsize>
-               <weight>75</weight>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="frameShape">
-              <enum>QFrame::WinPanel</enum>
-             </property>
-             <property name="text">
-              <string>Edgebrook</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_9">
-             <property name="font">
-              <font>
-               <pointsize>11</pointsize>
-               <weight>75</weight>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Next Station:</string>
              </property>
             </widget>
            </item>
@@ -181,11 +138,76 @@
            </item>
            <item row="2" column="1">
             <widget class="QLCDNumber" name="global_clock_lcd">
+             <property name="digitCount">
+              <number>8</number>
+             </property>
              <property name="mode">
               <enum>QLCDNumber::Dec</enum>
              </property>
              <property name="segmentStyle">
               <enum>QLCDNumber::Filled</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QLabel" name="am_pm_label">
+             <property name="maximumSize">
+              <size>
+               <width>60</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::WinPanel</enum>
+             </property>
+             <property name="text">
+              <string>AM</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1" colspan="2">
+            <widget class="QLabel" name="next_station_label">
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::WinPanel</enum>
+             </property>
+             <property name="text">
+              <string>Edgebrook</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1" colspan="2">
+            <widget class="QLabel" name="announcement_light">
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color: rgb(250, 255, 185);</string>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::WinPanel</enum>
+             </property>
+             <property name="text">
+              <string>On  Air</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
