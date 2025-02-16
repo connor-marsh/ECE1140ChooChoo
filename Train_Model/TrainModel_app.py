@@ -143,7 +143,7 @@ class TrainModelApp(QMainWindow):
 
         # physics states
         self.position   = 0.0
-        self.actual_velocity = 1.0   # start ~2.24 mph
+        self.actual_velocity = 0.01   # start ~2.24 mph
         self.prev_time  = None
         self.current_acceleration = 0.0
         self.cabin_temp = 70.0
@@ -226,6 +226,43 @@ class TrainModelApp(QMainWindow):
         if new_velocity < 0:
             new_velocity = 0
 
+        # determine the maximum allowed speed:
+        # if a speed limit is set (nonzero) and commanded speed is higher than the limit, follow the speed limit.
+        if speed_limit > 0 and commanded_speed > speed_limit:
+            max_allowed_speed = speed_limit
+        else:
+            max_allowed_speed = commanded_speed
+
+        # ensure actual velocity never exceeds the maximum allowed speed
+        if new_velocity > max_allowed_speed:
+            new_velocity = max_allowed_speed
+
+        # when velocity is constant, acc. decays
+        # define a small threshold and decay factor.
+        threshold = 0.0001
+        decay_factor = 0.9
+
+        # if the max allowed speed is near zero, override acceleration and velocity.
+        if max_allowed_speed < threshold:
+            a = 0
+            new_velocity = 0
+        # if we're at (or nearly at) the max allowed speed and acceleration is positive, gradually decay the acceleration.
+        elif new_velocity >= max_allowed_speed - threshold and a > 0:
+            if not hasattr(self, 'decayed_acceleration'):
+                self.decayed_acceleration = a
+            else:
+                self.decayed_acceleration *= decay_factor
+            a = self.decayed_acceleration
+            new_velocity = old_velocity + a * dt
+            new_velocity = min(new_velocity, max_allowed_speed)
+        # if not at the limit, reset any decayed acceleration for a fresh start.
+        else:
+            if hasattr(self, 'decayed_acceleration'):
+                del self.decayed_acceleration
+
+        self.actual_velocity = new_velocity
+        self.current_acceleration = a
+
         # if brake is off, ensure min speed
         brake_off = (not self.train_ui.button_emergency.isChecked()) and (not lights_doors_data["service_brakes"])
         if brake_off and new_velocity < self.MIN_SPEED_NO_BRAKE:
@@ -242,9 +279,6 @@ class TrainModelApp(QMainWindow):
             self.train_ui.ServiceBrakesOn.setStyleSheet("background-color: none; color: black;")
             self.train_ui.ServiceBrakesOff.setStyleSheet("background-color: yellow; color: black;")
             self.train_ui.button_emergency.setEnabled(True)
-
-        self.actual_velocity = new_velocity
-        self.current_acceleration = a
 
         # cabin Temp
         # e.g. ±0.05 °F / s if AC or heat
@@ -303,8 +337,8 @@ class TrainModelApp(QMainWindow):
             self.train_ui.Temperature.setAlignment(Qt.AlignCenter)
 
         # show the grade if user has GradeValue
-        if hasattr(self.train_ui, "GradeValue"):
-            self.train_ui.GradeValue.display(grade)  # capped at 60
+        if hasattr(self.train_ui, "GradePercentage"):
+            self.train_ui.GradePercentageValue.display(grade)  # capped at 60
 
         if lights_doors_data["ext_lights"]:
             self.train_ui.ExteriorLightsOff.setStyleSheet("background-color: none; color: black;")
