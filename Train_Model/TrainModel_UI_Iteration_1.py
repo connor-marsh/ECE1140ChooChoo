@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'TrainModel_UI_Iteration_1iYwKcN.ui'
+## Form generated from reading UI file 'TrainModel_UI_Iteration_1'
 ##
 ## Created by: Qt User Interface Compiler version 5.15.8
 ##
@@ -15,6 +15,10 @@ from PySide2.QtWidgets import *  # type: ignore
 # from PyQt5.QtCore import *  # type: ignore
 # from PyQt5.QtGui import *  # type: ignore
 # from PyQt5.QtWidgets import *  # type: ignore
+
+import os
+os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
@@ -61,26 +65,37 @@ class Ui_MainWindow(object):
         font4.setBold(True)
         font4.setWeight(75)
         self.Enabled1.setFont(font4)
-        self.Enabled1.setStyleSheet(u"QPushButton {\n"
-"    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, \n"
-"                                stop:0 #6eff66, stop:1 #1e7d1e); /* Light-to-dark green */\n"
-"    color: black;\n"
-"    font-size: 16px;\n"
-"    font-weight: bold;\n"
-"    border: 2px solid #1e7d1e;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px;\n"
-"    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5); /* Raised effect */\n"
-"    transition: background 0.3s ease;\n"
-"}\n"
-"\n"
-"QPushButton:pressed {\n"
-"    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, \n"
-"                                stop:0 #00cc00, stop:1 #006600); /* Darker green when pressed */\n"
-"    border: 2px solid #004d00;\n"
-"    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow appears inset when pressed */\n"
-"}\n"
-"")
+        self.Enabled1.setStyleSheet(
+                u"""
+                QPushButton#Enabled1 {
+                background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                                stop:0 #6eff66, stop:1 #1e7d1e); /* Light-to-dark green */
+                color: black;
+                font-size: 16px;
+                font-weight: bold;
+                border: 2px solid #1e7d1e;
+                border-radius: 10px;
+                padding: 6px;
+                box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5); /* Raised effect */
+                transition: background 0.3s ease;
+                }
+
+                /* Pressed momentarily */
+                QPushButton#Enabled1:pressed {
+                background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                                stop:0 #00cc00, stop:1 #006600);
+                border: 2px solid #004d00;
+                box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow appears inset when pressed */
+                }
+
+                /* Toggled on (latched) */
+                QPushButton#Enabled1:checked {
+                /* Any distinct style to show the button is latched on */
+                background-color: #006600;
+                border: 2px solid #004d00;
+                }
+                """
+)
         self.Enabled1.setFlat(False)
         self.Disabled1 = QPushButton(self.FailureBox)
         self.Disabled1.setObjectName(u"Disabled1")
@@ -90,26 +105,36 @@ class Ui_MainWindow(object):
         font5.setWeight(75)
         font5.setStrikeOut(False)
         self.Disabled1.setFont(font5)
-        self.Disabled1.setStyleSheet(u"QPushButton {\n"
-"    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, \n"
-"                                stop:0 #ff6a6c, stop:1 #d33032); /* Light-to-dark red */\n"
-"    color: black;\n"
-"    font-size: 16px;\n"
-"    font-weight: bold;\n"
-"    border: 2px solid #d33032;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px;\n"
-"    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5); /* Raised effect */\n"
-"    transition: background 0.3s ease;\n"
-"}\n"
-"\n"
-"QPushButton:pressed {\n"
-"    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, \n"
-"                                stop:0 #e84547, stop:1 #9c1e1f); /* Darker red when pressed */\n"
-"    border: 2px solid #7a1c1d;\n"
-"    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow appears inset when pressed */\n"
-"}\n"
-"")
+        self.Disabled1.setStyleSheet(
+                u"""
+                QPushButton#Disabled1 {
+                background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                                stop:0 #ff6a6c, stop:1 #d33032);
+                color: black;
+                font-size: 16px;
+                font-weight: bold;
+                border: 2px solid #d33032;
+                border-radius: 10px;
+                padding: 6px;
+                box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
+                transition: background 0.3s ease;
+                }
+
+                /* Pressed momentarily for #Disabled1 specifically */
+                QPushButton#Disabled1:pressed {
+                background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                                stop:0 #e84547, stop:1 #9c1e1f);
+                border: 2px solid #7a1c1d;
+                box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+                }
+
+                /* Toggled (latched) ON style for #Disabled1 */
+                QPushButton#Disabled1:checked {
+                background-color: #cc0000;
+                border: 2px solid #7a1c1d;
+                }
+                """
+)
         self.Disabled1.setFlat(False)
         self.FailSignal = QLabel(self.FailureBox)
         self.FailSignal.setObjectName(u"FailSignal")
@@ -135,104 +160,148 @@ class Ui_MainWindow(object):
         font6.setWeight(75)
         font6.setKerning(True)
         self.Enabled2.setFont(font6)
-        self.Enabled2.setStyleSheet(u"QPushButton {\n"
-"    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, \n"
-"                                stop:0 #6eff66, stop:1 #1e7d1e); /* Light-to-dark green */\n"
-"    color: black;\n"
-"    font-size: 16px;\n"
-"    font-weight: bold;\n"
-"    border: 2px solid #1e7d1e;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px;\n"
-"    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5); /* Raised effect */\n"
-"    transition: background 0.3s ease;\n"
-"}\n"
-"\n"
-"QPushButton:pressed {\n"
-"    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, \n"
-"                                stop:0 #00cc00, stop:1 #006600); /* Darker green when pressed */\n"
-"    border: 2px solid #004d00;\n"
-"    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow appears inset when pressed */\n"
-"}\n"
-"")
+        self.Enabled2.setStyleSheet(
+                u"""
+                QPushButton#Enabled2 {
+                background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                                stop:0 #6eff66, stop:1 #1e7d1e); /* Light-to-dark green */
+                color: black;
+                font-size: 16px;
+                font-weight: bold;
+                border: 2px solid #1e7d1e;
+                border-radius: 10px;
+                padding: 6px;
+                box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5); /* Raised effect */
+                transition: background 0.3s ease;
+                }
+
+                /* Pressed momentarily */
+                QPushButton#Enabled2:pressed {
+                background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                                stop:0 #00cc00, stop:1 #006600);
+                border: 2px solid #004d00;
+                box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow appears inset when pressed */
+                }
+
+                /* Toggled on (latched) */
+                QPushButton#Enabled2:checked {
+                /* Any distinct style to show the button is latched on */
+                background-color: #006600;
+                border: 2px solid #004d00;
+                }
+                """
+)
         self.Enabled2.setFlat(False)
         self.Disabled2 = QPushButton(self.FailureBox)
         self.Disabled2.setObjectName(u"Disabled2")
         self.Disabled2.setGeometry(QRect(140, 132, 91, 31))
         self.Disabled2.setFont(font5)
-        self.Disabled2.setStyleSheet(u"QPushButton {\n"
-"    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, \n"
-"                                stop:0 #ff6a6c, stop:1 #d33032); /* Light-to-dark red */\n"
-"    color: black;\n"
-"    font-size: 16px;\n"
-"    font-weight: bold;\n"
-"    border: 2px solid #d33032;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px;\n"
-"    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5); /* Raised effect */\n"
-"    transition: background 0.3s ease;\n"
-"}\n"
-"\n"
-"QPushButton:pressed {\n"
-"    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, \n"
-"                                stop:0 #e84547, stop:1 #9c1e1f); /* Darker red when pressed */\n"
-"    border: 2px solid #7a1c1d;\n"
-"    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow appears inset when pressed */\n"
-"}\n"
-"")
+        self.Disabled2.setStyleSheet(
+                u"""
+                QPushButton#Disabled2 {
+                background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                                stop:0 #ff6a6c, stop:1 #d33032);
+                color: black;
+                font-size: 16px;
+                font-weight: bold;
+                border: 2px solid #d33032;
+                border-radius: 10px;
+                padding: 6px;
+                box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
+                transition: background 0.3s ease;
+                }
+
+                /* Pressed momentarily for #Disabled1 specifically */
+                QPushButton#Disabled2:pressed {
+                background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                                stop:0 #e84547, stop:1 #9c1e1f);
+                border: 2px solid #7a1c1d;
+                box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+                }
+
+                /* Toggled (latched) ON style for #Disabled1 */
+                QPushButton#Disabled2:checked {
+                background-color: #cc0000;
+                border: 2px solid #7a1c1d;
+                }
+                """
+)
         self.Disabled2.setFlat(False)
         self.Enabled3 = QPushButton(self.FailureBox)
         self.Enabled3.setObjectName(u"Enabled3")
         self.Enabled3.setGeometry(QRect(140, 170, 91, 31))
         self.Enabled3.setFont(font4)
-        self.Enabled3.setStyleSheet(u"QPushButton {\n"
-"    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, \n"
-"                                stop:0 #6eff66, stop:1 #1e7d1e); /* Light-to-dark green */\n"
-"    color: black;\n"
-"    font-size: 16px;\n"
-"    font-weight: bold;\n"
-"    border: 2px solid #1e7d1e;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px;\n"
-"    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5); /* Raised effect */\n"
-"    transition: background 0.3s ease;\n"
-"}\n"
-"\n"
-"QPushButton:pressed {\n"
-"    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, \n"
-"                                stop:0 #00cc00, stop:1 #006600); /* Darker green when pressed */\n"
-"    border: 2px solid #004d00;\n"
-"    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow appears inset when pressed */\n"
-"}\n"
-"")
+        self.Enabled3.setStyleSheet(
+                u"""
+                QPushButton#Enabled3 {
+                background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                                stop:0 #6eff66, stop:1 #1e7d1e); /* Light-to-dark green */
+                color: black;
+                font-size: 16px;
+                font-weight: bold;
+                border: 2px solid #1e7d1e;
+                border-radius: 10px;
+                padding: 6px;
+                box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5); /* Raised effect */
+                transition: background 0.3s ease;
+                }
+
+                /* Pressed momentarily */
+                QPushButton#Enabled3:pressed {
+                background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                                stop:0 #00cc00, stop:1 #006600);
+                border: 2px solid #004d00;
+                box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow appears inset when pressed */
+                }
+
+                /* Toggled on (latched) */
+                QPushButton#Enabled3:checked {
+                /* Any distinct style to show the button is latched on */
+                background-color: #006600;
+                border: 2px solid #004d00;
+                }
+                """
+)
         self.Enabled3.setFlat(False)
         self.Disabled3 = QPushButton(self.FailureBox)
         self.Disabled3.setObjectName(u"Disabled3")
         self.Disabled3.setGeometry(QRect(140, 202, 91, 31))
         self.Disabled3.setFont(font5)
-        self.Disabled3.setStyleSheet(u"QPushButton {\n"
-"    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, \n"
-"                                stop:0 #ff6a6c, stop:1 #d33032); /* Light-to-dark red */\n"
-"    color: black;\n"
-"    font-size: 16px;\n"
-"    font-weight: bold;\n"
-"    border: 2px solid #d33032;\n"
-"    border-radius: 10px;\n"
-"    padding: 6px;\n"
-"    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5); /* Raised effect */\n"
-"    transition: background 0.3s ease;\n"
-"}\n"
-"\n"
-"QPushButton:pressed {\n"
-"    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, \n"
-"                                stop:0 #e84547, stop:1 #9c1e1f); /* Darker red when pressed */\n"
-"    border: 2px solid #7a1c1d;\n"
-"    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow appears inset when pressed */\n"
-"}\n"
-"")
+        self.Disabled3.setStyleSheet(
+                u"""
+                QPushButton#Disabled3 {
+                background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                                stop:0 #ff6a6c, stop:1 #d33032);
+                color: black;
+                font-size: 16px;
+                font-weight: bold;
+                border: 2px solid #d33032;
+                border-radius: 10px;
+                padding: 6px;
+                box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
+                transition: background 0.3s ease;
+                }
+
+                /* Pressed momentarily for #Disabled1 specifically */
+                QPushButton#Disabled3:pressed {
+                background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, 
+                                                stop:0 #e84547, stop:1 #9c1e1f);
+                border: 2px solid #7a1c1d;
+                box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+                }
+
+                /* Toggled (latched) ON style for #Disabled1 */
+                QPushButton#Disabled3:checked {
+                background-color: #cc0000;
+                border: 2px solid #7a1c1d;
+                }
+                """
+)
         self.Disabled3.setFlat(False)
         self.Advertisements = QLabel(self.Main)
         self.Advertisements.setObjectName(u"Advertisements")
+        self.Advertisements.setPixmap(QPixmap(r"D:\ECE 1140\ECE1140ChooChoo\Train_Model\pizza_hut_ad_1.jpg"))
+        self.Advertisements.setScaledContents(True)
         self.Advertisements.setGeometry(QRect(10, 5, 228, 83))
         self.Advertisements.setMinimumSize(QSize(0, 0))
         self.Advertisements.setAutoFillBackground(True)
@@ -251,33 +320,38 @@ class Ui_MainWindow(object):
         self.button_emergency.setObjectName(u"button_emergency")
         self.button_emergency.setGeometry(QRect(30, 400, 206, 206))
         self.button_emergency.setFont(font4)
-        self.button_emergency.setStyleSheet(u"QPushButton#button_emergency {\n"
-"    background-color: red;\n"
-"    color: white;\n"
-"    font-size: 30px;  /* Bigger text */\n"
-"    font-weight: bold;\n"
-"    border: 3px solid black;\n"
-"    border-radius: 100px;  /* Half of width/height for a perfect circle */\n"
-"    min-width: 200px;\n"
-"    min-height: 200px;\n"
-"    \n"
-"    /* 3D Effect using Gradient */\n"
-"    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, \n"
-"                                stop:0 #ff4d4d, stop:1 #cc0000);\n"
-"    \n"
-"    /* Shadow effect */\n"
-"    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);\n"
-"}\n"
-"\n"
-"QPushButton#button_emergency:pressed {\n"
-"    background-color: darkred;\n"
-"    border: 3px solid #660000;\n"
-"    \n"
-"    /* Inset shadow to look pressed */\n"
-"    background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1, \n"
-"                                stop:0 #cc0000, stop:1 #660000);\n"
-"}\n"
-"")
+        self.button_emergency.setStyleSheet(
+            u"""
+            QPushButton#button_emergency {
+                background-color: red;
+                color: white;
+                font-size: 30px;  /* Bigger text */
+                font-weight: bold;
+                border: 3px solid black;
+                border-radius: 100px;  /* For a circle */
+                min-width: 200px;
+                min-height: 200px;
+                /* 3D Effect using Gradient */
+                background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1,
+                                            stop:0 #ff4d4d, stop:1 #cc0000);
+                box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
+            }
+
+            QPushButton#button_emergency:pressed {
+                background-color: darkred;
+                border: 3px solid #660000;
+                background: qlineargradient(spread:pad, x1:0.3, y1:0.3, x2:1, y2:1,
+                                            stop:0 #cc0000, stop:1 #660000);
+            }
+
+            /* Style when the button is toggled on (checked) */
+            QPushButton#button_emergency:checked {
+                background-color: #880000; 
+                /* Or any other color to show it’s latched down */
+                border: 3px solid #440000;
+            }
+            """
+)
         self.button_emergency.setFlat(False)
         self.line = QFrame(self.Main)
         self.line.setObjectName(u"line")
@@ -661,6 +735,8 @@ class Ui_MainWindow(object):
         self.Announcement_1.setFrameShape(QFrame.WinPanel)
         self.Advertisements_2 = QLabel(self.Main)
         self.Advertisements_2.setObjectName(u"Advertisements_2")
+        self.Advertisements_2.setPixmap(QPixmap(r"D:\ECE 1140\ECE1140ChooChoo\Train_Model\McD.jpg"))
+        self.Advertisements_2.setScaledContents(True)
         self.Advertisements_2.setGeometry(QRect(240, 5, 228, 83))
         self.Advertisements_2.setMinimumSize(QSize(0, 0))
         self.Advertisements_2.setAutoFillBackground(True)
@@ -671,6 +747,8 @@ class Ui_MainWindow(object):
         self.Advertisements_2.setScaledContents(False)
         self.Advertisements_3 = QLabel(self.Main)
         self.Advertisements_3.setObjectName(u"Advertisements_3")
+        self.Advertisements_3.setPixmap(QPixmap(r"D:\ECE 1140\ECE1140ChooChoo\Train_Model\whopper.jpg"))
+        self.Advertisements_3.setScaledContents(True)
         self.Advertisements_3.setGeometry(QRect(470, 5, 224, 83))
         self.Advertisements_3.setMinimumSize(QSize(0, 0))
         self.Advertisements_3.setAutoFillBackground(True)
@@ -775,3 +853,11 @@ class Ui_MainWindow(object):
         self.menuTrain_ID_1.setTitle(QCoreApplication.translate("MainWindow", u"Train ID 1", None))
     # retranslateUi
 
+# if __name__ == "__main__":
+#     import sys
+#     app = QApplication(sys.argv)
+#     MainWindow = QMainWindow()
+#     ui = Ui_MainWindow()
+#     ui.setupUi(MainWindow)
+#     MainWindow.show()
+#     sys.exit(app.exec_())
