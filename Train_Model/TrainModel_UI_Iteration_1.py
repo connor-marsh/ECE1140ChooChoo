@@ -827,7 +827,7 @@ class Ui_MainWindow(object):
 "Count", None))
         self.GradePercentage.setText(QCoreApplication.translate("MainWindow", u"Grade (%)", None))
         self.Acceleration.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Acceleration </p><p>(ft/s<span style=\" vertical-align:super;\">2</span>)</p></body></html>", None))
-        self.Power.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Current Engine</p><p>Power (W)</p></body></html>", None))
+        self.Power.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Current Engine</p><p>Power (kW)</p></body></html>", None))
         self.ActualSpeed.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p><span style=\" font-size:12pt;\">Actual </span></p><p><span style=\" font-size:12pt;\">Velocity (mph)</span></p></body></html>", None))
         self.CabinTemperature.setTitle(QCoreApplication.translate("MainWindow", u"Cabin Temperature", None))
         self.Temperature.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">68 \u00b0F</p></body></html>", None))

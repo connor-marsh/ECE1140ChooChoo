@@ -97,6 +97,15 @@ class TestBenchApp(QMainWindow):
         else:
             self.ui.WaysideSpeed_2.setText("Not Displayed")
 
+        # check wayside authority signal:
+        auth_str = self.ui.WaysideAuthority.text()  # assuming this is where the authority is input
+        auth_val = self.train_app.to_float(auth_str, 0.0)
+        # Here, we assume that a nonzero value means the signal is present
+        if abs(auth_val) > 0.0001:
+            self.ui.WaysideAuthority_2.setText("Displayed")
+        else:
+            self.ui.WaysideAuthority_2.setText("Not Displayed")
+
         # compare actual velocity in mph
         if hasattr(self.train_app.train_ui, "SpeedValue"):
             speed_ui = self.train_app.train_ui.SpeedValue.value()  # mph shown in UI
