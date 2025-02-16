@@ -509,12 +509,12 @@ class Ui_MainWindow(object):
 
         self.LiveTrainDataGrid.addWidget(self.GradePercentage, 8, 0, 1, 1)
 
-        self.CrewCountValue_2 = QLCDNumber(self.gridLayoutWidget)
-        self.CrewCountValue_2.setObjectName(u"CrewCountValue_2")
-        self.CrewCountValue_2.setFont(font2)
-        self.CrewCountValue_2.setSegmentStyle(QLCDNumber.Flat)
+        self.GradePercentageValue = QLCDNumber(self.gridLayoutWidget)
+        self.GradePercentageValue.setObjectName(u"GradePercentageValue")
+        self.GradePercentageValue.setFont(font2)
+        self.GradePercentageValue.setSegmentStyle(QLCDNumber.Flat)
 
-        self.LiveTrainDataGrid.addWidget(self.CrewCountValue_2, 8, 1, 1, 1)
+        self.LiveTrainDataGrid.addWidget(self.GradePercentageValue, 8, 1, 1, 1)
 
         self.gridLayoutWidget_2 = QWidget(self.Main)
         self.gridLayoutWidget_2.setObjectName(u"gridLayoutWidget_2")
@@ -828,7 +828,7 @@ class Ui_MainWindow(object):
         self.GradePercentage.setText(QCoreApplication.translate("MainWindow", u"Grade (%)", None))
         self.Acceleration.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Acceleration </p><p>(ft/s<span style=\" vertical-align:super;\">2</span>)</p></body></html>", None))
         self.Power.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Current Engine</p><p>Power (W)</p></body></html>", None))
-        self.ActualSpeed.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p><span style=\" font-size:12pt;\">Actual </span></p><p><span style=\" font-size:12pt;\">Speed (mph)</span></p></body></html>", None))
+        self.ActualSpeed.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p><span style=\" font-size:12pt;\">Actual </span></p><p><span style=\" font-size:12pt;\">Velocity (mph)</span></p></body></html>", None))
         self.CabinTemperature.setTitle(QCoreApplication.translate("MainWindow", u"Cabin Temperature", None))
         self.Temperature.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">68 \u00b0F</p></body></html>", None))
         self.ServiceBrakesOn.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\">ON</p></body></html>", None))

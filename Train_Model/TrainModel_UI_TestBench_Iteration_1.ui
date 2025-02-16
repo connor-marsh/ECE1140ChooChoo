@@ -69,7 +69,7 @@
        <item row="4" column="0">
         <widget class="QLabel" name="WaysideSpeedLabel_2">
          <property name="text">
-          <string>Wayside Speed (mph)</string>
+          <string>Wayside Speed (m/s)</string>
          </property>
         </widget>
        </item>
@@ -320,7 +320,7 @@
        <item row="0" column="0">
         <widget class="QLabel" name="WaysideSpeedLabel">
          <property name="text">
-          <string>Wayside Speed (mph)</string>
+          <string>Wayside Speed (m/s)</string>
          </property>
         </widget>
        </item>
@@ -558,7 +558,7 @@
        <item row="25" column="0">
         <widget class="QLabel" name="LengthVehicleLabel">
          <property name="text">
-          <string>Length of Vehicle (feet)</string>
+          <string>Length of Vehicle (m)</string>
          </property>
         </widget>
        </item>
@@ -581,7 +581,7 @@
        <item row="27" column="0">
         <widget class="QLabel" name="HeightVehicleLabel">
          <property name="text">
-          <string>Height of Vehicle (feet)</string>
+          <string>Height of Vehicle (m)</string>
          </property>
         </widget>
        </item>
@@ -604,7 +604,7 @@
        <item row="29" column="0">
         <widget class="QLabel" name="WidthVehicleLabel">
          <property name="text">
-          <string>Width of Vehicle (feet)</string>
+          <string>Width of Vehicle (m)</string>
          </property>
         </widget>
        </item>
@@ -650,7 +650,7 @@
        <item row="33" column="0">
         <widget class="QLabel" name="MassVehicleLabel">
          <property name="text">
-          <string>Mass of Vehicle (lbs)</string>
+          <string>Mass of Vehicle (t)</string>
          </property>
         </widget>
        </item>

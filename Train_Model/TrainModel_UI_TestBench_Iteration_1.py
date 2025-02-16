@@ -164,12 +164,12 @@ class Ui_TestMainWindow(object):
 
         self.Outputs.setWidget(14, QFormLayout.FieldRole, self.EngineFailure)
 
-        self.ACSignal = QLabel(self.gridLayoutWidget)
+        self.ACSignal = QCheckBox(self.gridLayoutWidget)
         self.ACSignal.setObjectName(u"ACSignal")
 
         self.Outputs.setWidget(16, QFormLayout.FieldRole, self.ACSignal)
 
-        self.HeatingSignal = QLabel(self.gridLayoutWidget)
+        self.HeatingSignal = QCheckBox(self.gridLayoutWidget)
         self.HeatingSignal.setObjectName(u"HeatingSignal")
 
         self.Outputs.setWidget(18, QFormLayout.FieldRole, self.HeatingSignal)
@@ -446,15 +446,15 @@ class Ui_TestMainWindow(object):
 
         self.Inputs.setItem(11, QFormLayout.LabelRole, self.verticalSpacer_30)
 
-        self.TemperatureLabel = QLabel(self.gridLayoutWidget)
-        self.TemperatureLabel.setObjectName(u"TemperatureLabel")
+        # self.TemperatureLabel = QLabel(self.gridLayoutWidget)
+        # self.TemperatureLabel.setObjectName(u"TemperatureLabel")
 
-        self.Inputs.setWidget(20, QFormLayout.LabelRole, self.TemperatureLabel)
+        # self.Inputs.setWidget(20, QFormLayout.LabelRole, self.TemperatureLabel)
 
-        self.Temperature = QLineEdit(self.gridLayoutWidget)
-        self.Temperature.setObjectName(u"Temperature")
+        # self.Temperature = QLineEdit(self.gridLayoutWidget)
+        # self.Temperature.setObjectName(u"Temperature")
 
-        self.Inputs.setWidget(20, QFormLayout.FieldRole, self.Temperature)
+        # self.Inputs.setWidget(20, QFormLayout.FieldRole, self.Temperature)
 
         self.verticalSpacer_31 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
@@ -489,7 +489,7 @@ class Ui_TestMainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
         self.ActualVelocityLabel.setText(QCoreApplication.translate("MainWindow", u"Actual Velocity (m/s)", None))
         self.SpeedLimitLabel_2.setText(QCoreApplication.translate("MainWindow", u"Speed Limit (m/s)", None))
-        self.WaysideSpeedLabel_2.setText(QCoreApplication.translate("MainWindow", u"Wayside Speed (mph)", None))
+        self.WaysideSpeedLabel_2.setText(QCoreApplication.translate("MainWindow", u"Wayside Speed (m/s)", None))
         self.WaysideAuthorityLabel_2.setText(QCoreApplication.translate("MainWindow", u"Wayside Authority (m)", None))
         self.PEmergencyStopLabel.setText(QCoreApplication.translate("MainWindow", u"Passenger Emergency Stop", None))
         self.SignalFailureLabel.setText(QCoreApplication.translate("MainWindow", u"Signal Failure (bool)", None))
@@ -505,10 +505,10 @@ class Ui_TestMainWindow(object):
         self.SignalFailure.setText(QCoreApplication.translate("MainWindow", u"Displayed?", None))
         self.BrakeFailure.setText(QCoreApplication.translate("MainWindow", u"Displayed?", None))
         self.EngineFailure.setText(QCoreApplication.translate("MainWindow", u"Displayed?", None))
-        self.ACSignal.setText(QCoreApplication.translate("MainWindow", u"Displayed?", None))
-        self.HeatingSignal.setText(QCoreApplication.translate("MainWindow", u"Displayed?", None))
+        self.ACSignal.setText(QCoreApplication.translate("MainWindow", u"ENABLE", None))
+        self.HeatingSignal.setText(QCoreApplication.translate("MainWindow", u"ENABLE", None))
         self.OUTPUTS.setText(QCoreApplication.translate("MainWindow", u"OUTPUTS", None))
-        self.WaysideSpeedLabel.setText(QCoreApplication.translate("MainWindow", u"Wayside Speed (mph)", None))
+        self.WaysideSpeedLabel.setText(QCoreApplication.translate("MainWindow", u"Wayside Speed (m/s)", None))
         self.WaysideAuthorityLabel.setText(QCoreApplication.translate("MainWindow", u"Wayside Authority (m)", None))
         self.CommandedPowerLabel.setText(QCoreApplication.translate("MainWindow", u"Commanded Power (W)", None))
         self.SpeedLimitLabel.setText(QCoreApplication.translate("MainWindow", u"Speed Limit (m/s)", None))
@@ -519,11 +519,11 @@ class Ui_TestMainWindow(object):
         self.LeftDoorsLabel.setText(QCoreApplication.translate("MainWindow", u"Left Doors", None))
         self.RightDoorsLabel.setText(QCoreApplication.translate("MainWindow", u"Right Doors", None))
         self.AnnounementsLabel.setText(QCoreApplication.translate("MainWindow", u"Announcements", None))
-        self.LengthVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Length of Vehicle (feet)", None))
-        self.HeightVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Height of Vehicle (feet)", None))
-        self.WidthVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Width of Vehicle (feet)", None))
+        self.LengthVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Length of Vehicle (m)", None))
+        self.HeightVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Height of Vehicle (m)", None))
+        self.WidthVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Width of Vehicle (m)", None))
         self.GradePercentLabel.setText(QCoreApplication.translate("MainWindow", u"Grade (%)", None))
-        self.MassVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Mass of Vehicle (lbs)", None))
+        self.MassVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Mass of Vehicle (t)", None))
         self.PassengerCountLabel.setText(QCoreApplication.translate("MainWindow", u"Passeneger Count", None))
         self.CrewCountLabel.setText(QCoreApplication.translate("MainWindow", u"Crew Count", None))
         self.BeaconDataLabel.setText(QCoreApplication.translate("MainWindow", u"Beacon Data (128 Bytes)", None))
@@ -531,7 +531,7 @@ class Ui_TestMainWindow(object):
         self.RightDoors.setText(QCoreApplication.translate("MainWindow", u"ENABLE", None))
         self.ServiceBrakesLabel.setText(QCoreApplication.translate("MainWindow", u"Service Brakes", None))
         self.ServiceBrakes.setText(QCoreApplication.translate("MainWindow", u"ENABLE", None))
-        self.TemperatureLabel.setText(QCoreApplication.translate("MainWindow", u"Temperature", None))
+        # self.TemperatureLabel.setText(QCoreApplication.translate("MainWindow", u"Temperature", None))
         self.INPUTS.setText(QCoreApplication.translate("MainWindow", u"INPUTS", None))
     # retranslateUi
 
