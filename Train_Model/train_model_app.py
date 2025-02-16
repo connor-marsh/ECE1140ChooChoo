@@ -1,3 +1,7 @@
+"""
+Author: Iyan Nekib 
+"""
+
 import sys
 import os
 import time
@@ -6,8 +10,8 @@ import math
 from PySide2.QtWidgets import QApplication, QMainWindow
 from PySide2.QtCore import *
 
-from TrainModel_UI_Iteration_1 import Ui_MainWindow as TrainModelUI
-from TrainModel_UI_TestBench_Iteration_1 import Ui_TestMainWindow as TestBenchUI
+from train_model_ui_iteration_1 import Ui_MainWindow as TrainModelUI
+from train_model_ui_testbench_iteration_1 import Ui_TestMainWindow as TestBenchUI
 
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
@@ -16,15 +20,17 @@ os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 # HELPER FUNCTIONS
 ###############################################################################
 def read_wayside_data(ui, to_float_func):
+    # Read and convert wayside inputs from UI.
     return {
         "commanded_speed": to_float_func(ui.WaysideSpeed.text(), 0.0),   # (m/s)
         "authority":       to_float_func(ui.WaysideAuthority.text(), 0.0),
-        "commanded_power": to_float_func(ui.CommandedPower.text(), 0.0), # (Watts)
-        "speed_limit":     to_float_func(ui.SpeedLimit.text(), 0.0),     # (m/s)
+        "commanded_power": to_float_func(ui.CommandedPower.text(), 0.0),  # (Watts)
+        "speed_limit":     to_float_func(ui.SpeedLimit.text(), 0.0),      # (m/s)
         "beacon_data":     ui.BeaconData.text(),
     }
 
 def read_lights_doors_data(ui):
+    # Read the state of various lights, doors, and signals from UI.
     return {
         "service_brakes": ui.ServiceBrakes.isChecked(),
         "ext_lights":     ui.ExtLights.isChecked(),
@@ -38,9 +44,9 @@ def read_lights_doors_data(ui):
 
 def read_train_physical_data(ui, to_float_func):
     """
-    Reads train physical attributes in metric (unless otherwise noted).
-    We'll convert length, height, and width to feet in the main logic.
-    Grade is a percent capped at 60.
+    Reads train physical attributes in metric units.
+    Length, height, and width are converted to feet later in the main logic.
+    The grade is capped at 60%.
     """
     base_mass_kg = to_float_func(ui.MassVehicle.text(), 37103.86)
     passenger_count = to_float_func(ui.PassengerCount.text(), 0.0)
@@ -48,23 +54,23 @@ def read_train_physical_data(ui, to_float_func):
     added_passenger_mass = passenger_count * 70.0
     added_crew_mass = crew_count * 70.0
 
-    length_m = to_float_func(ui.LengthVehicle.text(), 32.2)   # default if empty
+    length_m = to_float_func(ui.LengthVehicle.text(), 32.2)   # default value if empty
     height_m = to_float_func(ui.HeightVehicle.text(), 3.42)
     width_m  = to_float_func(ui.WidthVehicle.text(), 2.65)
     grade_percent = to_float_func(ui.GradePercent.text(), 0.0)
 
-    # cap the grade at 60%
+    # Cap the grade at 60%
     if grade_percent > 60:
         grade_percent = 60.0
     elif grade_percent < 0:
         grade_percent = 0.0
 
     return {
-        "length_m":   length_m,
-        "height_m":   height_m,
-        "width_m":    width_m,
-        "grade":      grade_percent,   # e.g. 2 => 2% grade
-        "mass_kg":    base_mass_kg + added_passenger_mass + added_crew_mass,
+        "length_m":        length_m,
+        "height_m":        height_m,
+        "width_m":         width_m,
+        "grade":           grade_percent,  # e.g., 2 means 2% grade
+        "mass_kg":         base_mass_kg + added_passenger_mass + added_crew_mass,
         "passenger_count": passenger_count,
         "crew_count":      crew_count
     }
@@ -80,6 +86,7 @@ class TestBenchApp(QMainWindow):
         self.train_app = train_app
 
     def read_inputs(self):
+        # Get inputs from UI, converting as needed.
         f = self.train_app.to_float
         wayside_data        = read_wayside_data(self.ui, f)
         lights_doors_data   = read_lights_doors_data(self.ui)
@@ -88,7 +95,6 @@ class TestBenchApp(QMainWindow):
 
     def update_status(self):
         """Checks if the Train Model UI is displaying correct values."""
-        # compare commanded speed vs. displayed speed
         cmd_speed_str = self.ui.WaysideSpeed.text()
         cmd_speed_val = self.train_app.to_float(cmd_speed_str, -999)
         model_cmd_speed = self.train_app.train_ui.CommandedSpeedValue.value()
@@ -97,18 +103,15 @@ class TestBenchApp(QMainWindow):
         else:
             self.ui.WaysideSpeed_2.setText("Not Displayed")
 
-        # check wayside authority signal:
-        auth_str = self.ui.WaysideAuthority.text()  # assuming this is where the authority is input
+        auth_str = self.ui.WaysideAuthority.text()  # Authority input
         auth_val = self.train_app.to_float(auth_str, 0.0)
-        # Here, we assume that a nonzero value means the signal is present
         if abs(auth_val) > 0.0001:
             self.ui.WaysideAuthority_2.setText("Displayed")
         else:
             self.ui.WaysideAuthority_2.setText("Not Displayed")
 
-        # compare actual velocity in mph
         if hasattr(self.train_app.train_ui, "SpeedValue"):
-            speed_ui = self.train_app.train_ui.SpeedValue.value()  # mph shown in UI
+            speed_ui = self.train_app.train_ui.SpeedValue.value()  # mph from UI
             internal_mph = self.train_app.actual_velocity * self.train_app.MPS_TO_MPH
             if abs(internal_mph - speed_ui) < 0.0001:
                 self.ui.ActualVelocity.setText("Displayed")
@@ -121,18 +124,19 @@ class TestBenchApp(QMainWindow):
 ###############################################################################
 class TrainModelApp(QMainWindow):
     """
-    Main application that calculates acceleration from power & grade,
-    ensures slow deceleration, and displays results in the Train Model UI.
+    Main application that calculates acceleration from power and grade,
+    simulating deceleration and updating UI elements accordingly.
     """
+    # Conversion factors and constants
     MPS_TO_MPH  = 2.23694
     KG_TO_LBS   = 2.20462
     M_TO_FT     = 3.281
 
-    MAX_ACCEL     = 100000     # clamp
-    GRAVITY       = 9.81       # m/s^2
-    EMERGENCY_DECEL = -2.73    # m/s^2
-    SERVICE_DECEL   = -1.2     # m/s^2
-    MIN_SPEED_NO_BRAKE = 0.1   # m/s
+    MAX_ACCEL         = 100000    # Acceleration clamping value (m/s^2)
+    GRAVITY           = 9.81      # Acceleration due to gravity (m/s^2)
+    EMERGENCY_DECEL   = -2.73     # Emergency braking deceleration (m/s^2)
+    SERVICE_DECEL     = -1.2      # Service braking deceleration (m/s^2)
+    MIN_SPEED_NO_BRAKE= 0.1       # Minimum speed when brakes are off (m/s)
 
     def __init__(self):
         super().__init__()
@@ -141,60 +145,65 @@ class TrainModelApp(QMainWindow):
 
         self.testbench = TestBenchApp(self)
 
-        # physics states
-        self.position   = 0.0
-        self.actual_velocity = 0.01   # start ~2.24 mph
-        self.prev_time  = None
+        # Initialize physics state variables
+        self.position = 0.0
+        self.actual_velocity = 0.01  # Starting velocity (~2.24 mph)
+        self.prev_time = None
         self.current_acceleration = 0.0
-        self.cabin_temp = 70.0
+        self.cabin_temp = 25 # Cabin temperature in Celsius
 
-        # 10 updates/sec
+        # Initialize previous acceleration for trapezoidal integration.
+        self.previous_acceleration = 0.0
+
+        # Update physics at 10 Hz (every 100ms)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_from_testbench)
         self.timer.start(100)
 
-        # timer for updating the clock every second
+        # Clock update timer (every second)
         self.simulated_time = QTime(11, 59, 0)
         self.clock_timer = QTimer(self)
         self.clock_timer.timeout.connect(self.update_clock)
         self.clock_timer.start(1000)
 
-        # make emergency brake checkable
+        # Configure emergency brake button to be checkable
         self.train_ui.button_emergency.setCheckable(True)
         self.init_failure_buttons()
         self.train_ui.button_emergency.toggled.connect(self.mark_emergency_displayed)
 
     def update_from_testbench(self):
-        """Reads data from testbench, updates physics, displays them."""
+        """Reads inputs from the testbench, updates physics, and refreshes UI."""
         current_time = QDateTime.currentMSecsSinceEpoch()
         if self.prev_time is None:
             self.prev_time = current_time
             return
-        dt = (current_time - self.prev_time) / 1000.0  # convert milliseconds to seconds
+        dt = (current_time - self.prev_time) / 1000.0  # time step in seconds
         self.prev_time = current_time
 
+        # Read inputs from the testbench UI
         wayside_data, lights_doors_data, train_data = self.testbench.read_inputs()
 
+        # Extract commanded values and physical parameters
         commanded_speed   = wayside_data["commanded_speed"]
         wayside_authority = wayside_data["authority"]
         commanded_power_watts = wayside_data["commanded_power"]
         commanded_power_kw = commanded_power_watts / 1000.0
-
         speed_limit       = wayside_data["speed_limit"]
 
         mass_kg  = train_data["mass_kg"]
         mass_lbs = mass_kg * self.KG_TO_LBS
         grade    = train_data["grade"]
 
-        # convert L, H, W from meters -> feet
+        # Convert dimensions from meters to feet
         length_ft = train_data["length_m"] * self.M_TO_FT
         height_ft = train_data["height_m"] * self.M_TO_FT
         width_ft  = train_data["width_m"]  * self.M_TO_FT
 
-        # net force from gravity & power
-        theta = math.atan(grade / 100.0)
+        # Calculate gravitational force component
+        theta = math.atan(grade / 100.0)  # Convert grade percent to angle (radians)
         grav_force = mass_kg * self.GRAVITY * math.sin(theta)
 
+        # Calculate the dynamic force from commanded power using P = F * v.
         try:
             if self.actual_velocity <= 0.0:
                 dyn_force = 1000.0
@@ -203,73 +212,56 @@ class TrainModelApp(QMainWindow):
         except ZeroDivisionError:
             dyn_force = 1000.0
 
+        # Net force and basic acceleration (a_base) from Newton's second law.
         net_force = dyn_force - grav_force
-        a_base = net_force / mass_kg  # m/s^2
+        a_base = net_force / mass_kg  # (m/s^2)
 
-        # brake logic
+        # Determine the target acceleration based on braking conditions.
         if self.train_ui.button_emergency.isChecked():
-            a = self.EMERGENCY_DECEL
+            target_a = self.EMERGENCY_DECEL
         elif lights_doors_data["service_brakes"]:
-            a = self.SERVICE_DECEL
+            target_a = self.SERVICE_DECEL
         else:
-            a = a_base
+            target_a = a_base
 
-        # clamp
-        if a > self.MAX_ACCEL:
-            a = self.MAX_ACCEL
-        elif a < -self.MAX_ACCEL:
-            a = -self.MAX_ACCEL
+        # Gradually ramp the current acceleration toward the target value.
+        ramp_rate = 1.0  # m/s^3, adjust this value for smoother or faster transitions
+        accel_diff = target_a - self.current_acceleration
+        max_delta = ramp_rate * dt
+        if abs(accel_diff) < max_delta:
+            self.current_acceleration = target_a
+        else:
+            self.current_acceleration += math.copysign(max_delta, accel_diff)
 
-        # integrate velocity
+        # Use the smoothly updated acceleration for integration.
+        a = self.current_acceleration
+
+        # Update velocity using trapezoidal integration.
         old_velocity = self.actual_velocity
-        new_velocity = old_velocity + a * dt
+        new_velocity = old_velocity + (dt / 2.0) * (a + self.previous_acceleration)
         if new_velocity < 0:
             new_velocity = 0
 
-        # determine the maximum allowed speed:
-        # if a speed limit is set (nonzero) and commanded speed is higher than the limit, follow the speed limit.
-        if speed_limit > 0 and commanded_speed > speed_limit:
-            max_allowed_speed = speed_limit
-        else:
-            max_allowed_speed = commanded_speed
-
-        # ensure actual velocity never exceeds the maximum allowed speed
-        if new_velocity > max_allowed_speed:
-            new_velocity = max_allowed_speed
-
-        # when velocity is constant, acc. decays
-        # define a small threshold and decay factor.
+        # If both commanded speed and power are near zero, force zero acceleration and velocity.
         threshold = 0.0001
-        decay_factor = 0.9
-
-        # if the max allowed speed is near zero, override acceleration and velocity.
-        if max_allowed_speed < threshold:
+        if commanded_speed < threshold and commanded_power_watts < threshold:
             a = 0
             new_velocity = 0
-        # if we're at (or nearly at) the max allowed speed and acceleration is positive, gradually decay the acceleration.
-        elif new_velocity >= max_allowed_speed - threshold and a > 0:
-            if not hasattr(self, 'decayed_acceleration'):
-                self.decayed_acceleration = a
-            else:
-                self.decayed_acceleration *= decay_factor
-            a = self.decayed_acceleration
-            new_velocity = old_velocity + a * dt
-            new_velocity = min(new_velocity, max_allowed_speed)
-        # if not at the limit, reset any decayed acceleration for a fresh start.
-        else:
-            if hasattr(self, 'decayed_acceleration'):
-                del self.decayed_acceleration
 
+        # Update previous acceleration for the next cycle.
+        self.previous_acceleration = a
+
+        # Update simulation state.
         self.actual_velocity = new_velocity
         self.current_acceleration = a
 
-        # if brake is off, ensure min speed
+        # Ensure minimum velocity when brakes are off.
         brake_off = (not self.train_ui.button_emergency.isChecked()) and (not lights_doors_data["service_brakes"])
         if brake_off and new_velocity < self.MIN_SPEED_NO_BRAKE:
             new_velocity = self.MIN_SPEED_NO_BRAKE
 
+        # Service brake UI updates.
         service_brake_active = lights_doors_data["service_brakes"] or (speed_limit > 0 and self.actual_velocity > speed_limit)
-
         if service_brake_active:
             a = self.SERVICE_DECEL
             self.train_ui.ServiceBrakesOff.setStyleSheet("background-color: none; color: black;")
@@ -280,65 +272,48 @@ class TrainModelApp(QMainWindow):
             self.train_ui.ServiceBrakesOff.setStyleSheet("background-color: yellow; color: black;")
             self.train_ui.button_emergency.setEnabled(True)
 
-        # cabin Temp
-        # e.g. ±0.05 °F / s if AC or heat
-        degrees_per_second = 0.005
-        dtemp = 0.0
+        # Update cabin temperature based on heating or AC signals.
+        degrees_per_second = 0.005  # Temperature change per second factor
         if lights_doors_data["heat_signal"] and not lights_doors_data["ac_signal"]:
-            # increase temperature linearly by +0.05°F every 10 seconds
-            dtemp = degrees_per_second * dt
+            dtemp = degrees_per_second * dt  # Increase temperature
         elif lights_doors_data["ac_signal"] and not lights_doors_data["heat_signal"]:
-            # suppose AC is still 0.05°F every 10 seconds but downward
-            dtemp = -degrees_per_second * dt
+            dtemp = -degrees_per_second * dt  # Decrease temperature
         elif lights_doors_data["ac_signal"] and lights_doors_data["heat_signal"]:
-            # both on => net 0
             dtemp = 0.0
         else:
-            dtemp = 0.0005  # no net change
-
+            dtemp = 0.0005
         self.cabin_temp += dtemp
+        display_temp = (self.cabin_temp * 1.8) + 32  # Convert to Fahrenheit
 
-        # update UI fields
-        # convert velocity to mph
+        # Update UI fields.
         velocity_mph   = self.actual_velocity * self.MPS_TO_MPH
         cmd_speed_mph  = commanded_speed * self.MPS_TO_MPH
         limit_mph      = speed_limit * self.MPS_TO_MPH
-        acceleration_fts2 = self.current_acceleration * 3.281
+        acceleration_fts2 = self.current_acceleration * 3.281  # Convert to ft/s^2
 
-        # acceleration (ft/s^2)
         self.train_ui.AccValue.display(acceleration_fts2)
-        # actual speed (mph)
         self.train_ui.SpeedValue.display(velocity_mph)
-        # commanded speed & limit (mph)
         self.train_ui.CommandedSpeedValue.display(cmd_speed_mph)
         self.train_ui.SpeedLimitValue.display(limit_mph)
         self.train_ui.PowerValue.display(commanded_power_kw)
-
-        # mass in lbs
         self.train_ui.MassVehicleValue.display(mass_lbs)
-        # display passenger & crew
         self.train_ui.PassengerCountValue.display(train_data["passenger_count"])
         self.train_ui.CrewCountValue.display(train_data["crew_count"])
-
-        # show length, height, width in feet
         self.train_ui.LengthVehicleValue.display(length_ft)
         self.train_ui.HeightValue.display(height_ft)
         self.train_ui.WidthValue.display(width_ft)
 
-        # show announcements
         if hasattr(self.train_ui, "Announcement_2"):
             announcements_str = lights_doors_data["announcements"]
             self.train_ui.Announcement_2.setText(announcements_str)
             self.train_ui.Announcement_2.setStyleSheet("font-size: 20px; font-weight: bold;")
 
-        # show cabin temp if you have a Temperature label/QLCD
         if hasattr(self.train_ui, "Temperature"):
-            self.train_ui.Temperature.setText(f"{self.cabin_temp:.2f} °F")
+            self.train_ui.Temperature.setText(f"{display_temp:.2f} °F")
             self.train_ui.Temperature.setAlignment(Qt.AlignCenter)
 
-        # show the grade if user has GradeValue
         if hasattr(self.train_ui, "GradePercentage"):
-            self.train_ui.GradePercentageValue.display(grade)  # capped at 60
+            self.train_ui.GradePercentageValue.display(grade)
 
         if lights_doors_data["ext_lights"]:
             self.train_ui.ExteriorLightsOff.setStyleSheet("background-color: none; color: black;")
@@ -368,11 +343,11 @@ class TrainModelApp(QMainWindow):
             self.train_ui.RightDoorOpen.setStyleSheet("background-color: none; color: black;")
             self.train_ui.RightDoorClosed.setStyleSheet("background-color: yellow; color: black;")
 
-        # TestBench finalized “Displayed?” checks
+        # Finalize testbench status updates.
         self.testbench.update_status()
 
     def init_failure_buttons(self):
-        """Sets checkable states for the 6 (Enabled/Disabled) buttons."""
+        """Sets checkable states for the 6 failure buttons and binds their toggle events."""
         self.train_ui.Enabled1.setCheckable(True)
         self.train_ui.Enabled2.setCheckable(True)
         self.train_ui.Enabled3.setCheckable(True)
@@ -388,23 +363,20 @@ class TrainModelApp(QMainWindow):
         self.train_ui.Disabled3.toggled.connect(lambda checked: self.on_failure_toggled("Disabled3", checked))
 
     def on_failure_toggled(self, button_name, checked):
-        """When a failure button is toggled, update the corresponding label in the TestBench."""
+        """Update corresponding testbench label based on failure button toggling."""
         text_to_set = "Displayed" if checked else "Not Displayed"
-
         if button_name == "Enabled1":
             self.testbench.ui.BrakeFailure.setText(text_to_set)
             self.train_ui.Disabled1.setEnabled(not checked)
         elif button_name == "Disabled1":
             self.testbench.ui.BrakeFailure.setText(text_to_set)
             self.train_ui.Enabled1.setEnabled(not checked)
-
         elif button_name == "Enabled2":
             self.testbench.ui.SignalFailure.setText(text_to_set)
             self.train_ui.Disabled2.setEnabled(not checked)
         elif button_name == "Disabled2":
             self.testbench.ui.SignalFailure.setText(text_to_set)
             self.train_ui.Enabled2.setEnabled(not checked)
-
         elif button_name == "Enabled3":
             self.testbench.ui.EngineFailure.setText(text_to_set)
             self.train_ui.Disabled3.setEnabled(not checked)
@@ -412,9 +384,8 @@ class TrainModelApp(QMainWindow):
             self.testbench.ui.EngineFailure.setText(text_to_set)
             self.train_ui.Enabled3.setEnabled(not checked)
 
-
     def mark_emergency_displayed(self, pressed: bool):
-        """If the emergency brake is toggled on, set testbench label to 'Displayed'."""
+        """When the emergency brake is toggled, update the testbench and UI accordingly."""
         if pressed:
             self.testbench.ui.PEmergencyStop.setText("Displayed")
             self.testbench.ui.ServiceBrakes.setChecked(False)
@@ -424,29 +395,20 @@ class TrainModelApp(QMainWindow):
             self.testbench.ui.ServiceBrakes.setEnabled(True)
 
     def update_clock(self):
-        # Add one second to the simulated time
+        """Update the simulated clock display every second."""
         self.simulated_time = self.simulated_time.addSecs(1)
-
-        # Extract hour, minute, second from the simulated time
         hour = self.simulated_time.hour()
         minute = self.simulated_time.minute()
-        second = self.simulated_time.second()
-
-        # Convert to 12-hour format and set AM/PM
         am_pm = "AM" if hour < 12 else "PM"
         hour_12 = hour % 12
         if hour_12 == 0:
             hour_12 = 12
-
-        # Format the time as HH:MM:SS
         time_text = f"{hour_12:02d}:{minute:02d}"
-
-        # Update the QLCDNumber and the AM/PM label
         self.train_ui.Clock_12.display(time_text)
         self.train_ui.AM_PM.setText(am_pm)
 
     def to_float(self, val_str, default=0.0):
-        """Helper for string->float conversion."""
+        """Convert a string to a float, returning a default value if conversion fails."""
         try:
             return float(val_str)
         except ValueError:
