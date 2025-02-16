@@ -1,14 +1,21 @@
-"""Connor Murray breh"""
+"""
+Author: Connor Murray
+Date: 2/16/2025
+Description: 
+    The class implemented here builds on the generated QT desinger output for the wayside controller testbench ui.
+"""
 import sys
-import math
 from PyQt5.QtWidgets import QApplication, QMainWindow, QListWidgetItem
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QIntValidator
 from wayside_controller_testbench_ui import Ui_MainWindow
 
-"""Describe the class"""
-class WaysideTestbenchApp(QMainWindow):
-    
+
+class WaysideTestbenchWindow(QMainWindow):
+    """
+    Describe the class
+    """
+
     # Constants
     NUMBER_OF_BLOCKS = 15 
     MAX_SPEED_LIMIT = 50 # kmh
@@ -25,21 +32,29 @@ class WaysideTestbenchApp(QMainWindow):
     suggested_authority_signal = pyqtSignal(int, str) # (index, value)
     suggested_speed_signal = pyqtSignal(int, str) # (index, value)
 
-
     def __init__(self):
-        # Initialize ui from the generated designer ui
-        super().__init__()
+        """
+        define function
+        params:
+        """
+        
+        super().__init__() # Initialize ui from the generated designer ui
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.setup_validators()
 
-        # Connecting the list signals to the slot
-        self.ui.select_block_list.itemClicked.connect(self.handle_block_selection)
+       
+        self.ui.select_block_list.itemClicked.connect(self.handle_block_selection)  # Connecting the list signals to the slot
         self.ui.suggested_speed_confirm_button.clicked.connect(self.handle_speed_confirmation)
         self.ui.suggested_authority_confirm_button.clicked.connect(self.handle_authority_confirmation)
         self.ui.block_occupancy_confirm_button.clicked.connect(self.handle_occupancy_confirmation)
 
+
     def setup_validators(self):
+        """
+        define function
+        params:
+        """
         speed_validator = QIntValidator(0, int(self.MAX_SPEED_LIMIT * 0.621)) # convert to mph since entry is done in mph
         self.ui.suggested_speed_line_edit.setValidator(speed_validator)
 
@@ -49,6 +64,10 @@ class WaysideTestbenchApp(QMainWindow):
 
     @pyqtSlot(QListWidgetItem)  
     def handle_block_selection(self, selected_block):
+        """
+        define function
+        params:
+        """
         self.current_block_index = self.ui.select_block_list.row(selected_block) # Updating the index based on the block selected
         
         # Update the gui so that it reflects what the user has input previously, or if yet to input anything set to defaults
@@ -76,22 +95,37 @@ class WaysideTestbenchApp(QMainWindow):
         else:
             self.ui.suggested_authority_line_edit.setText(self.suggested_authorities[self.current_block_index])
     
+    
     @pyqtSlot()
     def handle_speed_confirmation(self):
+        """
+        define function
+        params:
+        """
         if self.current_block_index is not None: # Making sure the confirmation button only updates when a block is selected
             # When the confirm button is clicked update the speed and emit a signal
             self.suggested_speeds[self.current_block_index] = self.ui.suggested_speed_line_edit.text()
             self.suggested_speed_signal.emit(self.current_block_index, self.ui.suggested_speed_line_edit.text())
     
+   
     @pyqtSlot()  
     def handle_authority_confirmation(self):
+        """
+        define function
+        params:
+        """
         if self.current_block_index is not None: # Making sure the confirmation button only updates when a block is selected
             # When the confirm button is clicked update the authority and emit a signal
             self.suggested_authorities[self.current_block_index] = self.ui.suggested_authority_line_edit.text()
             self.suggested_authority_signal.emit(self.current_block_index, self.ui.suggested_authority_line_edit.text())
     
+    
     @pyqtSlot()
     def handle_occupancy_confirmation(self):
+        """
+        define function
+        params:
+        """
         if self.current_block_index is not None: # Making sure the confirmation button only updates when a block is selected
             # When the confirm button is clicked update the occupancy in accordance with the current state of the combo box
             self.block_occupancies[self.current_block_index] = self.ui.block_occupancy_combo_box.currentText()
@@ -99,6 +133,6 @@ class WaysideTestbenchApp(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    main_window = WaysideTestbenchApp()
+    main_window = WaysideTestbenchWindow()
     main_window.show()
     sys.exit(app.exec_())
