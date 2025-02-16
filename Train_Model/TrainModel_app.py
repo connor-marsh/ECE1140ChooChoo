@@ -4,7 +4,7 @@ import time
 import math
 
 from PySide2.QtWidgets import QApplication, QMainWindow
-from PySide2.QtCore import QTimer, QDateTime, Qt
+from PySide2.QtCore import *
 
 from TrainModel_UI_Iteration_1 import Ui_MainWindow as TrainModelUI
 from TrainModel_UI_TestBench_Iteration_1 import Ui_TestMainWindow as TestBenchUI
@@ -144,6 +144,12 @@ class TrainModelApp(QMainWindow):
         self.timer.timeout.connect(self.update_from_testbench)
         self.timer.start(100)
 
+        # timer for updating the clock every second
+        self.simulated_time = QTime(11, 59, 0)
+        self.clock_timer = QTimer(self)
+        self.clock_timer.timeout.connect(self.update_clock)
+        self.clock_timer.start(1000)
+
         # make emergency brake checkable
         self.train_ui.button_emergency.setCheckable(True)
         self.init_failure_buttons()
@@ -204,10 +210,6 @@ class TrainModelApp(QMainWindow):
             a = self.MAX_ACCEL
         elif a < -self.MAX_ACCEL:
             a = -self.MAX_ACCEL
-
-        # # speed limit logic
-        # if speed_limit > 0 and self.actual_velocity >= speed_limit and a > 0:
-        #     a = 0
 
         # integrate velocity
         old_velocity = self.actual_velocity
@@ -295,16 +297,6 @@ class TrainModelApp(QMainWindow):
         if hasattr(self.train_ui, "GradeValue"):
             self.train_ui.GradeValue.display(grade)  # capped at 60
 
-        # lights / Doors
-        # if lights_doors_data["service_brakes"]:
-        #     self.train_ui.ServiceBrakesOff.setStyleSheet("background-color: none; color: black;")
-        #     self.train_ui.ServiceBrakesOn.setStyleSheet("background-color: yellow; color: black;")
-        #     self.train_ui.button_emergency.setEnabled(False)
-        # else:
-        #     self.train_ui.ServiceBrakesOn.setStyleSheet("background-color: none; color: black;")
-        #     self.train_ui.ServiceBrakesOff.setStyleSheet("background-color: yellow; color: black;")
-        #     self.train_ui.button_emergency.setEnabled(True)
-
         if lights_doors_data["ext_lights"]:
             self.train_ui.ExteriorLightsOff.setStyleSheet("background-color: none; color: black;")
             self.train_ui.ExteriorLightsOn.setStyleSheet("background-color: green; color: white;")
@@ -387,6 +379,28 @@ class TrainModelApp(QMainWindow):
         else:
             self.testbench.ui.PEmergencyStop.setText("Not Displayed")
             self.testbench.ui.ServiceBrakes.setEnabled(True)
+
+    def update_clock(self):
+        # Add one second to the simulated time
+        self.simulated_time = self.simulated_time.addSecs(1)
+
+        # Extract hour, minute, second from the simulated time
+        hour = self.simulated_time.hour()
+        minute = self.simulated_time.minute()
+        second = self.simulated_time.second()
+
+        # Convert to 12-hour format and set AM/PM
+        am_pm = "AM" if hour < 12 else "PM"
+        hour_12 = hour % 12
+        if hour_12 == 0:
+            hour_12 = 12
+
+        # Format the time as HH:MM:SS
+        time_text = f"{hour_12:02d}:{minute:02d}"
+
+        # Update the QLCDNumber and the AM/PM label
+        self.train_ui.Clock_12.display(time_text)
+        self.train_ui.AM_PM.setText(am_pm)
 
     def to_float(self, val_str, default=0.0):
         """Helper for string->float conversion."""
