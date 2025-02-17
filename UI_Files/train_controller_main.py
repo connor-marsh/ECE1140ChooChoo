@@ -40,12 +40,20 @@ class TrainControllerWindow(QMainWindow):
         self.commanded_authority = 0.0
         self.passenger_emergency_stop = False
         self.beacon_data = ""
-        self.temperature_status = 25.0 # Celcius room temp accoriding to connor
+        self.temperature_status = 25.0 # Celcius
         self.signal_failure = False
         self.brake_failure = False
         self.engine_failure = False
+        
+        # Default for power calculation
+        self.integral_error = 0.0
+        self.Kp = 1
+        self.Ki = 1
 
-        # Set up the button to read inputs and set the values
+        # Set up buttons to read inputs from UI
+        self.ui.control_constants_apply_button.clicked.connect(self.set_k_constants)
+
+        # Set up the button to read inputs and set the values from testbench
         self.testbench.ui.tb_input_apply_button.clicked.connect(self.read_testbench_inputs)
 
         # Set up timer for callback/update function
@@ -84,9 +92,17 @@ class TrainControllerWindow(QMainWindow):
         self.activate_engine_failure() if self.engine_failure else self.deactivate_engine_failure()
 
         # Calculate the power
-        # self.error = self.actual_speed - self.commanded_wayside_speed # This could be driver input so we need logic for that
-        # self.integral_error += self.error * (0.001) # THIS SHOULD BE A DT CONSTANT THAT CHANGES THE RATE AT WHICH UPDATE FUNCTION ALSO RUNS
-        # self.commanded_power = (Kp * self.error) + (Ki * self.integral_error)
+        if (self.ui.control_mode_switch.value() == 0):
+            # Auto Mode
+            self.error = self.actual_speed - self.commanded_wayside_speed # This could be driver input so we need logic for that
+            self.integral_error += self.error * (0.001) # THIS SHOULD BE A DT CONSTANT THAT CHANGES THE RATE AT WHICH UPDATE FUNCTION ALSO RUNS
+            self.commanded_power = (self.Kp * self.error) + (self.Ki * self.integral_error)
+        else:
+            pass
+        
+    def set_k_constants(self):
+        self.Kp = self.to_float(self.ui.kp_line_edit.text(), 1.0)
+        self.Ki = self.to_float(self.ui.ki_line_edit.text(), 1.0)
 
     def activate_signal_failure(self):
         self.ui.signal_failure_light.setStyleSheet("background-color: red; font-weight: bold; font-size: 16px;")
