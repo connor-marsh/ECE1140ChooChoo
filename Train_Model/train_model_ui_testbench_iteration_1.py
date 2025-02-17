@@ -487,10 +487,10 @@ class Ui_TestMainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
-        self.ActualVelocityLabel.setText(QCoreApplication.translate("MainWindow", u"Actual Velocity (m/s)", None))
-        self.SpeedLimitLabel_2.setText(QCoreApplication.translate("MainWindow", u"Speed Limit (m/s)", None))
-        self.WaysideSpeedLabel_2.setText(QCoreApplication.translate("MainWindow", u"Wayside Speed (m/s)", None))
-        self.WaysideAuthorityLabel_2.setText(QCoreApplication.translate("MainWindow", u"Wayside Authority (m)", None))
+        self.ActualVelocityLabel.setText(QCoreApplication.translate("MainWindow", u"Actual Velocity (mph)", None))
+        self.SpeedLimitLabel_2.setText(QCoreApplication.translate("MainWindow", u"Speed Limit (mph)", None))
+        self.WaysideSpeedLabel_2.setText(QCoreApplication.translate("MainWindow", u"Wayside Speed (mph)", None))
+        self.WaysideAuthorityLabel_2.setText(QCoreApplication.translate("MainWindow", u"Wayside Authority (feet)", None))
         self.PEmergencyStopLabel.setText(QCoreApplication.translate("MainWindow", u"Passenger Emergency Stop", None))
         self.SignalFailureLabel.setText(QCoreApplication.translate("MainWindow", u"Signal Failure (bool)", None))
         self.BrakeFailureLabel.setText(QCoreApplication.translate("MainWindow", u"Brake Failure (bool)", None))

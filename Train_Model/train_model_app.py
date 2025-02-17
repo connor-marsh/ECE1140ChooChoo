@@ -111,28 +111,44 @@ class TestBenchApp(QMainWindow):
 
     def update_status(self):
         """Checks if the Train Model UI is displaying correct values."""
+        # Check commanded speed.
         cmd_speed_str = self.ui.WaysideSpeed.text()
         cmd_speed_val = self.train_app.to_float(cmd_speed_str, -999)
+        # Convert the testbench commanded speed from m/s to mph.
+        cmd_speed_val_mph = cmd_speed_val * self.train_app.MPS_TO_MPH
         model_cmd_speed = self.train_app.train_ui.CommandedSpeedValue.value()
-        if abs(cmd_speed_val - model_cmd_speed) < 0.0001:
-            self.ui.WaysideSpeed_2.setText("Displayed")
+        if abs(cmd_speed_val_mph - model_cmd_speed) < 0.0001:
+            self.ui.WaysideSpeed_2.setText(f"{(cmd_speed_val_mph):.2f}")
         else:
             self.ui.WaysideSpeed_2.setText("Not Displayed")
-
-        auth_str = self.ui.WaysideAuthority.text()  # Authority input
+        
+        # Check authority signal.
+        auth_str = self.ui.WaysideAuthority.text()  # Authority input.
         auth_val = self.train_app.to_float(auth_str, 0.0)
         if abs(auth_val) > 0.0001:
-            self.ui.WaysideAuthority_2.setText(f"{(auth_val*3.281):.2f} (feet)")
+            self.ui.WaysideAuthority_2.setText(f"{(auth_val * 3.281):.2f}")
         else:
             self.ui.WaysideAuthority_2.setText("Not Displayed")
+        
+        # Check speed limit.
+        speed_limit_str = self.ui.SpeedLimit.text()
+        speed_limit_val = self.train_app.to_float(speed_limit_str, 0.0)
+        # Convert the testbench speed limit from m/s to mph.
+        speed_limit_val_mph = speed_limit_val * self.train_app.MPS_TO_MPH
+        model_speed_limit = self.train_app.train_ui.SpeedLimitValue.value()
+        if abs(speed_limit_val_mph - model_speed_limit) < 0.0001:
+            self.ui.SpeedLimit_2.setText(f"{speed_limit_val_mph:.2f}")
+        else:
+            self.ui.SpeedLimit_2.setText("Not Displayed")
+        
+        # Check actual velocity.
+        speed_ui = self.train_app.train_ui.SpeedValue.value()  # mph from UI.
+        internal_mph = self.train_app.actual_velocity * self.train_app.MPS_TO_MPH
+        if abs(internal_mph - speed_ui) < 0.0001:
+            self.ui.ActualVelocity.setText(f"{internal_mph:.2f}")
+        else:
+            self.ui.ActualVelocity.setText("Not Displayed")
 
-        if hasattr(self.train_app.train_ui, "SpeedValue"):
-            speed_ui = self.train_app.train_ui.SpeedValue.value()  # mph from UI
-            internal_mph = self.train_app.actual_velocity * self.train_app.MPS_TO_MPH
-            if abs(internal_mph - speed_ui) < 0.0001:
-                self.ui.ActualVelocity.setText("Displayed")
-            else:
-                self.ui.ActualVelocity.setText("Not Displayed")
 
 
 ###############################################################################
@@ -216,9 +232,9 @@ class TrainModelApp(QMainWindow):
         height_ft = train_data["height_m"] * self.M_TO_FT
         width_ft  = train_data["width_m"]  * self.M_TO_FT
 
-        # Calculate gravitational force component
-        theta = math.atan(grade / 100.0)  # Convert grade percent to angle (radians)
-        grav_force = mass_kg * self.GRAVITY * math.sin(theta)
+        # Before calculating dyn_force, if brakes are active, zero out the power.
+        if self.train_ui.button_emergency.isChecked() or lights_doors_data["service_brakes"]:
+            commanded_power_watts = 0
 
         # Calculate the dynamic force from commanded power using P = F * v.
         try:
@@ -229,69 +245,54 @@ class TrainModelApp(QMainWindow):
         except ZeroDivisionError:
             dyn_force = 1000.0
 
+        # Calculate gravitational force component
+        theta = math.atan(grade / 100.0)  # Convert grade percent to angle (radians)
+        grav_force = mass_kg * self.GRAVITY * math.sin(theta)
+
         # Net force and basic acceleration (a_base) from Newton's second law.
         net_force = dyn_force - grav_force
         a_base = net_force / mass_kg  # (m/s^2)
 
-        # Determine the target acceleration based on braking conditions.
         if self.train_ui.button_emergency.isChecked():
-            target_a = self.EMERGENCY_DECEL
-        elif lights_doors_data["service_brakes"]:
-            target_a = self.SERVICE_DECEL
-        else:
-            target_a = a_base
-
-        # Gradually ramp the current acceleration toward the target value.
-        ramp_rate = 5.0  # m/s^3, adjust this value for smoother or faster transitions
-        accel_diff = target_a - self.current_acceleration
-        max_delta = ramp_rate * dt
-        if abs(accel_diff) < max_delta:
+            # When braking, set acceleration to the brake deceleration adjusted by grade.
+            target_a = self.EMERGENCY_DECEL - self.GRAVITY * math.sin(theta)
+            # Immediately set current acceleration to target to avoid ramping from previous state.
             self.current_acceleration = target_a
+        elif lights_doors_data["service_brakes"]:
+            target_a = self.SERVICE_DECEL - self.GRAVITY * math.sin(theta)
+            ramp_rate = 1.0  # m/s^3, adjust for smoother or faster transitions
+            accel_diff = target_a - self.current_acceleration
+            max_delta = ramp_rate * dt
+            if abs(accel_diff) < max_delta:
+                self.current_acceleration = target_a
+            else:
+                self.current_acceleration += math.copysign(max_delta, accel_diff)
         else:
-            self.current_acceleration += math.copysign(max_delta, accel_diff)
+            # Otherwise, ramp current acceleration toward the dynamic target.
+            target_a = a_base
+            ramp_rate = 1.0  # m/s^3
+            accel_diff = target_a - self.current_acceleration
+            max_delta = ramp_rate * dt
+            if abs(accel_diff) < max_delta:
+                self.current_acceleration = target_a
+            else:
+                self.current_acceleration += math.copysign(max_delta, accel_diff)
 
         # Use the smoothly updated acceleration for integration.
         a = self.current_acceleration
 
+        # Clamp the acceleration to avoid unrealistic values.
+        if a > self.MAX_ACCEL:
+            a = self.MAX_ACCEL
+        elif a < -self.MAX_ACCEL:
+            a = -self.MAX_ACCEL
+
         # Update velocity using trapezoidal integration.
+        # v_n = v_(n-1) + (dt/2) * (a_n + a_(n-1))
         old_velocity = self.actual_velocity
         new_velocity = old_velocity + (dt / 2.0) * (a + self.previous_acceleration)
         if new_velocity < 0:
             new_velocity = 0
-            
-        # # determine the maximum allowed speed:
-        # # if a speed limit is set (nonzero) and commanded speed is higher than the limit, follow the speed limit.
-        # if speed_limit > 0 and wayside_speed > speed_limit:
-        #     max_allowed_speed = speed_limit
-        # else:
-        #     max_allowed_speed = wayside_speed
-
-        # # ensure actual velocity never exceeds the maximum allowed speed
-        # if new_velocity > max_allowed_speed:
-        #     new_velocity = max_allowed_speed
-
-        # when velocity is constant, acc. decays
-        # define a small threshold and decay factor.
-        # threshold = 0.0001
-        # decay_factor = 0.9
-
-        # # if the max allowed speed is near zero, override acceleration and velocity.
-        # if max_allowed_speed < threshold:
-        #     a = 0
-        #     new_velocity = 0
-        # # if we're at (or nearly at) the max allowed speed and acceleration is positive, gradually decay the acceleration.
-        # elif new_velocity >= max_allowed_speed - threshold and a > 0:
-        #     if not hasattr(self, 'decayed_acceleration'):
-        #         self.decayed_acceleration = a
-        #     else:
-        #         self.decayed_acceleration *= decay_factor
-        #     a = self.decayed_acceleration
-        #     new_velocity = old_velocity + a * dt
-        #     new_velocity = min(new_velocity, max_allowed_speed)
-        # # if not at the limit, reset any decayed acceleration for a fresh start.
-        # else:
-        #     if hasattr(self, 'decayed_acceleration'):
-        #         del self.decayed_acceleration
 
         # If both commanded speed and power are near zero, force zero acceleration and velocity.
         threshold = 0.0001
@@ -436,6 +437,8 @@ class TrainModelApp(QMainWindow):
             self.train_ui.Enabled3.setEnabled(not checked)
             
     def handle_emergency_button(self, pressed: bool):
+        if not self.train_ui.button_emergency.isEnabled():
+            return  # Service brakes are active, so do nothing
         if pressed:
             # Lock the emergency button in the main UI.
             self.train_ui.button_emergency.setEnabled(False)
