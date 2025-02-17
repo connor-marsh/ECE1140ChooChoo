@@ -97,7 +97,7 @@ class TestBenchApp(QMainWindow):
             # Re-enable the main UI emergency button and uncheck it.
             self.train_app.train_ui.button_emergency.setEnabled(True)
             self.train_app.train_ui.button_emergency.setChecked(False)
-            self.ui.PEmergencyStop.setText("Not Displayed")
+            self.ui.PEmergencyStop.setText("Disabled")
             # Disable the testbench checkbox again.
             self.ui.EmergencyStop.setEnabled(False)
 
@@ -236,12 +236,11 @@ class TrainModelApp(QMainWindow):
         if self.train_ui.button_emergency.isChecked() or lights_doors_data["service_brakes"]:
             commanded_power_watts = 0
 
-        # Calculate the dynamic force from commanded power using P = F * v.
+        # Calculate dynamic force component         
         try:
-            if self.actual_velocity <= 0.0:
-                dyn_force = 1000.0
-            else:
-                dyn_force = commanded_power_watts / self.actual_velocity
+            # Use a minimum effective velocity to avoid dividing by (or near) zero.
+            v_eff = self.actual_velocity if self.actual_velocity > 0.1 else 0.1
+            dyn_force = commanded_power_watts / v_eff
         except ZeroDivisionError:
             dyn_force = 1000.0
 
@@ -313,7 +312,7 @@ class TrainModelApp(QMainWindow):
             new_velocity = self.MIN_SPEED_NO_BRAKE
 
         # Service brake UI updates.
-        service_brake_active = lights_doors_data["service_brakes"] or (speed_limit > 0 and self.actual_velocity > speed_limit)
+        service_brake_active = lights_doors_data["service_brakes"] # or (speed_limit > 0 and self.actual_velocity > speed_limit)
         if service_brake_active:
             a = self.SERVICE_DECEL
             self.train_ui.ServiceBrakesOff.setStyleSheet("background-color: none; color: black;")
@@ -416,7 +415,7 @@ class TrainModelApp(QMainWindow):
 
     def on_failure_toggled(self, button_name, checked):
         """Update corresponding testbench label based on failure button toggling."""
-        text_to_set = "Displayed" if checked else "Not Displayed"
+        text_to_set = "Enabled" if checked else "Disabled"
         if button_name == "Enabled1":
             self.testbench.ui.BrakeFailure.setText(text_to_set)
             self.train_ui.Disabled1.setEnabled(not checked)
@@ -443,7 +442,7 @@ class TrainModelApp(QMainWindow):
             # Lock the emergency button in the main UI.
             self.train_ui.button_emergency.setEnabled(False)
             # Update testbench indicator.
-            self.testbench.ui.PEmergencyStop.setText("Displayed")
+            self.testbench.ui.PEmergencyStop.setText("Enabled")
             self.testbench.ui.ServiceBrakes.setChecked(False)
             self.testbench.ui.ServiceBrakes.setEnabled(False)
             # Enable the testbench release control and set it to "active".
@@ -451,7 +450,7 @@ class TrainModelApp(QMainWindow):
             self.testbench.ui.EmergencyStop.setChecked(True)
         else:
             # (This branch is unlikely to be used since the button is locked when pressed.)
-            self.testbench.ui.PEmergencyStop.setText("Not Displayed")
+            self.testbench.ui.PEmergencyStop.setText("Disabled")
             self.testbench.ui.ServiceBrakes.setEnabled(True)
 
     def update_clock(self):
