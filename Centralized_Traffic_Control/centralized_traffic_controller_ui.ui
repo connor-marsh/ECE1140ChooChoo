@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>688</width>
-    <height>720</height>
+    <width>692</width>
+    <height>748</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -62,7 +62,33 @@
               <enum>QFrame::Box</enum>
              </property>
              <property name="text">
-              <string>7</string>
+              <string>#</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_7">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="main_upload_map_button">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Upload Track File</string>
              </property>
             </widget>
            </item>
@@ -91,7 +117,7 @@
               <enum>QFrame::Box</enum>
              </property>
              <property name="text">
-              <string>12:00 am</string>
+              <string>12 Hr clock</string>
              </property>
              <property name="scaledContents">
               <bool>false</bool>
@@ -130,7 +156,7 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_5">
            <item>
-            <widget class="QGraphicsView" name="main_track_view"/>
+            <widget class="QTableWidget" name="main_map_table"/>
            </item>
           </layout>
          </item>
@@ -139,13 +165,22 @@
       </item>
       <item>
        <widget class="QFrame" name="frame_2">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="20,1,20">
+        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,0">
+         <property name="spacing">
+          <number>3</number>
+         </property>
          <property name="leftMargin">
           <number>0</number>
          </property>
@@ -261,6 +296,24 @@
                  </item>
                  <item>
                   <widget class="QSlider" name="main_line_slider">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>20</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16776985</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="maximum">
                     <number>1</number>
                    </property>
@@ -322,6 +375,24 @@
                  </item>
                  <item>
                   <widget class="QSlider" name="main_mode_slider">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>20</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16776985</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
                    <property name="maximum">
                     <number>1</number>
                    </property>
@@ -339,7 +410,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>Manual</string>
+                    <string>Maintenance</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -395,12 +466,12 @@
                        </widget>
                       </item>
                       <item row="1" column="1">
-                       <widget class="QLabel" name="main_active_block_status">
+                       <widget class="QLabel" name="main_active_block_length">
                         <property name="frameShape">
                          <enum>QFrame::StyledPanel</enum>
                         </property>
                         <property name="text">
-                         <string>STATUS</string>
+                         <string>ft</string>
                         </property>
                         <property name="alignment">
                          <set>Qt::AlignCenter</set>
@@ -426,7 +497,7 @@
                          <enum>QFrame::StyledPanel</enum>
                         </property>
                         <property name="text">
-                         <string>Block Status:</string>
+                         <string>Block Length</string>
                         </property>
                        </widget>
                       </item>
@@ -550,17 +621,17 @@
           </spacer>
          </item>
          <item>
-          <widget class="QStackedWidget" name="stackedWidget">
+          <widget class="QStackedWidget" name="multiPageWidget">
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>
            <property name="currentIndex">
-            <number>2</number>
+            <number>1</number>
            </property>
            <widget class="QWidget" name="page">
             <layout class="QVBoxLayout" name="verticalLayout_9">
              <item>
-              <widget class="QTableWidget" name="main_active_trains">
+              <widget class="QTableWidget" name="main_active_trains_table">
                <row>
                 <property name="text">
                  <string/>
@@ -716,7 +787,7 @@
                   <item row="1" column="0">
                    <layout class="QGridLayout" name="gridLayout_3">
                     <item row="1" column="1">
-                     <widget class="QPushButton" name="main_switch_to_upload">
+                     <widget class="QPushButton" name="main_switch_to_upload_button">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                         <horstretch>0</horstretch>
@@ -729,7 +800,7 @@
                      </widget>
                     </item>
                     <item row="1" column="0">
-                     <widget class="QPushButton" name="main_switch_to_maintenance">
+                     <widget class="QPushButton" name="main_switch_to_maintenance_button">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                         <horstretch>0</horstretch>
@@ -742,7 +813,7 @@
                      </widget>
                     </item>
                     <item row="0" column="0">
-                     <widget class="QPushButton" name="main_switch_to_dispatch">
+                     <widget class="QPushButton" name="main_switch_to_dispatch_button">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                         <horstretch>0</horstretch>
@@ -755,7 +826,7 @@
                      </widget>
                     </item>
                     <item row="0" column="1">
-                     <widget class="QPushButton" name="main_switch_to_select">
+                     <widget class="QPushButton" name="main_switch_to_select_button">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                         <horstretch>0</horstretch>
@@ -779,14 +850,14 @@
            <widget class="QWidget" name="page_2">
             <layout class="QVBoxLayout" name="verticalLayout_11">
              <item>
-              <layout class="QVBoxLayout" name="verticalLayout_10" stretch="1,5,3,3">
+              <layout class="QVBoxLayout" name="verticalLayout_10" stretch="1,5,0,3">
                <item>
                 <widget class="QWidget" name="widget_4" native="true">
                  <layout class="QHBoxLayout" name="horizontalLayout_9">
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout">
                     <item>
-                     <widget class="QPushButton" name="sub_return">
+                     <widget class="QPushButton" name="sub_return_button">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -835,15 +906,22 @@
                        <enum>Qt::Horizontal</enum>
                       </property>
                       <property name="sizeType">
-                       <enum>QSizePolicy::Preferred</enum>
+                       <enum>QSizePolicy::Minimum</enum>
                       </property>
                       <property name="sizeHint" stdset="0">
                        <size>
-                        <width>40</width>
+                        <width>20</width>
                         <height>20</height>
                        </size>
                       </property>
                      </spacer>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="sub_upload_train_data_button">
+                      <property name="text">
+                       <string>Upload Data</string>
+                      </property>
+                     </widget>
                     </item>
                    </layout>
                   </item>
@@ -851,22 +929,37 @@
                 </widget>
                </item>
                <item>
-                <widget class="QTableWidget" name="sub_train_select"/>
+                <widget class="QTableWidget" name="sub_dispatch_train_table"/>
                </item>
                <item>
-                <widget class="QWidget" name="widget_5" native="true">
+                <widget class="QGroupBox" name="groupBox_5">
+                 <property name="title">
+                  <string>Manual Override</string>
+                 </property>
                  <layout class="QHBoxLayout" name="horizontalLayout_12">
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_11">
                     <item>
-                     <widget class="QRadioButton" name="sub_dispatch_overide">
+                     <widget class="QRadioButton" name="sub_dispatch_overide_radio">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
                       <property name="text">
                        <string>Send new train to block:</string>
                       </property>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QComboBox" name="sub_block_letter">
+                     <widget class="QComboBox" name="sub_block_letter_combo">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
                       <item>
                        <property name="text">
                         <string>A</string>
@@ -895,7 +988,13 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QComboBox" name="sub_block_number">
+                     <widget class="QComboBox" name="sub_block_number_combo">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
                       <item>
                        <property name="text">
                         <string>1</string>
@@ -929,7 +1028,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="sub_dispatch_confirm">
+                <widget class="QPushButton" name="sub_dispatch_confirm_button">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                    <horstretch>0</horstretch>
@@ -955,7 +1054,7 @@
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_14">
                     <item>
-                     <widget class="QPushButton" name="sub_return_2">
+                     <widget class="QPushButton" name="sub_return_button2">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -1020,10 +1119,13 @@
                 </widget>
                </item>
                <item>
-                <widget class="QTableWidget" name="sub_train_select_2"/>
+                <widget class="QTableWidget" name="sub_train_select_table"/>
                </item>
                <item>
-                <widget class="QWidget" name="widget_7" native="true">
+                <widget class="QGroupBox" name="groupBox_7">
+                 <property name="title">
+                  <string>Manual Override</string>
+                 </property>
                  <layout class="QGridLayout" name="gridLayout_6">
                   <item row="0" column="0">
                    <layout class="QGridLayout" name="gridLayout_5">
@@ -1088,10 +1190,10 @@
                      </widget>
                     </item>
                     <item row="0" column="3">
-                     <widget class="QDoubleSpinBox" name="sub_enter_speed"/>
+                     <widget class="QDoubleSpinBox" name="sub_enter_speed_override"/>
                     </item>
                     <item row="1" column="3">
-                     <widget class="QDoubleSpinBox" name="sub_enter_authority"/>
+                     <widget class="QDoubleSpinBox" name="sub_enter_authority_override"/>
                     </item>
                    </layout>
                   </item>
@@ -1099,7 +1201,13 @@
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="pushButton_9">
+                <widget class="QPushButton" name="sub_confirm_override_button">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
                  <property name="text">
                   <string>Confirm</string>
                  </property>
@@ -1119,7 +1227,7 @@
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_16">
                     <item>
-                     <widget class="QPushButton" name="pushButton_8">
+                     <widget class="QPushButton" name="sub_return_button3">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -1212,7 +1320,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="label_25">
+                     <widget class="QLabel" name="sub_active_block_id">
                       <property name="frameShape">
                        <enum>QFrame::Box</enum>
                       </property>
@@ -1257,7 +1365,7 @@
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_18">
                     <item>
-                     <widget class="QPushButton" name="pushButton_10">
+                     <widget class="QPushButton" name="sub_activate_maintenance_button">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                         <horstretch>0</horstretch>
@@ -1286,7 +1394,7 @@
                      </spacer>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="pushButton_11">
+                     <widget class="QPushButton" name="sub_end_maintenance_button">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                         <horstretch>0</horstretch>

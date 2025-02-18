@@ -13,7 +13,7 @@ from PySide2.QtGui import *  # type: ignore
 from PySide2.QtWidgets import *  # type: ignore
 
 
-class CtcTestBench(object):
+class Ui_ctc_TestBench(object):
     def setupUi(self, ctc_TestBench):
         if not ctc_TestBench.objectName():
             ctc_TestBench.setObjectName(u"ctc_TestBench")
