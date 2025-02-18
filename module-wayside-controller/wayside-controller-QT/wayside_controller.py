@@ -29,20 +29,9 @@ class WaysideControllerWindow(QMainWindow):
         self.set_column_editable(self.ui.junction_table, [1,2])
         self.set_column_editable(self.ui.block_table, [3,4])
 
-        self.block_table_data = {
-            "Occupancy" : [0] * self.ui.block_table.rowCount(),
-            "Suggested Speed" : [0] * self.ui.block_table.rowCount(),
-            "Suggested Authority" :  [0] * self.ui.block_table.rowCount(),
-            "Commanded Speed" : [0] * self.ui.block_table.rowCount(),
-            "Commanded Authority" : [0] * self.ui.block_table.rowCount()
-        }
 
-        self.junction_table_data = {
-            "Junction" : [" "] * self.ui.junction_table.rowCount(),
-            "Light Signals" : [" "] * self.ui.junction_table.rowCount(),
-            "Switch Position" : [" "] * self.ui.junction_table.rowCount()
-        }
         
+        # Connecting signals from the ui elements
         self.ui.mode_select_combo_box.activated.connect(self.handle_mode_switch)
 
     def setup_table_dimensions(self, table):
@@ -53,17 +42,16 @@ class WaysideControllerWindow(QMainWindow):
         """
 
         col_header = table.horizontalHeader()
-        row_header = table.verticalHeader()
+        #row_header = table.verticalHeader()
 
         # Make all columns stretch equally
         for col in range(table.columnCount()):
             col_header.setSectionResizeMode(col, QHeaderView.Stretch)
 
         # Make all rows stretch equally
-        for row in range(table.rowCount()):
-            row_header.setSectionResizeMode(row, QHeaderView.Stretch)
+        #for row in range(table.rowCount()):
+         #   row_header.setSectionResizeMode(row, QHeaderView.Stretch)
         
-        table.resizeColumnsToContents()
 
     def set_column_editable(self, table, column):
         """
@@ -82,6 +70,14 @@ class WaysideControllerWindow(QMainWindow):
                     else:
                         item.setFlags(item.flags() & ~Qt.ItemIsEditable)  # Make non-editable
 
+    def set_table_data(self, table):
+        """
+        Used for updating the information in the table, set the editability of an entire column in a QT table.
+
+        :param table: A QTableWidget
+        """
+
+        
     @pyqtSlot(int)
     def handle_mode_switch(self, mode):
         """
