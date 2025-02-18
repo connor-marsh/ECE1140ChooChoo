@@ -41,14 +41,20 @@ class TrainControllerWindow(QMainWindow):
         self.passenger_emergency_stop = False
         self.beacon_data = ""
         self.temperature_status = 25.0 # Celcius
+        self.desired_temperature = 25.0 # Celcius
         self.signal_failure = False
         self.brake_failure = False
         self.engine_failure = False
+        self.air_conditioning_signal = False
+        self.heating_signal = False
         
         # Default for power calculation
         self.integral_error = 0.0
         self.Kp = 1
         self.Ki = 1
+
+        # Defaults for the UI
+        self.ui.cabin_temperature_spin_box.setValue(int(self.desired_temperature))
 
         # Set up buttons to read inputs from UI
         self.ui.control_constants_apply_button.clicked.connect(self.set_k_constants)
@@ -80,7 +86,7 @@ class TrainControllerWindow(QMainWindow):
         self.engine_failure = self.testbench.ui.tb_engine_failure_checkbox.isChecked()
     
     def update_from_testbench(self):
-        # Set the display values
+        # Set the display values - TODO make these functions
         self.ui.actual_speed_lcd.display(str(self.actual_speed))
         self.ui.speed_limit_lcd.display(str(self.speed_limit))
         self.ui.authority_lcd.display(str(self.commanded_authority))
@@ -91,6 +97,11 @@ class TrainControllerWindow(QMainWindow):
         self.activate_brake_failure() if self.brake_failure else self.deactivate_brake_failure()
         self.activate_engine_failure() if self.engine_failure else self.deactivate_engine_failure()
 
+        # Set the HVAC Signals
+        self.desired_temperature = self.ui.cabin_temperature_spin_box.value()
+        self.activate_air_conditioning() if self.temperature_status > self.desired_temperature else self.deactivate_air_conditioning()
+        self.activate_heating() if self.temperature_status < self.desired_temperature else self.deactivate_heating()
+
         # Calculate the power
         if (self.ui.control_mode_switch.value() == 0):
             # Auto Mode
@@ -99,7 +110,19 @@ class TrainControllerWindow(QMainWindow):
             self.commanded_power = (self.Kp * self.error) + (self.Ki * self.integral_error)
         else:
             pass
-        
+
+    def activate_heating(self):
+        self.heating_signal = True
+
+    def deactivate_heating(self):
+        self.heating_signal = False
+
+    def activate_air_conditioning(self):
+        self.air_conditioning_signal = True
+    
+    def deactivate_air_conditioning(self):
+        self.air_conditioning_signal = False
+
     def set_k_constants(self):
         self.Kp = self.to_float(self.ui.kp_line_edit.text(), 1.0)
         self.Ki = self.to_float(self.ui.ki_line_edit.text(), 1.0)
@@ -140,7 +163,7 @@ class TrainControllerWindow(QMainWindow):
         # Format the time as HH:MM:SS
         time_text = f"{hour_12:02d}:{minute:02d}:{second:02d}"
 
-        # Update the QLCDNumber and the AM/PM label
+        # Update the clock LCD and the AM/PM label
         self.ui.global_clock_lcd.display(time_text)
         self.ui.am_pm_label.setText(am_pm)
     
@@ -160,6 +183,47 @@ class TrainControllerTestbenchWindow(QMainWindow):
         self.ui = TrainControllerTestbenchUI()
         self.ui.setupUi(self)
         self.train_controller_window = train_controller_window
+
+        # Set up timer for callback/update function
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_testbench)
+        self.timer.start(100)
+
+    def update_testbench(self):
+        self.display_air_conditioning()
+        self.display_heating()
+
+    def display_service_brakes(self):
+        pass
+
+    def display_emergency_brakes(self):
+        pass
+
+    def display_headlights(self):
+        pass
+
+    def display_internal_lights(self):
+        pass
+
+    def display_air_conditioning(self):
+        if (self.train_controller_window.air_conditioning_signal):
+            self.ui.tb_air_conditioning_on_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
+            self.ui.tb_air_conditioning_off_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+        else:
+            self.ui.tb_air_conditioning_on_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+            self.ui.tb_air_conditioning_off_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
+
+    def display_heating(self):
+        if (self.train_controller_window.heating_signal):
+            self.ui.tb_heating_signal_on_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
+            self.ui.tb_heating_signal_off_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+        else:
+            self.ui.tb_heating_signal_on_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+            self.ui.tb_heating_signal_off_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
+
+    def display_operating_doors(self):
+        pass
+
 
 """
 Main
