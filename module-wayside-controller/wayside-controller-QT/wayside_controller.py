@@ -29,7 +29,19 @@ class WaysideControllerWindow(QMainWindow):
         self.set_column_editable(self.ui.junction_table, [1,2])
         self.set_column_editable(self.ui.block_table, [3,4])
 
-       
+        self.block_table_data = {
+            "Occupancy" : [0] * self.ui.block_table.rowCount(),
+            "Suggested Speed" : [0] * self.ui.block_table.rowCount(),
+            "Suggested Authority" :  [0] * self.ui.block_table.rowCount(),
+            "Commanded Speed" : [0] * self.ui.block_table.rowCount(),
+            "Commanded Authority" : [0] * self.ui.block_table.rowCount()
+        }
+
+        self.junction_table_data = {
+            "Junction" : [" "] * self.ui.junction_table.rowCount(),
+            "Light Signals" : [" "] * self.ui.junction_table.rowCount(),
+            "Switch Position" : [" "] * self.ui.junction_table.rowCount()
+        }
         
         self.ui.mode_select_combo_box.activated.connect(self.handle_mode_switch)
 
