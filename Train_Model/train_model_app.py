@@ -98,6 +98,34 @@ class TestBenchApp(QMainWindow):
         self.ui.EmergencyStop.setEnabled(False)   # Initially disabled
         self.ui.EmergencyStop.setChecked(False)     # Initially not active
         self.ui.EmergencyStop.toggled.connect(self.handle_emergency_release)
+        
+        # Connect the TrainDriver checkbox toggled signal.
+        self.ui.TrainDriver.toggled.connect(self.handle_train_driver)
+
+    def handle_train_driver(self, checked: bool):
+        """
+        When the Train Driver checkbox is checked, engage the emergency mode
+        as if the emergency button were pressed—lock the main UI emergency button 
+        (set it checked and disabled) and update the testbench indicator.
+        When unchecked, release the emergency.
+        """
+        if checked:
+            # Engage emergency mode.
+            self.train_app.train_ui.button_emergency.setChecked(True)
+            self.train_app.train_ui.button_emergency.setEnabled(False)
+            self.ui.PEmergencyStop.setText("Enabled")
+            # Also ensure the testbench emergency release control is enabled and active.
+            self.ui.EmergencyStop.setEnabled(True)
+            self.ui.EmergencyStop.setChecked(True)
+            # Disable the Train Driver checkbox so it cannot be manually unchecked.
+            self.ui.TrainDriver.setEnabled(False)
+        else:
+            # Release emergency mode.
+            self.train_app.train_ui.button_emergency.setEnabled(True)
+            self.train_app.train_ui.button_emergency.setChecked(False)
+            self.ui.PEmergencyStop.setText("Disabled")
+            self.ui.EmergencyStop.setEnabled(False)
+            self.ui.EmergencyStop.setChecked(False)
 
     def handle_emergency_release(self, checked: bool):
         # When the testbench checkbox is unchecked, release the emergency.
@@ -108,6 +136,10 @@ class TestBenchApp(QMainWindow):
             self.ui.PEmergencyStop.setText("Disabled")
             # Disable the testbench checkbox again.
             self.ui.EmergencyStop.setEnabled(False)
+            self.ui.EmergencyStop.setChecked(False)
+            # Re-enable the Train Driver checkbox and reset its state.
+            self.ui.TrainDriver.setEnabled(True)
+            self.ui.TrainDriver.setChecked(False)
 
     def read_inputs(self):
         # Get inputs from UI, converting as needed.
@@ -243,9 +275,9 @@ class TrainModelApp(QMainWindow):
         height_ft = train_data["height_m"] * self.M_TO_FT
         width_ft  = train_data["width_m"]  * self.M_TO_FT
 
-        # Before calculating dyn_force, if brakes are active, zero out the power.
-        if self.train_ui.button_emergency.isChecked() or lights_doors_data["service_brakes"]:
-            commanded_power_watts = 0
+        # # Before calculating dyn_force, if brakes are active, zero out the power.
+        # if self.train_ui.button_emergency.isChecked() or lights_doors_data["service_brakes"]:
+        #     commanded_power_watts = 0
 
         # Calculate dynamic force component         
         try:
@@ -459,6 +491,9 @@ class TrainModelApp(QMainWindow):
             # Enable the testbench release control and set it to "active".
             self.testbench.ui.EmergencyStop.setEnabled(True)
             self.testbench.ui.EmergencyStop.setChecked(True)
+            # Update testbench Train Driver checkbox to be checked and disabled.
+            self.testbench.ui.TrainDriver.setChecked(True)
+            self.testbench.ui.TrainDriver.setEnabled(False)
         else:
             # (This branch is unlikely to be used since the button is locked when pressed.)
             self.testbench.ui.PEmergencyStop.setText("Disabled")

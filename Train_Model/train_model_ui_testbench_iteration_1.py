@@ -83,7 +83,7 @@ class Ui_TestMainWindow(object):
         self.verticalSpacer_20 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.Outputs.setItem(15, QFormLayout.LabelRole, self.verticalSpacer_20)
         # Note: ACSignal and HeatingSignal have been removed from Outputs
-        
+
         self.TemperatureLabel = QLabel(self.gridLayoutWidget)
         self.TemperatureLabel.setObjectName("TemperatureLabel")
         self.Outputs.setWidget(16, QFormLayout.LabelRole, self.TemperatureLabel)
@@ -236,13 +236,21 @@ class Ui_TestMainWindow(object):
         # Row 19: Spacer
         self.verticalSpacer_11 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.Inputs.setItem(19, QFormLayout.LabelRole, self.verticalSpacer_11)
-        # Row 20: Emergency Stop
+        # Row 20: Emergency Stop and Train Driver
         self.EmergencyLabel = QLabel(self.gridLayoutWidget)
         self.EmergencyLabel.setObjectName("EmergencyStopLabel")
         self.Inputs.setWidget(20, QFormLayout.LabelRole, self.EmergencyLabel)
-        self.EmergencyStop = QCheckBox(self.gridLayoutWidget)
+        self.EmergencyContainer = QWidget(self.gridLayoutWidget)
+        self.horizontalLayout_Emergency = QHBoxLayout(self.EmergencyContainer)
+        self.horizontalLayout_Emergency.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_Emergency.setObjectName("horizontalLayout_Emergency")
+        self.EmergencyStop = QCheckBox(self.EmergencyContainer)
         self.EmergencyStop.setObjectName("EmergencyStop")
-        self.Inputs.setWidget(20, QFormLayout.FieldRole, self.EmergencyStop)
+        self.horizontalLayout_Emergency.addWidget(self.EmergencyStop)
+        self.TrainDriver = QCheckBox(self.EmergencyContainer)
+        self.TrainDriver.setObjectName("TrainDriver")
+        self.horizontalLayout_Emergency.addWidget(self.TrainDriver)
+        self.Inputs.setWidget(20, QFormLayout.FieldRole, self.EmergencyContainer)
         # Row 21: Spacer
         self.verticalSpacer_31 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.Inputs.setItem(21, QFormLayout.LabelRole, self.verticalSpacer_31)
@@ -409,6 +417,7 @@ class Ui_TestMainWindow(object):
         self.RightDoors.setText(QCoreApplication.translate("MainWindow", "ENABLE", None))
         self.ServiceBrakes.setText(QCoreApplication.translate("MainWindow", "ENABLE", None))
         self.EmergencyStop.setText(QCoreApplication.translate("MainWindow", "DISABLE", None))
+        self.TrainDriver.setText(QCoreApplication.translate("MainWindow", "TRAIN DRIVER", None))
         self.ACSignal.setText(QCoreApplication.translate("MainWindow", "ENABLE", None))
         self.HeatingSignal.setText(QCoreApplication.translate("MainWindow", "ENABLE", None))
         self.OUTPUTS.setText(QCoreApplication.translate("MainWindow", "OUTPUTS", None))
