@@ -34,8 +34,7 @@ class WaysideTestbenchWindow(QMainWindow):
 
     def __init__(self):
         """
-        define function
-        params:
+        initializes the frontend logic of the testbench
         """
         
         super().__init__() # Initialize ui from the generated designer ui
