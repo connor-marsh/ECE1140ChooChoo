@@ -58,6 +58,7 @@ def read_train_physical_data(ui, to_float_func):
     height_m = to_float_func(ui.HeightVehicle.text(), 3.42)
     width_m  = to_float_func(ui.WidthVehicle.text(), 2.65)
     grade_percent = to_float_func(ui.GradePercent.text(), 0.0)
+    temperature = to_float_func(ui.Temperature.text(), 25.0)
 
     # Cap the grade at 60%
     if grade_percent > 60:
@@ -72,7 +73,8 @@ def read_train_physical_data(ui, to_float_func):
         "grade":           grade_percent,  # e.g., 2 means 2% grade
         "mass_kg":         base_mass_kg + added_passenger_mass + added_crew_mass,
         "passenger_count": passenger_count,
-        "crew_count":      crew_count
+        "crew_count":      crew_count,
+        "temperature":     temperature
     }
 
 ###############################################################################
@@ -84,6 +86,12 @@ class TestBenchApp(QMainWindow):
         self.ui = TestBenchUI()
         self.ui.setupUi(self)
         self.train_app = train_app
+        
+        # Set default texts for indicators on the testbench.
+        self.ui.PEmergencyStop.setText("Disabled")
+        self.ui.BrakeFailure.setText("Disabled")
+        self.ui.SignalFailure.setText("Disabled")
+        self.ui.EngineFailure.setText("Disabled")
         
         # Configure the testbench emergency release checkbox:
         self.ui.EmergencyStop.setCheckable(True)
@@ -148,6 +156,9 @@ class TestBenchApp(QMainWindow):
             self.ui.ActualVelocity.setText(f"{internal_mph:.2f}")
         else:
             self.ui.ActualVelocity.setText("Not Displayed")
+            
+        # Check Temperature
+        self.ui.Temperature.setText(self.train_app.train_ui.Temperature.text())
 
 
 
