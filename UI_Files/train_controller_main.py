@@ -20,7 +20,27 @@ os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 """
 Helper functions
 """
+def speed_conversion(kmh):
+    mph = kmh/1.609
+    return mph
 
+def speed_conversion_in(mph):
+    pass
+
+def temp_conversion(degree_c):
+    degree_f = (degree_c * (9.0/5.0)) + 32.0
+    return degree_f
+
+def temp_conversion_in(degree_f):
+    degree_c = (degree_f - 32.0) * (5.0/9.0)
+    return degree_c
+
+def distance_conversion(meters):
+    feet = meters * 3.281
+    return feet
+
+def distance_conversion_in(feet):
+    pass
 
 """
 Train Controller App
@@ -55,11 +75,11 @@ class TrainControllerWindow(QMainWindow):
 
         # Default for power calculation
         self.integral_error = 0.0
-        self.Kp = 1
-        self.Ki = 1
+        self.Kp = 1.0
+        self.Ki = 1.0
 
         # Defaults for the UI
-        self.ui.cabin_temperature_spin_box.setValue(int(self.desired_temperature))
+        self.ui.cabin_temperature_spin_box.setValue(int(temp_conversion(self.desired_temperature)))
 
         # Set up buttons to read inputs from UI
         self.ui.control_constants_apply_button.clicked.connect(self.set_k_constants)
@@ -81,7 +101,7 @@ class TrainControllerWindow(QMainWindow):
 
         # Set up timer for callback/update function
         self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_from_testbench)
+        self.timer.timeout.connect(self.update)
         self.timer.start(100)
 
         # Set up timer for updating the clock every second
@@ -102,20 +122,28 @@ class TrainControllerWindow(QMainWindow):
         self.brake_failure = self.testbench.ui.tb_brake_failure_checkbox.isChecked()
         self.engine_failure = self.testbench.ui.tb_engine_failure_checkbox.isChecked()
     
-    def update_from_testbench(self):
+    def update(self):
         # Set the display values - TODO make these functions
-        self.ui.actual_speed_lcd.display(str(self.actual_speed))
-        self.ui.speed_limit_lcd.display(str(self.speed_limit))
-        self.ui.authority_lcd.display(str(self.commanded_authority))
-        self.ui.cabin_temperature_lcd.display(str(self.temperature_status))
+        self.ui.actual_speed_lcd.display(str(speed_conversion(self.actual_speed)))
+        self.ui.speed_limit_lcd.display(str(speed_conversion(self.speed_limit)))
+        self.ui.authority_lcd.display(str(distance_conversion(self.commanded_authority)))
+        self.ui.cabin_temperature_lcd.display(str(temp_conversion(self.temperature_status)))
 
-        # Set Emergency Lights
+        # Check if auto or manual mode
+        if (self.ui.control_mode_switch.value() == 0):
+            self.disable_for_auto()
+        else:
+            self.enable_for_manual()
+
+        # Set Emergency Lights and handle emergency brakes
         self.activate_signal_failure() if self.signal_failure else self.deactivate_signal_failure()
         self.activate_brake_failure() if self.brake_failure else self.deactivate_brake_failure()
         self.activate_engine_failure() if self.engine_failure else self.deactivate_engine_failure()
+        if self.passenger_emergency_stop:
+            self.activate_emergency_brake()
 
         # Set the HVAC Signals
-        self.desired_temperature = self.ui.cabin_temperature_spin_box.value()
+        self.desired_temperature = temp_conversion_in(self.ui.cabin_temperature_spin_box.value())
         self.activate_air_conditioning() if self.temperature_status > self.desired_temperature else self.deactivate_air_conditioning()
         self.activate_heating() if self.temperature_status < self.desired_temperature else self.deactivate_heating()
 
@@ -128,11 +156,25 @@ class TrainControllerWindow(QMainWindow):
         else:
             pass
 
+    def disable_for_auto(self):
+        self.ui.target_speed_apply_button.setEnabled(False)
+        self.ui.door_left_button.setEnabled(False)
+        self.ui.door_right_button.setEnabled(False)
+
+    def enable_for_manual(self):
+        self.ui.target_speed_apply_button.setEnabled(True)
+        self.ui.door_left_button.setEnabled(True)
+        self.ui.door_right_button.setEnabled(True)
+
     def handle_emergency_button(self, checked):
         if checked:
             self.emergency_brake = True
         else:
             self.emergency_brake = False
+            self.passenger_emergency_stop = False
+    
+    def activate_emergency_brake(self):
+        self.ui.emergency_button.setChecked(True)
 
     def handle_right_door(self, checked):
         if checked:
@@ -173,6 +215,9 @@ class TrainControllerWindow(QMainWindow):
     def set_k_constants(self):
         self.Kp = self.to_float(self.ui.kp_line_edit.text(), 1.0)
         self.Ki = self.to_float(self.ui.ki_line_edit.text(), 1.0)
+        self.ui.control_constants_apply_button.setEnabled(False)
+        self.ui.kp_line_edit.setEnabled(False)
+        self.ui.ki_line_edit.setEnabled(False)
 
     def activate_signal_failure(self):
         self.ui.signal_failure_light.setStyleSheet("background-color: red; font-weight: bold; font-size: 16px;")
