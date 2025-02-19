@@ -16,11 +16,12 @@ class WaysideTestbenchWindow(QMainWindow):
     Describe the class
     """
 
-    # Constants
+    #Should eventually be passed in upon the creation of a wayside controller
+    # Constants (Should eventually be passed in upon the creation of a wayside controller)
     NUMBER_OF_BLOCKS = 15 
-    MAX_SPEED_LIMIT = 50 # kmh
-    MAX_AUTHORITY = 500 # meters
-
+    MAX_SPEED_LIMIT = 50 # kmh (could potentially be a list in the future)
+    MAX_AUTHORITY = 500 # meters (maybe a bad name for the variable, or not even used)
+    
     # Variables
     current_block_index = None # index to the lists below
     block_occupancies = ["Unoccupied"] * NUMBER_OF_BLOCKS # List containing the block occupancies

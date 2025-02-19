@@ -69,6 +69,7 @@ class WaysideControllerWindow(QMainWindow):
                         item.setFlags(item.flags() & ~Qt.ItemIsEditable)  # Make non-editable
  
 
+    @pyqtSlot(QTableWidget, dict, list)
     def update_table_data(self, table, data_dict, columns):
         """
         Will write the information in the dictionary so that it is displayed on the ui
@@ -76,6 +77,7 @@ class WaysideControllerWindow(QMainWindow):
         :param table: A QTableWidget to be altered
         :param data_dict: A dictionary containing the information to display
                           example  (key = block, value = list[occupancy, suggested speed, suggested authority, commanded speed, commanded authority])
+        :param columns: a list of columns to write to
         """
         # Update the number of rows in the table based off of the dictionary
         table.setRowCount(len(data_dict))
