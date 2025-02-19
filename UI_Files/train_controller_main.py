@@ -51,6 +51,7 @@ class TrainControllerWindow(QMainWindow):
         self.interior_lights = False
         self.door_right = False # Closed default state
         self.door_left = False # Close default state
+        self.emergency_brake = False
 
         # Default for power calculation
         self.integral_error = 0.0
@@ -70,8 +71,10 @@ class TrainControllerWindow(QMainWindow):
         # Set up the door and emergency buttons to be toggles
         self.ui.door_right_button.setCheckable(True)
         self.ui.door_left_button.setCheckable(True)
+        self.ui.emergency_button.setCheckable(True)
         self.ui.door_right_button.toggled.connect(self.handle_right_door)
         self.ui.door_left_button.toggled.connect(self.handle_left_door)
+        self.ui.emergency_button.toggled.connect(self.handle_emergency_button)
 
         # Set up the button to read inputs and set the values from testbench
         self.testbench.ui.tb_input_apply_button.clicked.connect(self.read_testbench_inputs)
@@ -124,6 +127,12 @@ class TrainControllerWindow(QMainWindow):
             self.commanded_power = (self.Kp * self.error) + (self.Ki * self.integral_error)
         else:
             pass
+
+    def handle_emergency_button(self, checked):
+        if checked:
+            self.emergency_brake = True
+        else:
+            self.emergency_brake = False
 
     def handle_right_door(self, checked):
         if checked:
@@ -233,12 +242,18 @@ class TrainControllerTestbenchWindow(QMainWindow):
         self.display_headlights()
         self.display_internal_lights()
         self.display_doors()
+        self.display_emergency_brakes()
 
     def display_service_brakes(self):
         pass
 
     def display_emergency_brakes(self):
-        pass
+        if (self.train_controller_window.emergency_brake):
+            self.ui.tb_emergency_brake_on_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
+            self.ui.tb_emergency_brake_off_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+        else:
+            self.ui.tb_emergency_brake_on_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+            self.ui.tb_emergency_brake_off_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
 
     def display_headlights(self):
         if (self.train_controller_window.headlights):
