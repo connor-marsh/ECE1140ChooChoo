@@ -47,7 +47,11 @@ class TrainControllerWindow(QMainWindow):
         self.engine_failure = False
         self.air_conditioning_signal = False
         self.heating_signal = False
-        
+        self.headlights = False
+        self.interior_lights = False
+        self.door_right = False # Closed default state
+        self.door_left = False # Close default state
+
         # Default for power calculation
         self.integral_error = 0.0
         self.Kp = 1
@@ -58,6 +62,16 @@ class TrainControllerWindow(QMainWindow):
 
         # Set up buttons to read inputs from UI
         self.ui.control_constants_apply_button.clicked.connect(self.set_k_constants)
+        self.ui.headlights_on_button.clicked.connect(self.activate_headlights)
+        self.ui.headlights_off_button.clicked.connect(self.deactivate_headlights)
+        self.ui.interior_lights_on_button.clicked.connect(self.activate_interior_lights)
+        self.ui.interior_lights_off_button.clicked.connect(self.deactivate_interior_lights)
+
+        # Set up the door and emergency buttons to be toggles
+        self.ui.door_right_button.setCheckable(True)
+        self.ui.door_left_button.setCheckable(True)
+        self.ui.door_right_button.toggled.connect(self.handle_right_door)
+        self.ui.door_left_button.toggled.connect(self.handle_left_door)
 
         # Set up the button to read inputs and set the values from testbench
         self.testbench.ui.tb_input_apply_button.clicked.connect(self.read_testbench_inputs)
@@ -110,6 +124,30 @@ class TrainControllerWindow(QMainWindow):
             self.commanded_power = (self.Kp * self.error) + (self.Ki * self.integral_error)
         else:
             pass
+
+    def handle_right_door(self, checked):
+        if checked:
+            self.door_right = True
+        else:
+            self.door_right = False
+
+    def handle_left_door(self, checked):
+        if checked:
+            self.door_left = True
+        else:
+            self.door_left = False
+
+    def activate_headlights(self):
+        self.headlights = True
+
+    def deactivate_headlights(self):
+        self.headlights = False
+
+    def activate_interior_lights(self):
+        self.interior_lights = True
+
+    def deactivate_interior_lights(self):
+        self.interior_lights = False
 
     def activate_heating(self):
         self.heating_signal = True
@@ -192,6 +230,9 @@ class TrainControllerTestbenchWindow(QMainWindow):
     def update_testbench(self):
         self.display_air_conditioning()
         self.display_heating()
+        self.display_headlights()
+        self.display_internal_lights()
+        self.display_doors()
 
     def display_service_brakes(self):
         pass
@@ -200,10 +241,20 @@ class TrainControllerTestbenchWindow(QMainWindow):
         pass
 
     def display_headlights(self):
-        pass
+        if (self.train_controller_window.headlights):
+            self.ui.tb_headlight_on_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
+            self.ui.tb_headlight_off_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+        else:
+            self.ui.tb_headlight_on_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+            self.ui.tb_headlight_off_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
 
     def display_internal_lights(self):
-        pass
+        if (self.train_controller_window.interior_lights):
+            self.ui.tb_internal_light_on_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
+            self.ui.tb_internal_light_off_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+        else:
+            self.ui.tb_internal_light_on_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+            self.ui.tb_internal_light_off_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
 
     def display_air_conditioning(self):
         if (self.train_controller_window.air_conditioning_signal):
@@ -221,9 +272,20 @@ class TrainControllerTestbenchWindow(QMainWindow):
             self.ui.tb_heating_signal_on_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
             self.ui.tb_heating_signal_off_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
 
-    def display_operating_doors(self):
-        pass
+    def display_doors(self):
+        if (self.train_controller_window.door_right):
+            self.ui.tb_right_door_open_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
+            self.ui.tb_right_door_close_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+        else:
+            self.ui.tb_right_door_open_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+            self.ui.tb_right_door_close_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
 
+        if (self.train_controller_window.door_left):
+            self.ui.tb_left_door_open_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
+            self.ui.tb_left_door_close_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+        else:
+            self.ui.tb_left_door_open_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+            self.ui.tb_left_door_close_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
 
 """
 Main
