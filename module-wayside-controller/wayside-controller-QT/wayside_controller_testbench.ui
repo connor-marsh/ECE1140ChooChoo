@@ -67,6 +67,11 @@
        </item>
        <item>
         <property name="text">
+         <string>B8</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
          <string>B9 (Beacon)</string>
         </property>
        </item>
