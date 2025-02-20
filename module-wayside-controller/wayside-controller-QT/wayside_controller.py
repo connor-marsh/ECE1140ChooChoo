@@ -18,9 +18,9 @@ class WaysideControllerWindow(QMainWindow):
     editable_columns_junction_table = [1,2]
 
     gui_table_data = pyqtSignal(dict, dict) # first dictionary corresponds to block table, second corresponds to junction table
-    table_update_signal = pyqtSignal()
+    
 
-    block_occupancies = ["Unoccupied"] * wayside_constants.NUMBER_OF_BLOCKS # List containing the block occupancies
+    block_occupancies = [None] * wayside_constants.NUMBER_OF_BLOCKS # List containing the block occupancies
     suggested_speeds = [None] * wayside_constants.NUMBER_OF_BLOCKS # List contianing the suggested speeds
     suggested_authorities = [None] * wayside_constants.NUMBER_OF_BLOCKS # List containing the suggested authorities
     commanded_speeds = [None] * wayside_constants.NUMBER_OF_BLOCKS # List containing the commanded speeds
@@ -36,9 +36,9 @@ class WaysideControllerWindow(QMainWindow):
     }
 
     junction_table_data = {
-        "Junction" : [str] * wayside_constants.NUMBER_OF_JUNCTIONS,
-        "Light Signals" : [str] * wayside_constants.NUMBER_OF_JUNCTIONS,
-        "Switch Position" : [str] * wayside_constants.NUMBER_OF_JUNCTIONS
+        "Junction" : [None] * wayside_constants.NUMBER_OF_JUNCTIONS,
+        "Light Signals" : [None] * wayside_constants.NUMBER_OF_JUNCTIONS,
+        "Switch Position" : [None] * wayside_constants.NUMBER_OF_JUNCTIONS
     }
 
     def __init__(self):
@@ -59,7 +59,6 @@ class WaysideControllerWindow(QMainWindow):
         
         # Connecting signals from the ui elements
         self.ui.mode_select_combo_box.activated.connect(self.handle_mode_switch)
-        self.table_update_signal.connect(self.update_table_data)
 
     def setup_table_dimensions(self, table):
         """
@@ -99,15 +98,14 @@ class WaysideControllerWindow(QMainWindow):
                 item = QTableWidgetItem()
                 table.setItem(row, col, item)
 
-
-    @pyqtSlot()            
-    def update_table_data(self):
+    @pyqtSlot(QTableWidget, dict)            
+    def update_table_data(self, table, dict):
         # Loop through each item in the table
-        for col in range(self.ui.block_table.columnCount()):
-            key = self.ui.block_table.horizontalHeaderItem(col).text() # Find the label for the current row
-            for row in range(self.ui.block_table.rowCount()):
-                item = QTableWidgetItem(str(self.block_table_data[key][row]))
-                self.ui.block_table.setItem(row, col, item)
+        for col in range(table.columnCount()):
+            key = table.horizontalHeaderItem(col).text() # Find the label for the current row
+            for row in range(table.rowCount()):
+                item = QTableWidgetItem(str(dict[key][row]))
+                table.setItem(row, col, item)
 
     def extract_table_data(self, table, columns):
         """
@@ -148,13 +146,19 @@ class WaysideControllerWindow(QMainWindow):
         self.block_table_data["Commanded Speed"] = altered_block_data["Commanded Speed"]
         self.block_table_data["Commanded Authority"] = altered_block_data["Commanded Authority"]
 
+        # Write new data to dictionary
         self.junction_table_data["Light Signals"] = altered_junction_data["Light Signals"]
         self.junction_table_data["Switch Position"] = altered_junction_data["Switch Position"]
 
+        # Make it so that after confirmation any unacceptable input is changed to reflect the last acceptable value
+        self.update_table_data(self.ui.block_table, self.block_table_data)
+        self.update_table_data(self.ui.junction_table, self.junction_table_data)
+
         # Emit a signal with the latest (acceptable) data confirmed by the user
         self.gui_table_data.emit(altered_block_data, altered_junction_data)
-        self.table_update_signal.emit()
         
+        
+
     @pyqtSlot(int)
     def handle_mode_switch(self, mode):
         """

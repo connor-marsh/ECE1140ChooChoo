@@ -22,7 +22,6 @@ if __name__ == "__main__":
     wayside_window = WaysideControllerWindow()
     testbench_window = WaysideTestbenchWindow()
 
-    
 
     wayside_window.show()
     testbench_window.show()
