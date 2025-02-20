@@ -15,7 +15,7 @@ import wayside_constants
 
 class Controller(QObject):
 
-    update_signal = pyqtSignal(dict)
+    update_signal = pyqtSignal(dict, dict)
     
     manual_mode = False
     block_occupancies = ["Unoccupied"] * wayside_constants.NUMBER_OF_BLOCKS # List containing the block occupancies
@@ -75,7 +75,7 @@ class Controller(QObject):
         self.block_table_data["Commanded Speed"] = valid_speed
         self.block_table_data["Commanded Authority"] = valid_authority
 
-        self.update_signal.emit(self.block_table_data)
+        self.update_signal.emit(self.block_table_data, self.junction_table_data)
     
     def validate_data(self, key, data):
         valid = []
