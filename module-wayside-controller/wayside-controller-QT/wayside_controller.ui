@@ -38,7 +38,7 @@
     </item>
     <item>
      <property name="text">
-      <string>Maintenance Mode</string>
+      <string>Manual Mode</string>
      </property>
     </item>
    </widget>

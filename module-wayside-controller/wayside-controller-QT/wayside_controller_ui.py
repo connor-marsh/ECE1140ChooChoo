@@ -183,7 +183,7 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.mode_select_combo_box.setItemText(0, _translate("MainWindow", "Automatic Mode"))
-        self.mode_select_combo_box.setItemText(1, _translate("MainWindow", "Maintenance Mode"))
+        self.mode_select_combo_box.setItemText(1, _translate("MainWindow", "Manual Mode"))
         item = self.junction_table.verticalHeaderItem(0)
         item.setText(_translate("MainWindow", "1"))
         item = self.junction_table.horizontalHeaderItem(0)
