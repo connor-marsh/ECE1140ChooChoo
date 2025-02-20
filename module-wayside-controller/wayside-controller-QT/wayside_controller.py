@@ -99,6 +99,11 @@ class WaysideControllerWindow(QMainWindow):
                 item = QTableWidgetItem()
                 table.setItem(row, col, item)
 
+    @pyqtSlot(dict)
+    def receive_update(self, data):
+        self.update_table_data(self.ui.block_table, data, [0,1,2,3,4])
+
+
     @pyqtSlot(str, int, int, str)      
     def update_table_entry(self, column_header, col_index, row_index, text_value):
         """
