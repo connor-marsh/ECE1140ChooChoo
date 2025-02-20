@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>677</width>
-    <height>832</height>
+    <width>692</width>
+    <height>748</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -93,26 +93,6 @@
             </widget>
            </item>
            <item>
-            <spacer name="horizontalSpacer_8">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="maintenance_toggle">
-             <property name="text">
-              <string>Maintenance Mode</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <spacer name="horizontalSpacer">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
@@ -176,85 +156,7 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_5">
            <item>
-            <widget class="QTableWidget" name="main_map_table">
-             <property name="verticalScrollBarPolicy">
-              <enum>Qt::ScrollBarAsNeeded</enum>
-             </property>
-             <property name="horizontalScrollBarPolicy">
-              <enum>Qt::ScrollBarAsNeeded</enum>
-             </property>
-             <property name="sizeAdjustPolicy">
-              <enum>QAbstractScrollArea::AdjustToContents</enum>
-             </property>
-             <property name="selectionMode">
-              <enum>QAbstractItemView::SingleSelection</enum>
-             </property>
-             <property name="selectionBehavior">
-              <enum>QAbstractItemView::SelectRows</enum>
-             </property>
-             <property name="textElideMode">
-              <enum>Qt::ElideMiddle</enum>
-             </property>
-             <attribute name="horizontalHeaderVisible">
-              <bool>true</bool>
-             </attribute>
-             <attribute name="verticalHeaderVisible">
-              <bool>false</bool>
-             </attribute>
-             <attribute name="verticalHeaderHighlightSections">
-              <bool>true</bool>
-             </attribute>
-             <column>
-              <property name="text">
-               <string>Section</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string>Block</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string>Occupancy</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string>Station</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string>Switch</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string>Traffic Light</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string>Crossing</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string>Maintenance</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string>Transponder</string>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string>Underground</string>
-              </property>
-             </column>
-            </widget>
+            <widget class="QTableWidget" name="main_map_table"/>
            </item>
           </layout>
          </item>
@@ -275,9 +177,9 @@
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="4,5">
+        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,0">
          <property name="spacing">
-          <number>10</number>
+          <number>3</number>
          </property>
          <property name="leftMargin">
           <number>0</number>
@@ -388,7 +290,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>Blue Line</string>
+                    <string>Green Line</string>
                    </property>
                   </widget>
                  </item>
@@ -508,7 +410,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>Manual</string>
+                    <string>Maintenance</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -706,29 +608,55 @@
           </widget>
          </item>
          <item>
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
           <widget class="QStackedWidget" name="multiPageWidget">
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>
            <property name="currentIndex">
-            <number>0</number>
+            <number>3</number>
            </property>
            <widget class="QWidget" name="page">
             <layout class="QVBoxLayout" name="verticalLayout_9">
              <item>
               <widget class="QTableWidget" name="main_active_trains_table">
-               <property name="horizontalScrollBarPolicy">
-                <enum>Qt::ScrollBarAlwaysOff</enum>
-               </property>
-               <property name="sizeAdjustPolicy">
-                <enum>QAbstractScrollArea::AdjustIgnored</enum>
-               </property>
-               <property name="selectionMode">
-                <enum>QAbstractItemView::SingleSelection</enum>
-               </property>
-               <property name="selectionBehavior">
-                <enum>QAbstractItemView::SelectRows</enum>
-               </property>
+               <row>
+                <property name="text">
+                 <string/>
+                </property>
+               </row>
+               <row>
+                <property name="text">
+                 <string/>
+                </property>
+               </row>
+               <row>
+                <property name="text">
+                 <string/>
+                </property>
+               </row>
+               <row>
+                <property name="text">
+                 <string/>
+                </property>
+               </row>
+               <row>
+                <property name="text">
+                 <string/>
+                </property>
+               </row>
                <column>
                 <property name="text">
                  <string>Designation</string>
@@ -736,19 +664,119 @@
                </column>
                <column>
                 <property name="text">
-                 <string>Current Block</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Upcoming Stop</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
                  <string>Remaining Stops</string>
                 </property>
                </column>
+               <column>
+                <property name="text">
+                 <string>Current Stop</string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>Next Stop</string>
+                </property>
+               </column>
+               <item row="0" column="0">
+                <property name="text">
+                 <string>Train #1</string>
+                </property>
+               </item>
+               <item row="0" column="1">
+                <property name="text">
+                 <string>3</string>
+                </property>
+               </item>
+               <item row="0" column="2">
+                <property name="text">
+                 <string>Station A</string>
+                </property>
+               </item>
+               <item row="0" column="3">
+                <property name="text">
+                 <string>Station B</string>
+                </property>
+               </item>
+               <item row="1" column="0">
+                <property name="text">
+                 <string>Train #2</string>
+                </property>
+               </item>
+               <item row="1" column="1">
+                <property name="text">
+                 <string>2</string>
+                </property>
+               </item>
+               <item row="1" column="2">
+                <property name="text">
+                 <string>Station B</string>
+                </property>
+               </item>
+               <item row="1" column="3">
+                <property name="text">
+                 <string>Station C</string>
+                </property>
+               </item>
+               <item row="2" column="0">
+                <property name="text">
+                 <string>Train #3</string>
+                </property>
+               </item>
+               <item row="2" column="1">
+                <property name="text">
+                 <string>5</string>
+                </property>
+               </item>
+               <item row="2" column="2">
+                <property name="text">
+                 <string>Station C</string>
+                </property>
+               </item>
+               <item row="2" column="3">
+                <property name="text">
+                 <string>Station D</string>
+                </property>
+               </item>
+               <item row="3" column="0">
+                <property name="text">
+                 <string>Train #4</string>
+                </property>
+               </item>
+               <item row="3" column="1">
+                <property name="text">
+                 <string>4</string>
+                </property>
+               </item>
+               <item row="3" column="2">
+                <property name="text">
+                 <string>Station D</string>
+                </property>
+               </item>
+               <item row="3" column="3">
+                <property name="text">
+                 <string>Station E</string>
+                </property>
+               </item>
+               <item row="4" column="0">
+                <property name="text">
+                 <string>Train #5</string>
+                </property>
+               </item>
+               <item row="4" column="1">
+                <property name="text">
+                 <string>1</string>
+                </property>
+               </item>
+               <item row="4" column="2">
+                <property name="text">
+                 <string>Station E</string>
+                </property>
+               </item>
+               <item row="4" column="3">
+                <property name="text">
+                 <string>Yard</string>
+                </property>
+               </item>
               </widget>
              </item>
              <item>
@@ -848,22 +876,6 @@
                      </widget>
                     </item>
                     <item>
-                     <spacer name="horizontalSpacer_9">
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                      <property name="sizeType">
-                       <enum>QSizePolicy::Preferred</enum>
-                      </property>
-                      <property name="sizeHint" stdset="0">
-                       <size>
-                        <width>40</width>
-                        <height>20</height>
-                       </size>
-                      </property>
-                     </spacer>
-                    </item>
-                    <item>
                      <widget class="QLabel" name="label_17">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -917,39 +929,18 @@
                 </widget>
                </item>
                <item>
-                <widget class="QTableWidget" name="sub_dispatch_train_table">
-                 <column>
-                  <property name="text">
-                   <string>Designator</string>
-                  </property>
-                 </column>
-                 <column>
-                  <property name="text">
-                   <string>Total Stops</string>
-                  </property>
-                 </column>
-                 <column>
-                  <property name="text">
-                   <string>Stop N</string>
-                  </property>
-                 </column>
-                 <column>
-                  <property name="text">
-                   <string>Stop N...</string>
-                  </property>
-                 </column>
-                </widget>
+                <widget class="QTableWidget" name="sub_dispatch_train_table"/>
                </item>
                <item>
-                <widget class="QGroupBox" name="sub_manual_override_box">
+                <widget class="QGroupBox" name="groupBox_5">
                  <property name="title">
                   <string>Manual Override</string>
                  </property>
                  <layout class="QHBoxLayout" name="horizontalLayout_12">
                   <item>
-                   <layout class="QGridLayout" name="gridLayout_7">
-                    <item row="0" column="0">
-                     <widget class="QRadioButton" name="sub_dispatch_overide_new_radio">
+                   <layout class="QHBoxLayout" name="horizontalLayout_11">
+                    <item>
+                     <widget class="QRadioButton" name="sub_dispatch_overide_radio">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                         <horstretch>0</horstretch>
@@ -961,7 +952,7 @@
                       </property>
                      </widget>
                     </item>
-                    <item row="3" column="0">
+                    <item>
                      <widget class="QComboBox" name="sub_block_letter_combo">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -996,7 +987,7 @@
                       </item>
                      </widget>
                     </item>
-                    <item row="3" column="1">
+                    <item>
                      <widget class="QComboBox" name="sub_block_number_combo">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -1029,42 +1020,6 @@
                         <string>5</string>
                        </property>
                       </item>
-                     </widget>
-                    </item>
-                    <item row="1" column="1">
-                     <widget class="QComboBox" name="sub_select_active_train_combo"/>
-                    </item>
-                    <item row="1" column="0">
-                     <widget class="QRadioButton" name="sub_dispatch_overide_active_radio">
-                      <property name="text">
-                       <string>Reroute Active Train</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="2" column="0">
-                     <widget class="Line" name="line_3">
-                      <property name="frameShadow">
-                       <enum>QFrame::Plain</enum>
-                      </property>
-                      <property name="lineWidth">
-                       <number>2</number>
-                      </property>
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="2" column="1">
-                     <widget class="Line" name="line_4">
-                      <property name="frameShadow">
-                       <enum>QFrame::Plain</enum>
-                      </property>
-                      <property name="lineWidth">
-                       <number>2</number>
-                      </property>
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
                      </widget>
                     </item>
                    </layout>
@@ -1289,22 +1244,6 @@
                        <string>&lt;- Back</string>
                       </property>
                      </widget>
-                    </item>
-                    <item>
-                     <spacer name="horizontalSpacer_2">
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                      <property name="sizeType">
-                       <enum>QSizePolicy::Preferred</enum>
-                      </property>
-                      <property name="sizeHint" stdset="0">
-                       <size>
-                        <width>40</width>
-                        <height>20</height>
-                       </size>
-                      </property>
-                     </spacer>
                     </item>
                     <item>
                      <widget class="QLabel" name="label_23">
