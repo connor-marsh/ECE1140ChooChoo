@@ -33,6 +33,12 @@ class Controller(QObject):
         "Commanded Authority" : commanded_authorities
     }
 
+    junction_table_data = {
+        "Junction" : ["A5-B6-C11"] * wayside_constants.NUMBER_OF_JUNCTIONS,
+        "Light Signals" : ["Red, Red"] * wayside_constants.NUMBER_OF_JUNCTIONS,
+        "Switch Position" : ["A5 -B6"] * wayside_constants.NUMBER_OF_JUNCTIONS
+    }
+
     def __init__(self):
         super().__init__()
 
@@ -90,7 +96,6 @@ class Controller(QObject):
             for item in data:
                 row = 0
                 if item != None:
-                    
                     if item == "Occupied" and self.manual_mode == False:
                         number = min(int(item), int(wayside_constants.MAX_AUTHORITY * 3.28), int(self.block_table_data["Suggested Authority"][row]))
                         valid.append(str(number))
@@ -102,8 +107,10 @@ class Controller(QObject):
                 row =+ 1
         return valid
     
-    def set_manual_mode(self):
-        self.manual_mode = True
+    @pyqtSlot(bool)
+    def set_manual_mode(self, current_mode):
+        self.manual_mode = current_mode
+        print(self.manual_mode)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -101,6 +101,7 @@ class WaysideControllerWindow(QMainWindow):
 
     @pyqtSlot(dict)
     def receive_update(self, data):
+       
         self.update_table_data(self.ui.block_table, data, [0,1,2,3,4])
 
 
