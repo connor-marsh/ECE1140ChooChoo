@@ -7,8 +7,8 @@ import os
 import time
 import math
 
-from PySide2.QtWidgets import QApplication, QMainWindow
-from PySide2.QtCore import *
+from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtCore import *
 
 from train_model_ui_iteration_1 import Ui_MainWindow as TrainModelUI
 from train_model_ui_testbench_iteration_1 import Ui_TestMainWindow as TestBenchUI
