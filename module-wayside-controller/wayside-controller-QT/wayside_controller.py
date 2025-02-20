@@ -13,13 +13,26 @@ class WaysideControllerWindow(QMainWindow):
     """
     Initializes the window for the wayside controller and implements the logic for displaying the necessary information to the user
     """
+    # Potentially not constant 
     editable_columns_block_table = [3,4]
     editable_columns_junction_table = [1,2]
+
     gui_table_data = pyqtSignal(dict, dict) # first dictionary corresponds to block table, second corresponds to junction table
 
     block_occupancies = ["Unoccupied"] * wayside_constants.NUMBER_OF_BLOCKS # List containing the block occupancies
-    suggested_authorities = [float] * wayside_constants.NUMBER_OF_BLOCKS # List containing the suggested authorities
-    suggested_speeds = [float] * wayside_constants.NUMBER_OF_BLOCKS # List contianing the suggested speeds
+    suggested_speeds = [None] * wayside_constants.NUMBER_OF_BLOCKS # List contianing the suggested speeds
+    suggested_authorities = [None] * wayside_constants.NUMBER_OF_BLOCKS # List containing the suggested authorities
+    commanded_speeds = [None] * wayside_constants.NUMBER_OF_BLOCKS # List containing the commanded speeds
+    commanded_authorities = [None] * wayside_constants.NUMBER_OF_BLOCKS # List containing the commanded speeds
+
+    # Compiling all the lists into a dictionary so that it can be easily referenced when writing to the table
+    block_table_data = {
+        "Occupancy" : block_occupancies,
+        "Suggested Speed" : suggested_speeds,
+        "Suggested Authority" : suggested_authorities,
+        "Commanded Speed" : commanded_speeds,
+        "Commanded Authority" : commanded_authorities
+    }
 
     def __init__(self):
         """
@@ -34,8 +47,8 @@ class WaysideControllerWindow(QMainWindow):
         self.setup_table_dimensions(self.ui.block_table)
         self.set_column_editable(self.ui.junction_table, self.editable_columns_junction_table)
         self.set_column_editable(self.ui.block_table, self.editable_columns_block_table)
-        
-        
+        self.initialize_table_data(self.ui.junction_table)
+        self.initialize_table_data(self.ui.block_table)
         # Connecting signals from the ui elements
         self.ui.mode_select_combo_box.activated.connect(self.handle_mode_switch)
 
@@ -72,33 +85,16 @@ class WaysideControllerWindow(QMainWindow):
                         item.setFlags(item.flags() | Qt.ItemIsEditable)  # Make editable
                     else:
                         item.setFlags(item.flags() & ~Qt.ItemIsEditable)  # Make non-editable
- 
-
-    @pyqtSlot(QTableWidget, dict, list)
-    def update_table_data(self, table, data_dict, columns):
-        """
-        Will write the information in the dictionary so that it is displayed on the ui
-
-        :param table: A QTableWidget to be altered
-        :param data_dict: A dictionary containing the information to display
-                          example  (key = block, value = list[occupancy, suggested speed, suggested authority, commanded speed, commanded authority])
-        :param columns: a list of columns to write to
-        """
-        # Update the number of rows in the table based off of the dictionary
-        table.setRowCount(len(data_dict))
-
+        
+    def initialize_table_data(self, table):
         # Loop through each item in the table
-        row = 0
-        for key in data_dict:
-            col = 0
-            for value in data_dict[key]:
-                if col in columns:
-                    item = QTableWidgetItem(str(value))
-                    table.setItem(row, col, item)
-                col += 1
-            row += 1
+        for row in range(table.rowCount()):
+            for col in range(table.columnCount()):
+                item = QTableWidgetItem("HEHE")
+                table.setItem(row, col, item)
+                
 
-    def extract_table_data(self, table, columns):
+    def extract_table_data(self, table):
         """
         Takes data from the QTableWidget and puts it into a dictionary that can be interpreted by the backend
         
@@ -107,13 +103,15 @@ class WaysideControllerWindow(QMainWindow):
         :return data_dict: A dictionary containing the entries of the table
         """
         data_dict = {}
-        for row in range(table.rowCount()):
-            row_data = []
-            for col in columns:
-                item = table.item(row, columns)
+        for col in range(table.columnCount()):
+            col_data = [] # create a blank list to populate (an entire column in the table)
+            key = table.horizontalHeaderItem(col).text() # Find the label for the current row
+            for row in range(table.rowCount()): 
+                item = table.item(row, col) # get the corresponding QTableWidgetItem
                 # Get text if item exists, otherwise empty string
-                row_data.append(item.text() if item is not None else '')
-            data_dict[row + 1] = row_data # want the rows to match the gui so index from 1
+                col_data.append(item.text() if item is not None else 'EMPTY') # Make sure everything that you work with is strings for UI
+            data_dict[key] = col_data # use the each column header as way of searching the dictionary
+        
         return data_dict
 
     @pyqtSlot()

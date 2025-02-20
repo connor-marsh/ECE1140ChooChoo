@@ -50,21 +50,20 @@ class WaysideTestbenchWindow(QMainWindow):
 
     def setup_validators(self):
         """
-        define function
-        params:
+        Specifies that the line edits on the page can only have integer values
         """
-        speed_validator = QIntValidator(0, 31) # convert to mph since entry is done in mph
+        speed_validator = QIntValidator(0, 10000) # convert to mph since entry is done in mph
         self.ui.suggested_speed_line_edit.setValidator(speed_validator)
 
-        authority_validator = QIntValidator(0, 1640)
+        authority_validator = QIntValidator(0, 10000)
         self.ui.suggested_authority_line_edit.setValidator(authority_validator)
 
 
     @pyqtSlot(QListWidgetItem)  
     def handle_block_selection(self, selected_block):
         """
-        define function
-        params:
+        Updates the UI after a block has been selected from the list
+        :params selected_block: The QListItem chosen 
         """
         self.current_block_index = self.ui.select_block_list.row(selected_block) # Updating the index based on the block selected
         
