@@ -50,12 +50,13 @@ class WaysideControllerWindow(QMainWindow):
         self.ui.setupUi(self)
 
         # Setting up the tables
+        self.initialize_table_data(self.ui.junction_table)
+        self.initialize_table_data(self.ui.block_table)
         self.setup_table_dimensions(self.ui.junction_table)
         self.setup_table_dimensions(self.ui.block_table)
         self.set_column_editable(self.ui.junction_table, self.editable_columns_junction_table)
         self.set_column_editable(self.ui.block_table, self.editable_columns_block_table)
-        self.initialize_table_data(self.ui.junction_table)
-        self.initialize_table_data(self.ui.block_table)
+        
         
         # Connecting signals from the ui elements
         self.ui.mode_select_combo_box.activated.connect(self.handle_mode_switch)
@@ -98,7 +99,7 @@ class WaysideControllerWindow(QMainWindow):
                 item = QTableWidgetItem()
                 table.setItem(row, col, item)
 
-    @pyqtSlot(str, int, str)      
+    @pyqtSlot(str, int, int, str)      
     def update_table_entry(self, column_header, col_index, row_index, text_value):
         """
         Slot for the testbench to update values in the ui block table
@@ -107,21 +108,23 @@ class WaysideControllerWindow(QMainWindow):
         :param row_index: which item to change
         :param text_value: text to display at the location
         """      
-        item = QTableWidgetItem(text_value)
-        self.ui.block_table.setItem(row_index,col_index,item)
+        self.ui.block_table.item(row_index,col_index).setText(text_value)
         self.block_table_data[column_header][row_index] = text_value
 
     @pyqtSlot(QTableWidget, dict)            
     def update_table_data(self, table, dict):
         """
         Updates the entire table at once based off the dictionary
+        :param table: QTableWidget to be updated
+        :param dict: Dictionary with the data to send to the table
         """
         # Loop through each item in the table
         for col in range(table.columnCount()):
             key = table.horizontalHeaderItem(col).text() # Find the label for the current row
             for row in range(table.rowCount()):
-                item = QTableWidgetItem(str(dict[key][row]))
-                table.setItem(row, col, item)
+                if dict[key][row] != None:
+                    table.item(row,col).setText(str(dict[key][row])) 
+                    #table.setItem(row, col, item)
 
     def extract_table_data(self, table, columns):
         """

@@ -22,7 +22,9 @@ if __name__ == "__main__":
     wayside_window = WaysideControllerWindow()
     testbench_window = WaysideTestbenchWindow()
 
-
     wayside_window.show()
     testbench_window.show()
+
+    testbench_window.send_update_signal.connect(wayside_window.update_table_entry)
+
     sys.exit(app.exec_())
