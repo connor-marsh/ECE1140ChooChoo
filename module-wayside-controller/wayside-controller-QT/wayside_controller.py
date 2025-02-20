@@ -124,6 +124,7 @@ class WaysideControllerWindow(QMainWindow):
         :param dict: Dictionary with the data to send to the table
         :param columns: Columns to be updated
         """
+        self.block_table_data = dict
         # Loop through each item in the table
         for col in columns:
             key = table.horizontalHeaderItem(col).text() # Find the label for the current row
@@ -166,15 +167,15 @@ class WaysideControllerWindow(QMainWindow):
         
         # Change in data confirmed, extract data from tables
         altered_block_data = self.extract_table_data(self.ui.block_table, self.editable_columns_block_table)
-        altered_junction_data = self.extract_table_data(self.ui.junction_table, self.editable_columns_junction_table)
+        #altered_junction_data = self.extract_table_data(self.ui.junction_table, self.editable_columns_junction_table)
 
         # Assign the altered data to the dictionaries 
-        self.block_table_data["Commanded Speed"] = altered_block_data["Commanded Speed"]
-        self.block_table_data["Commanded Authority"] = altered_block_data["Commanded Authority"]
+        #self.block_table_data["Commanded Speed"] = altered_block_data["Commanded Speed"]
+        #self.block_table_data["Commanded Authority"] = altered_block_data["Commanded Authority"]
 
         # Write new data to dictionary
-        self.junction_table_data["Light Signals"] = altered_junction_data["Light Signals"]
-        self.junction_table_data["Switch Position"] = altered_junction_data["Switch Position"]
+        #self.junction_table_data["Light Signals"] = altered_junction_data["Light Signals"]
+        #self.junction_table_data["Switch Position"] = altered_junction_data["Switch Position"]
 
         # Make it so that after confirmation any unacceptable input is changed to reflect the last acceptable value
         #self.update_table_data(self.ui.block_table, self.block_table_data, self.editable_columns_block_table)
