@@ -78,7 +78,7 @@ class CentralizedTrafficControlTestBenchApp(QMainWindow):
 
         if block_input:
             block_states = [int(x) for x in block_input.split(",")]
-            print(f"Block input: {block_states}")
+            #print(f"Block input: {block_states}") #debugging statment
         if crossing_input:
             railway_crossing_states = [int(x) for x in crossing_input.split(",")]
         if light_input:
@@ -88,9 +88,11 @@ class CentralizedTrafficControlTestBenchApp(QMainWindow):
 
         self.ctc_app.get_test_bench_data(block_states, railway_crossing_states, light_states, switch_states)  
 
-    def print_suggestions(self, speed, auth ):
+    def print_suggested_speed(self, speed):
         self.ctc_tb_ui.tb_out_speed.setText(speed)
-        self.ctc_tb_ui.tb_out_speed.setText(auth)
+
+    def print_suggested_authority(self, auth):
+        self.ctc_tb_ui.tb_out_authority.setText(auth)
     
     def print_maintenance(self, block_id, maintenance_val):
         message = ("Block " + str(block_id) + ": " + str(maintenance_val))
@@ -167,6 +169,8 @@ class CentralizedTrafficControlApp(QMainWindow):
         # Mode Sliders
         self.ctc_ui.main_mode_slider.sliderReleased.connect(self.toggle_mode)
         #self.ctc_ui.main_line_slider.sliderReleased.connect(self.toggle_active_line) #Not implemented yet
+
+        self.ctc_ui.main_switch_knob.valueChanged.connect(self.set_switch_state)
 
         self.ctc_ui.sub_confirm_override_button.clicked.connect(self.update_override)
 
@@ -374,6 +378,21 @@ class CentralizedTrafficControlApp(QMainWindow):
         #reads number of rows from train data file + manual sent trains
         pass
 
+    def set_switch_state(self, block_info):
+        
+        if self.selected_row is not None:
+            block_info = self.block_data.get(self.selected_row)
+            case = self.ctc_ui.main_switch_knob.value()
+            if case == 0:
+                direction = "0"
+                self.test_bench.print_switch_state(block_info['block_id'], direction)
+            if case == 1:
+                pass
+            if case == 2:
+                direction = "1"
+                self.test_bench.print_switch_state(block_info['block_id'], direction)
+
+
     # Navigation buttons for stacked widget
     def switch_to_dispatch_page(self):
         self.ctc_ui.multiPageWidget.setCurrentIndex(1)
@@ -390,7 +409,6 @@ class CentralizedTrafficControlApp(QMainWindow):
         block_info = self.block_data.get(row+1)
         self.update_block_data(block_info)
 
-        
 
     def update_block_data(self,block_info):
         #update block id, length, speed limit | on main page as well as maintenance page
@@ -398,7 +416,7 @@ class CentralizedTrafficControlApp(QMainWindow):
         self.ctc_ui.sub_active_block_id.setText(str(block_info['block_id']))
         self.ctc_ui.main_active_block_length.setText(str(block_info['block_length']))
         self.ctc_ui.main_active_block_speed_limit.setText(str(block_info['speed_limit']))
-        pass
+        
 
     # Activated by mode slider
     def toggle_mode(self):
@@ -478,18 +496,21 @@ class CentralizedTrafficControlApp(QMainWindow):
 
         if self.ctc_ui.sub_enter_speed_override.value() > 0:
             self.update_override_speed()
+
         if self.ctc_ui.sub_enter_authority_override.value() > 0:
             self.update_override_authority()
 
     def update_override_speed(self):
         #updates override speed | input from user
-        self.override_speed = self.ctc_ui.sub_enter_speed_override.text()
-        #send to test bench
+        override_speed = self.ctc_ui.sub_enter_speed_override.text()
+        self.test_bench.print_suggested_speed(override_speed)
+        
 
     def update_override_authority(self):
         #updates override authority | input from user
-        self.override_authority = self.ctc_ui.sub_enter_authority_override.text()
-        #send to test bench
+        override_authority = self.ctc_ui.sub_enter_authority_override.text()
+        self.test_bench.print_suggested_authority(override_authority)
+        
 
     #maintenance page
     def start_maintenance(self):
