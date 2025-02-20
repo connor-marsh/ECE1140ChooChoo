@@ -98,8 +98,24 @@ class WaysideControllerWindow(QMainWindow):
                 item = QTableWidgetItem()
                 table.setItem(row, col, item)
 
+    @pyqtSlot(str, int, str)      
+    def update_table_entry(self, column_header, col_index, row_index, text_value):
+        """
+        Slot for the testbench to update values in the ui block table
+        :param column_header: header to the column that will be altered
+        :param col_index: janky but need the index for the table since i couldn't get the index from the header
+        :param row_index: which item to change
+        :param text_value: text to display at the location
+        """      
+        item = QTableWidgetItem(text_value)
+        self.ui.block_table.setItem(row_index,col_index,item)
+        self.block_table_data[column_header][row_index] = text_value
+
     @pyqtSlot(QTableWidget, dict)            
     def update_table_data(self, table, dict):
+        """
+        Updates the entire table at once based off the dictionary
+        """
         # Loop through each item in the table
         for col in range(table.columnCount()):
             key = table.horizontalHeaderItem(col).text() # Find the label for the current row
