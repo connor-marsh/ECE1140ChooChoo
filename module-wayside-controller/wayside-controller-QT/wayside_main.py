@@ -16,7 +16,8 @@ import wayside_constants
 class Controller(QObject):
 
     update_signal = pyqtSignal(dict)
-
+    
+    manual_mode = False
     block_occupancies = ["Unoccupied"] * wayside_constants.NUMBER_OF_BLOCKS # List containing the block occupancies
     suggested_speeds = [None] * wayside_constants.NUMBER_OF_BLOCKS # List contianing the suggested speeds
     suggested_authorities = [None] * wayside_constants.NUMBER_OF_BLOCKS # List containing the suggested authorities
@@ -56,25 +57,53 @@ class Controller(QObject):
         
     @pyqtSlot()
     def send_update(self):
+        for block in self.block_table_data["Occupancy"]:
+            row = 0
+            if block == "Occupied" and self.manual_mode == False:
+                self.block_table_data["Commanded Speed"][row] = self.block_table_data["Suggested Speed"][row]
+                self.block_table_data["Commanded Authority"][row] = self.block_table_data["Suggested Authority"][row]
+                row += 1
+
+        valid_speed = self.validate_data("Commanded Speed", self.block_table_data["Commanded Speed"])
+        valid_authority = self.validate_data("Commanded Authority", self.block_table_data["Commanded Authority"])
+        self.block_table_data["Commanded Speed"] = valid_speed
+        self.block_table_data["Commanded Authority"] = valid_authority
+
         self.update_signal.emit(self.block_table_data)
     
     def validate_data(self, key, data):
         valid = []
         if(key == "Commanded Speed"):
             for item in data:
+                row = 0
                 if item != None:
-                    number = min(int(item), int(wayside_constants.MAX_SPEED_LIMIT * 0.621))
-                    valid.append(str(number))
+                    if item == "Occupied" and self.manual_mode == False:
+                        number = min(int(item), int(wayside_constants.MAX_SPEED_LIMIT * 0.621), int(self.block_table_data["Suggested Speed"][row]))
+                        valid.append(str(number))
+                    else:
+                        number = min(int(item), int(wayside_constants.MAX_SPEED_LIMIT * 0.621))
+                        valid.append(str(number))
                 else:
                     valid.append(None)
+                row =+ 1
         else:
             for item in data:
+                row = 0
                 if item != None:
-                    number = min(int(item), int(wayside_constants.MAX_AUTHORITY * 3.28))
-                    valid.append(str(number))
+                    
+                    if item == "Occupied" and self.manual_mode == False:
+                        number = min(int(item), int(wayside_constants.MAX_AUTHORITY * 3.28), int(self.block_table_data["Suggested Authority"][row]))
+                        valid.append(str(number))
+                    else:
+                        number = min(int(item), int(wayside_constants.MAX_AUTHORITY * 3.28))
+                        valid.append(str(number))
                 else:
                     valid.append(None)
+                row =+ 1
         return valid
+    
+    def set_manual_mode(self):
+        self.manual_mode = True
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -89,5 +118,6 @@ if __name__ == "__main__":
     testbench_window.send_update_signal.connect(w_controller.from_testbench)
     w_controller.update_signal.connect(wayside_window.receive_update)
     wayside_window.gui_table_data.connect(w_controller.from_ui)
+    wayside_window.manual_mode.connect(w_controller.set_manual_mode)
 
     sys.exit(app.exec_())

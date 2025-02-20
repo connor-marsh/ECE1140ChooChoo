@@ -18,7 +18,7 @@ class WaysideControllerWindow(QMainWindow):
     editable_columns_junction_table = [1,2]
 
     gui_table_data = pyqtSignal(dict) # first dictionary corresponds to block table, second corresponds to junction table
-    
+    manual_mode = pyqtSignal(bool)
 
     block_occupancies = [None] * wayside_constants.NUMBER_OF_BLOCKS # List containing the block occupancies
     suggested_speeds = [None] * wayside_constants.NUMBER_OF_BLOCKS # List contianing the suggested speeds
@@ -198,11 +198,13 @@ class WaysideControllerWindow(QMainWindow):
             self.ui.block_table.setEditTriggers(QTableWidget.NoEditTriggers)
             self.ui.confirm_button.setStyleSheet("background-color: rgb(157, 157, 157);")
             self.ui.confirm_button.clicked.disconnect(self.handle_input_confirmation)
+            self.manual_mode.emit(False)
         else:
             self.ui.junction_table.setEditTriggers(QTableWidget.AllEditTriggers)
             self.ui.block_table.setEditTriggers(QTableWidget.AllEditTriggers)
             self.ui.confirm_button.setStyleSheet("background-color: rgb(110, 255, 102);")
             self.ui.confirm_button.clicked.connect(self.handle_input_confirmation)
+            self.manual_mode.emit(True)
         
         
 
