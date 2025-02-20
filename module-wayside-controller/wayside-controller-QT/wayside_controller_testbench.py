@@ -27,7 +27,7 @@ class WaysideTestbenchWindow(QMainWindow):
 
 
     # Signals specifying which block and the value to update with
-    send_update_signal = pyqtSignal(str, int, int, str) # (column header, col index, row index, value)
+    send_update_signal = pyqtSignal(str, int, str) # (column header, row index, value)
     
 
     def __init__(self):
@@ -101,7 +101,7 @@ class WaysideTestbenchWindow(QMainWindow):
         if self.current_block_index is not None: # Making sure the confirmation button only updates when a block is selected
             # When the confirm button is clicked update the speed and emit a signal
             self.suggested_speeds[self.current_block_index] = self.ui.suggested_speed_line_edit.text()
-            self.send_update_signal.emit("Suggested Speed", 1, self.current_block_index, self.ui.suggested_speed_line_edit.text())
+            self.send_update_signal.emit("Suggested Speed", self.current_block_index, self.ui.suggested_speed_line_edit.text())
     
    
     @pyqtSlot()  
@@ -113,7 +113,7 @@ class WaysideTestbenchWindow(QMainWindow):
         if self.current_block_index is not None: # Making sure the confirmation button only updates when a block is selected
             # When the confirm button is clicked update the authority and emit a signal
             self.suggested_authorities[self.current_block_index] = self.ui.suggested_authority_line_edit.text()
-            self.send_update_signal.emit("Suggested Authority", 2, self.current_block_index, self.ui.suggested_authority_line_edit.text())
+            self.send_update_signal.emit("Suggested Authority", self.current_block_index, self.ui.suggested_authority_line_edit.text())
     
     
     @pyqtSlot()
@@ -125,7 +125,7 @@ class WaysideTestbenchWindow(QMainWindow):
         if self.current_block_index is not None: # Making sure the confirmation button only updates when a block is selected
             # When the confirm button is clicked update the occupancy in accordance with the current state of the combo box
             self.block_occupancies[self.current_block_index] = self.ui.block_occupancy_combo_box.currentText()
-            self.send_update_signal.emit("Occupancy", 0, self.current_block_index, self.ui.block_occupancy_combo_box.currentText())
+            self.send_update_signal.emit("Occupancy", self.current_block_index, self.ui.block_occupancy_combo_box.currentText())
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -17,7 +17,7 @@ class WaysideControllerWindow(QMainWindow):
     editable_columns_block_table = [3,4]
     editable_columns_junction_table = [1,2]
 
-    gui_table_data = pyqtSignal(dict, dict) # first dictionary corresponds to block table, second corresponds to junction table
+    gui_table_data = pyqtSignal(dict) # first dictionary corresponds to block table, second corresponds to junction table
     
 
     block_occupancies = [None] * wayside_constants.NUMBER_OF_BLOCKS # List containing the block occupancies
@@ -177,11 +177,11 @@ class WaysideControllerWindow(QMainWindow):
         self.junction_table_data["Switch Position"] = altered_junction_data["Switch Position"]
 
         # Make it so that after confirmation any unacceptable input is changed to reflect the last acceptable value
-        self.update_table_data(self.ui.block_table, self.block_table_data, self.editable_columns_block_table)
-        self.update_table_data(self.ui.junction_table, self.junction_table_data, self.editable_columns_junction_table)
+        #self.update_table_data(self.ui.block_table, self.block_table_data, self.editable_columns_block_table)
+        #self.update_table_data(self.ui.junction_table, self.junction_table_data, self.editable_columns_junction_table)
 
         # Emit a signal with the latest (acceptable) data confirmed by the user
-        self.gui_table_data.emit(altered_block_data, altered_junction_data)
+        self.gui_table_data.emit(altered_block_data)
         
         
 
