@@ -20,7 +20,7 @@ stdin, stdout, stderr = ssh.exec_command('python ~/ECE1140ChooChoo/pi-code/pi_tr
 # Format for receiving data, its a 1d array that just lists out all the important data
 # [commanded power, position, ebrake state, temperature, failure 1, failure 2, failure 3]
 
-sendDataFormat = ["actual_speed", "commanded_speed", "authority", "position", "ebrake_state", "temperature", "brake_failure", "engine_failure", "signal_failure"]
+sendDataFormat = ["actual_speed", "commanded_speed", "authority", "ebrake_state", "temperature", "brake_failure", "engine_failure", "signal_failure"]
 sendData = {}
 for word in sendDataFormat:
     sendData[word]=0.0
