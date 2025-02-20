@@ -12,7 +12,7 @@ ssh.connect("10.6.19.80", username="connor-marsh", password="ece1140")
 print("SSH Connected")
 
 print('started...')
-stdin, stdout, stderr = ssh.exec_command('python pi_train_controller.py ssssh', get_pty=True)
+stdin, stdout, stderr = ssh.exec_command('python ~/ECE1140ChooChoo/pi-code/pi_train_controller.py ssh', get_pty=True)
 
 
 # Format for sending data, its a 1d array that just lists out all the important data
@@ -20,12 +20,14 @@ stdin, stdout, stderr = ssh.exec_command('python pi_train_controller.py ssssh', 
 # Format for receiving data, its a 1d array that just lists out all the important data
 # [commanded power, position, ebrake state, temperature, failure 1, failure 2, failure 3]
 
-
+sendDataFormat = ["actual_speed", "commanded_speed", "authority", "position", "ebrake_state", "temperature", "brake_failure", "engine_failure", "signal_failure"]
 sendData = {}
+for word in sendDataFormat:
+    sendData[word]=0.0
 
 def ssh_handler():
     global sendData
-    prevData = {}
+    prevData = deepcopy(sendData)
     while True:
         if not sendData==prevData:
             print("Sending over SSH")
@@ -39,14 +41,13 @@ def ssh_handler():
 
 def input_handler():
     global sendData
-    tempDataFormat = ["actual_speed", "commanded_speed", "authority", "position", "ebrake_state", "temperature"]
     while True:
         inputData = input("Input smth")
         if inputData=="\q":
             return
         dataList=inputData.split(' ')
         for i in range(len(dataList)):
-            sendData[tempDataFormat[i]] = float(dataList[i])
+            sendData[sendDataFormat[i]] = float(dataList[i])
 
 ssh_thread=Thread(target=ssh_handler)
 ssh_thread.start()
