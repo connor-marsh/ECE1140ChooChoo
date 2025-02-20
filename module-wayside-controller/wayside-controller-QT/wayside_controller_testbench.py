@@ -5,6 +5,7 @@ Description:
     The class implemented here builds on the generated QT desinger output for the wayside controller testbench ui.
 """
 import sys
+import wayside_constants
 from PyQt5.QtWidgets import QApplication, QMainWindow, QListWidgetItem
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QIntValidator
@@ -16,17 +17,14 @@ class WaysideTestbenchWindow(QMainWindow):
     Describe the class
     """
 
-    #Should eventually be passed in upon the creation of a wayside controller
-    # Constants (Should eventually be passed in upon the creation of a wayside controller)
-    NUMBER_OF_BLOCKS = 15 
-    MAX_SPEED_LIMIT = 50 # kmh (could potentially be a list in the future)
-    MAX_AUTHORITY = 500 # meters (maybe a bad name for the variable, or not even used)
+    
     
     # Variables
     current_block_index = None # index to the lists below
-    block_occupancies = ["Unoccupied"] * NUMBER_OF_BLOCKS # List containing the block occupancies
-    suggested_authorities = [None] * NUMBER_OF_BLOCKS # List containing the suggested authorities
-    suggested_speeds = [None] * NUMBER_OF_BLOCKS # List contianing the suggested speeds
+    block_occupancies = ["Unoccupied"] * wayside_constants.NUMBER_OF_BLOCKS # List containing the block occupancies
+    suggested_authorities = [float] * wayside_constants.NUMBER_OF_BLOCKS # List containing the suggested authorities
+    suggested_speeds = [float] * wayside_constants.NUMBER_OF_BLOCKS # List contianing the suggested speeds
+
 
     # Signals specifying which block and the value to update with
     block_occupancy_signal = pyqtSignal(int, str) # (index, value)
@@ -55,10 +53,10 @@ class WaysideTestbenchWindow(QMainWindow):
         define function
         params:
         """
-        speed_validator = QIntValidator(0, int(self.MAX_SPEED_LIMIT * 0.621)) # convert to mph since entry is done in mph
+        speed_validator = QIntValidator(0, 31) # convert to mph since entry is done in mph
         self.ui.suggested_speed_line_edit.setValidator(speed_validator)
 
-        authority_validator = QIntValidator(0, int(self.MAX_AUTHORITY *  3.28))
+        authority_validator = QIntValidator(0, 1640)
         self.ui.suggested_authority_line_edit.setValidator(authority_validator)
 
 

@@ -4,6 +4,7 @@ Date: 2/16/2025
 Description: The class implemented here builds on the generated QT desinger output for the wayside controller testbench ui.
 """
 import sys
+import wayside_constants
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from wayside_controller_ui import Ui_MainWindow
@@ -15,6 +16,10 @@ class WaysideControllerWindow(QMainWindow):
     editable_columns_block_table = [3,4]
     editable_columns_junction_table = [1,2]
     gui_table_data = pyqtSignal(dict, dict) # first dictionary corresponds to block table, second corresponds to junction table
+
+    block_occupancies = ["Unoccupied"] * wayside_constants.NUMBER_OF_BLOCKS # List containing the block occupancies
+    suggested_authorities = [float] * wayside_constants.NUMBER_OF_BLOCKS # List containing the suggested authorities
+    suggested_speeds = [float] * wayside_constants.NUMBER_OF_BLOCKS # List contianing the suggested speeds
 
     def __init__(self):
         """
