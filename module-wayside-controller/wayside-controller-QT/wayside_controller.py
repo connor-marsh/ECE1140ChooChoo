@@ -112,19 +112,21 @@ class WaysideControllerWindow(QMainWindow):
         self.block_table_data[column_header][row_index] = text_value
 
     @pyqtSlot(QTableWidget, dict)            
-    def update_table_data(self, table, dict):
+    def update_table_data(self, table, dict, columns):
         """
         Updates the entire table at once based off the dictionary
         :param table: QTableWidget to be updated
         :param dict: Dictionary with the data to send to the table
+        :param columns: Columns to be updated
         """
         # Loop through each item in the table
-        for col in range(table.columnCount()):
+        for col in columns:
             key = table.horizontalHeaderItem(col).text() # Find the label for the current row
             for row in range(table.rowCount()):
                 if dict[key][row] != None:
                     table.item(row,col).setText(str(dict[key][row])) 
-                    #table.setItem(row, col, item)
+                else:
+                    table.item(row,col).setText(" ")
 
     def extract_table_data(self, table, columns):
         """
@@ -170,8 +172,8 @@ class WaysideControllerWindow(QMainWindow):
         self.junction_table_data["Switch Position"] = altered_junction_data["Switch Position"]
 
         # Make it so that after confirmation any unacceptable input is changed to reflect the last acceptable value
-        self.update_table_data(self.ui.block_table, self.block_table_data)
-        self.update_table_data(self.ui.junction_table, self.junction_table_data)
+        self.update_table_data(self.ui.block_table, self.block_table_data, self.editable_columns_block_table)
+        self.update_table_data(self.ui.junction_table, self.junction_table_data, self.editable_columns_junction_table)
 
         # Emit a signal with the latest (acceptable) data confirmed by the user
         self.gui_table_data.emit(altered_block_data, altered_junction_data)
