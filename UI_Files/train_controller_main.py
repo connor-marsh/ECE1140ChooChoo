@@ -20,12 +20,13 @@ os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 """
 Helper functions
 """
-def speed_conversion(kmh):
-    mph = kmh/1.609
+def speed_conversion(meters_per_second):
+    mph = meters_per_second * 2.237
     return mph
 
 def speed_conversion_in(mph):
-    pass
+    meters_per_second = mph / 2.237
+    return meters_per_second
 
 def temp_conversion(degree_c):
     degree_f = (degree_c * (9.0/5.0)) + 32.0
@@ -123,11 +124,11 @@ class TrainControllerWindow(QMainWindow):
         self.engine_failure = self.testbench.ui.tb_engine_failure_checkbox.isChecked()
     
     def update(self):
-        # Set the display values - TODO make these functions
-        self.ui.actual_speed_lcd.display(str(speed_conversion(self.actual_speed)))
-        self.ui.speed_limit_lcd.display(str(speed_conversion(self.speed_limit)))
-        self.ui.authority_lcd.display(str(distance_conversion(self.commanded_authority)))
-        self.ui.cabin_temperature_lcd.display(str(temp_conversion(self.temperature_status)))
+        # Set the display values
+        self.display_actual_speed(str(speed_conversion(self.actual_speed)))
+        self.display_speed_limit(str(speed_conversion(self.speed_limit)))
+        self.display_authority(str(distance_conversion(self.commanded_authority)))
+        self.display_cabin_temperature(str(temp_conversion(self.temperature_status)))
 
         # Check if auto or manual mode
         if (self.ui.control_mode_switch.value() == 0):
@@ -155,6 +156,18 @@ class TrainControllerWindow(QMainWindow):
             self.commanded_power = (self.Kp * self.error) + (self.Ki * self.integral_error)
         else:
             pass
+    
+    def display_cabin_temperature(self, temperature):
+        self.ui.cabin_temperature_lcd.display(temperature)
+
+    def display_authority(self, authority):
+        self.ui.authority_lcd.display(authority)
+
+    def display_speed_limit(self, speed_limit):
+        self.ui.speed_limit_lcd.display(speed_limit)
+
+    def display_actual_speed(self, speed):
+        self.ui.actual_speed_lcd.display(speed)
 
     def disable_for_auto(self):
         self.ui.target_speed_apply_button.setEnabled(False)
