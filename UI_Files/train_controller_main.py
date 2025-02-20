@@ -78,7 +78,8 @@ class TrainControllerWindow(QMainWindow):
         self.driver_target_speed = 0.0
         self.service_brake = False
         self.position = 0.0
-        self.next_station = "Edgebrook"
+        self.next_station = ""
+        self.announcement = False
 
         # Default for power calculation
         self.integral_error = 0.0
@@ -129,6 +130,8 @@ class TrainControllerWindow(QMainWindow):
         self.signal_failure = self.testbench.ui.tb_signal_failure_checkbox.isChecked()
         self.brake_failure = self.testbench.ui.tb_brake_failure_checkbox.isChecked()
         self.engine_failure = self.testbench.ui.tb_engine_failure_checkbox.isChecked()
+        self.next_station = self.testbench.ui.tb_next_station_line_edit.text()
+        self.announcement = self.testbench.ui.tb_announcement_checkbox.isChecked()
     
     def update(self):
         # Set the display values
@@ -195,14 +198,19 @@ class TrainControllerWindow(QMainWindow):
                 self.deactivate_interior_lights()
                 self.deactivate_headlights()
 
-        # Set next station
-        self.display_next_station()
-    
-    def activate_on_air(self):
-        pass
+        if (self.actual_speed > 0):
+            self.ui.door_left_button.setEnabled(False)
+            self.ui.door_right_button.setEnabled(False)
 
-    def deactivate_on_air(self):
-        pass
+        # Set next station and on air light
+        self.display_next_station()
+        self.activate_announcement_light() if self.announcement else self.deactivate_announcement_light()
+    
+    def activate_announcement_light(self):
+        self.ui.announcement_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
+
+    def deactivate_announcement_light(self):
+        self.ui.announcement_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
 
     def display_next_station(self):
         self.ui.next_station_label.setText(self.next_station)
@@ -238,8 +246,6 @@ class TrainControllerWindow(QMainWindow):
 
     def disable_for_auto(self):
         self.ui.target_speed_apply_button.setEnabled(False)
-        self.ui.door_left_button.setEnabled(False)
-        self.ui.door_right_button.setEnabled(False)
         self.ui.interior_lights_on_button.setEnabled(False)
         self.ui.interior_lights_off_button.setEnabled(False)
         self.ui.headlights_on_button.setEnabled(False)
@@ -377,6 +383,11 @@ class TrainControllerTestbenchWindow(QMainWindow):
         self.display_doors()
         self.display_emergency_brakes()
         self.display_service_brakes()
+        self.display_announcement()
+
+    def display_announcement(self):
+        if (self.train_controller_window.announcement):
+            self.ui.tb_annunciation_system_display.setText(self.train_controller_window.next_station)
 
     def display_service_brakes(self):
         if (self.train_controller_window.service_brake):
