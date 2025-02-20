@@ -27,9 +27,8 @@ class WaysideTestbenchWindow(QMainWindow):
 
 
     # Signals specifying which block and the value to update with
-    block_occupancy_signal = pyqtSignal(int, str) # (index, value)
-    suggested_authority_signal = pyqtSignal(int, float) # (index, value)
-    suggested_speed_signal = pyqtSignal(int, float) # (index, value)
+    send_update_signal = pyqtSignal(str, int, str) # (row, index, value)
+    
 
     def __init__(self):
         """
@@ -102,7 +101,7 @@ class WaysideTestbenchWindow(QMainWindow):
         if self.current_block_index is not None: # Making sure the confirmation button only updates when a block is selected
             # When the confirm button is clicked update the speed and emit a signal
             self.suggested_speeds[self.current_block_index] = self.ui.suggested_speed_line_edit.text()
-            self.suggested_speed_signal.emit(self.current_block_index, float(self.ui.suggested_speed_line_edit.text()))
+            self.send_update_signal.emit("Suggested Speed",self.current_block_index, self.ui.suggested_speed_line_edit.text())
     
    
     @pyqtSlot()  
@@ -114,7 +113,7 @@ class WaysideTestbenchWindow(QMainWindow):
         if self.current_block_index is not None: # Making sure the confirmation button only updates when a block is selected
             # When the confirm button is clicked update the authority and emit a signal
             self.suggested_authorities[self.current_block_index] = self.ui.suggested_authority_line_edit.text()
-            self.suggested_authority_signal.emit(self.current_block_index, float(self.ui.suggested_authority_line_edit.text()))
+            self.send_update_signal.emit("Suggested Authority", self.current_block_index, self.ui.suggested_authority_line_edit.text())
     
     
     @pyqtSlot()
@@ -126,7 +125,7 @@ class WaysideTestbenchWindow(QMainWindow):
         if self.current_block_index is not None: # Making sure the confirmation button only updates when a block is selected
             # When the confirm button is clicked update the occupancy in accordance with the current state of the combo box
             self.block_occupancies[self.current_block_index] = self.ui.block_occupancy_combo_box.currentText()
-            self.block_occupancy_signal.emit(self.current_block_index, self.ui.block_occupancy_combo_box.currentText())
+            self.send_update_signal.emit("Occupancy", self.current_block_index, self.ui.block_occupancy_combo_box.currentText())
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
