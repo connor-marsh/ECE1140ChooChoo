@@ -1,3 +1,7 @@
+"""
+Author: PJ Granieri
+"""
+
 import sys
 import os
 import random  # Import random for generating ticket sales value.
