@@ -30,13 +30,15 @@ stdin, stdout, stderr = ssh.exec_command('python ~/ECE1140ChooChoo/pi-code/pi_tr
 # [commanded power, position, ebrake state, temperature, failure 1, failure 2, failure 3]
 
 sendDataFormat = ["actual_speed", "commanded_speed", "authority", "ebrake_state", "temperature", "brake_failure", "engine_failure", "signal_failure"]
-readDataFormat = ["commanded_power"]
+readDataFormat = ["commanded_power", "brakes", "ebrake", "left_doors", "right_doors", "headlights", "lights", "ac", "heat", "annunciation"]
 sendData = {}
 readData = {}
 for word in sendDataFormat:
     sendData[word]=0.0
 for word in readDataFormat:
     readData[word]=0.0
+    if word == "annunciation":
+        readData[word]="e.g."
 
 
 
@@ -84,6 +86,7 @@ class TrainControllerWindow(QMainWindow):
         self.speed_limit = 0.0
         self.commanded_wayside_speed = 0.0
         self.commanded_authority = 0.0
+        self.commanded_power = 0.0
         self.passenger_emergency_stop = False
         self.beacon_data = ""
         self.temperature_status = 25.0 # Celcius
@@ -154,9 +157,29 @@ class TrainControllerWindow(QMainWindow):
         self.engine_failure = self.testbench.ui.tb_engine_failure_checkbox.isChecked()
     
     def update(self):
+        # collect data to send based off internal data from testbench
+        #sendDataFormat = ["actual_speed", "commanded_speed", "authority", "ebrake_state", "temperature", "brake_failure", "engine_failure", "signal_failure"]
+        sendData["actual_speed"] = self.actual_speed
+        sendData["commanded_speed"] = self.commanded_wayside_speed
+        sendData["authority"] = self.commanded_authority
+        sendData["ebrake_state"] = self.passenger_emergency_stop
+        sendData["temperature"] = self.temperature_status
+        sendData["brake_failure"] = self.brake_failure
+        sendData["engine_failure"] = self.engine_failure
+        sendData["signal_failure"] = self.signal_failure
         stdin.write(json.dumps(sendData)+'\n')
         stdout.readline()
         readData = json.loads(stdout.readline().rstrip())
+        self.commanded_power = readData["commanded_power"]
+        self.service_brake = readData["brakes"]
+        self.passenger_emergency_stop = self.emergency_brake = readData["ebrake"]
+        self.door_left = readData["left_doors"]
+        self.door_right = readData["right_doors"]
+        self.headlights = readData["headlights"]
+        self.interior_lights = readData["lights"]
+        self.air_conditioning_signal = readData["ac"]
+        self.heating_signal = readData["heat"]
+        self.next_station = readData["annunciation"]
 
     #     # Set the display values
     #     self.display_actual_speed(str(speed_conversion(self.actual_speed)))
@@ -225,154 +248,154 @@ class TrainControllerWindow(QMainWindow):
     #     # Set next station
     #     self.display_next_station()
     
-    def activate_on_air(self):
-        pass
+    # def activate_on_air(self):
+    #     pass
 
-    def deactivate_on_air(self):
-        pass
+    # def deactivate_on_air(self):
+    #     pass
 
-    def display_next_station(self):
-        self.ui.next_station_label.setText(self.next_station)
+    # def display_next_station(self):
+    #     self.ui.next_station_label.setText(self.next_station)
 
-    def activate_service_brake(self):
-        self.service_brake = True
-        self.ui.service_brake_on_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
-        self.ui.service_brake_off_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+    # def activate_service_brake(self):
+    #     self.service_brake = True
+    #     self.ui.service_brake_on_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
+    #     self.ui.service_brake_off_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
 
-    def deactivate_service_brake(self):
-        self.service_brake = False
-        self.ui.service_brake_on_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
-        self.ui.service_brake_off_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
+    # def deactivate_service_brake(self):
+    #     self.service_brake = False
+    #     self.ui.service_brake_on_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+    #     self.ui.service_brake_off_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
 
-    def set_driver_target_speed(self):
-        self.driver_target_speed = speed_conversion_in(self.ui.target_speed_spin_box.value()) # TODO: needs to be converted to m/s
-        self.ui.target_speed_lcd.display(speed_conversion(self.driver_target_speed))
+    # def set_driver_target_speed(self):
+    #     self.driver_target_speed = speed_conversion_in(self.ui.target_speed_spin_box.value()) # TODO: needs to be converted to m/s
+    #     self.ui.target_speed_lcd.display(speed_conversion(self.driver_target_speed))
 
-    def display_commanded_power(self, power):
-        self.ui.commanded_power_lcd.display(power)
+    # def display_commanded_power(self, power):
+    #     self.ui.commanded_power_lcd.display(power)
 
-    def display_cabin_temperature(self, temperature):
-        self.ui.cabin_temperature_lcd.display(temperature)
+    # def display_cabin_temperature(self, temperature):
+    #     self.ui.cabin_temperature_lcd.display(temperature)
 
-    def display_authority(self, authority):
-        self.ui.authority_lcd.display(authority)
+    # def display_authority(self, authority):
+    #     self.ui.authority_lcd.display(authority)
 
-    def display_speed_limit(self, speed_limit):
-        self.ui.speed_limit_lcd.display(speed_limit)
+    # def display_speed_limit(self, speed_limit):
+    #     self.ui.speed_limit_lcd.display(speed_limit)
 
-    def display_actual_speed(self, speed):
-        self.ui.actual_speed_lcd.display(speed)
+    # def display_actual_speed(self, speed):
+    #     self.ui.actual_speed_lcd.display(speed)
 
-    def disable_for_auto(self):
-        self.ui.target_speed_apply_button.setEnabled(False)
-        self.ui.door_left_button.setEnabled(False)
-        self.ui.door_right_button.setEnabled(False)
-        self.ui.interior_lights_on_button.setEnabled(False)
-        self.ui.interior_lights_off_button.setEnabled(False)
-        self.ui.headlights_on_button.setEnabled(False)
-        self.ui.headlights_off_button.setEnabled(False)
+    # def disable_for_auto(self):
+    #     self.ui.target_speed_apply_button.setEnabled(False)
+    #     self.ui.door_left_button.setEnabled(False)
+    #     self.ui.door_right_button.setEnabled(False)
+    #     self.ui.interior_lights_on_button.setEnabled(False)
+    #     self.ui.interior_lights_off_button.setEnabled(False)
+    #     self.ui.headlights_on_button.setEnabled(False)
+    #     self.ui.headlights_off_button.setEnabled(False)
 
-    def enable_for_manual(self):
-        self.ui.target_speed_apply_button.setEnabled(True)
-        self.ui.door_left_button.setEnabled(True)
-        self.ui.door_right_button.setEnabled(True)
-        self.ui.interior_lights_on_button.setEnabled(True)
-        self.ui.interior_lights_off_button.setEnabled(True)
-        self.ui.headlights_on_button.setEnabled(True)
-        self.ui.headlights_off_button.setEnabled(True)
+    # def enable_for_manual(self):
+    #     self.ui.target_speed_apply_button.setEnabled(True)
+    #     self.ui.door_left_button.setEnabled(True)
+    #     self.ui.door_right_button.setEnabled(True)
+    #     self.ui.interior_lights_on_button.setEnabled(True)
+    #     self.ui.interior_lights_off_button.setEnabled(True)
+    #     self.ui.headlights_on_button.setEnabled(True)
+    #     self.ui.headlights_off_button.setEnabled(True)
 
-    def handle_emergency_button(self, checked):
-        if checked:
-            self.emergency_brake = True
-        else:
-            self.emergency_brake = False
-            self.passenger_emergency_stop = False
+    # def handle_emergency_button(self, checked):
+    #     if checked:
+    #         self.emergency_brake = True
+    #     else:
+    #         self.emergency_brake = False
+    #         self.passenger_emergency_stop = False
     
-    def activate_emergency_brake(self):
-        self.ui.emergency_button.setChecked(True)
+    # def activate_emergency_brake(self):
+    #     self.ui.emergency_button.setChecked(True)
 
-    def handle_right_door(self, checked):
-        if checked:
-            self.door_right = True
-        else:
-            self.door_right = False
+    # def handle_right_door(self, checked):
+    #     if checked:
+    #         self.door_right = True
+    #     else:
+    #         self.door_right = False
 
-    def handle_left_door(self, checked):
-        if checked:
-            self.door_left = True
-        else:
-            self.door_left = False
+    # def handle_left_door(self, checked):
+    #     if checked:
+    #         self.door_left = True
+    #     else:
+    #         self.door_left = False
 
-    def activate_headlights(self):
-        self.headlights = True
+    # def activate_headlights(self):
+    #     self.headlights = True
 
-    def deactivate_headlights(self):
-        self.headlights = False
+    # def deactivate_headlights(self):
+    #     self.headlights = False
 
-    def activate_interior_lights(self):
-        self.interior_lights = True
+    # def activate_interior_lights(self):
+    #     self.interior_lights = True
 
-    def deactivate_interior_lights(self):
-        self.interior_lights = False
+    # def deactivate_interior_lights(self):
+    #     self.interior_lights = False
 
-    def activate_heating(self):
-        self.heating_signal = True
+    # def activate_heating(self):
+    #     self.heating_signal = True
 
-    def deactivate_heating(self):
-        self.heating_signal = False
+    # def deactivate_heating(self):
+    #     self.heating_signal = False
 
-    def activate_air_conditioning(self):
-        self.air_conditioning_signal = True
+    # def activate_air_conditioning(self):
+    #     self.air_conditioning_signal = True
     
-    def deactivate_air_conditioning(self):
-        self.air_conditioning_signal = False
+    # def deactivate_air_conditioning(self):
+    #     self.air_conditioning_signal = False
 
-    def set_k_constants(self):
-        self.Kp = self.to_float(self.ui.kp_line_edit.text(), 1.0)
-        self.Ki = self.to_float(self.ui.ki_line_edit.text(), 1.0)
-        self.ui.control_constants_apply_button.setEnabled(False)
-        self.ui.kp_line_edit.setEnabled(False)
-        self.ui.ki_line_edit.setEnabled(False)
+    # def set_k_constants(self):
+    #     self.Kp = self.to_float(self.ui.kp_line_edit.text(), 1.0)
+    #     self.Ki = self.to_float(self.ui.ki_line_edit.text(), 1.0)
+    #     self.ui.control_constants_apply_button.setEnabled(False)
+    #     self.ui.kp_line_edit.setEnabled(False)
+    #     self.ui.ki_line_edit.setEnabled(False)
 
-    def activate_signal_failure(self):
-        self.ui.signal_failure_light.setStyleSheet("background-color: red; font-weight: bold; font-size: 16px;")
+    # def activate_signal_failure(self):
+    #     self.ui.signal_failure_light.setStyleSheet("background-color: red; font-weight: bold; font-size: 16px;")
 
-    def deactivate_signal_failure(self):
-        self.ui.signal_failure_light.setStyleSheet("background-color: rgb(255, 170, 170); font-weight: bold; font-size: 16px;")
+    # def deactivate_signal_failure(self):
+    #     self.ui.signal_failure_light.setStyleSheet("background-color: rgb(255, 170, 170); font-weight: bold; font-size: 16px;")
 
-    def activate_brake_failure(self):
-        self.ui.brake_failure_light.setStyleSheet("background-color: red; font-weight: bold; font-size: 16px;")
+    # def activate_brake_failure(self):
+    #     self.ui.brake_failure_light.setStyleSheet("background-color: red; font-weight: bold; font-size: 16px;")
     
-    def deactivate_brake_failure(self):
-        self.ui.brake_failure_light.setStyleSheet("background-color: rgb(255, 170, 170); font-weight: bold; font-size: 16px;")
+    # def deactivate_brake_failure(self):
+    #     self.ui.brake_failure_light.setStyleSheet("background-color: rgb(255, 170, 170); font-weight: bold; font-size: 16px;")
 
-    def activate_engine_failure(self):
-        self.ui.engine_failure_light.setStyleSheet("background-color: red; font-weight: bold; font-size: 16px;")
+    # def activate_engine_failure(self):
+    #     self.ui.engine_failure_light.setStyleSheet("background-color: red; font-weight: bold; font-size: 16px;")
 
-    def deactivate_engine_failure(self):
-        self.ui.engine_failure_light.setStyleSheet("background-color: rgb(255, 170, 170); font-weight: bold; font-size: 16px;")
+    # def deactivate_engine_failure(self):
+    #     self.ui.engine_failure_light.setStyleSheet("background-color: rgb(255, 170, 170); font-weight: bold; font-size: 16px;")
 
-    def update_clock(self):
-        # Add one second to the simulated time
-        self.simulated_time = self.simulated_time.addSecs(1)
+    # def update_clock(self):
+    #     # Add one second to the simulated time
+    #     self.simulated_time = self.simulated_time.addSecs(1)
 
-        # Extract hour, minute, second from the simulated time
-        hour = self.simulated_time.hour()
-        minute = self.simulated_time.minute()
-        second = self.simulated_time.second()
+    #     # Extract hour, minute, second from the simulated time
+    #     hour = self.simulated_time.hour()
+    #     minute = self.simulated_time.minute()
+    #     second = self.simulated_time.second()
 
-        # Convert to 12-hour format and set AM/PM
-        am_pm = "AM" if hour < 12 else "PM"
-        hour_12 = hour % 12
-        if hour_12 == 0:
-            hour_12 = 12
+    #     # Convert to 12-hour format and set AM/PM
+    #     am_pm = "AM" if hour < 12 else "PM"
+    #     hour_12 = hour % 12
+    #     if hour_12 == 0:
+    #         hour_12 = 12
 
-        # Format the time as HH:MM:SS
-        time_text = f"{hour_12:02d}:{minute:02d}:{second:02d}"
+    #     # Format the time as HH:MM:SS
+    #     time_text = f"{hour_12:02d}:{minute:02d}:{second:02d}"
 
-        # Update the clock LCD and the AM/PM label
-        self.ui.global_clock_lcd.display(time_text)
-        self.ui.am_pm_label.setText(am_pm)
+    #     # Update the clock LCD and the AM/PM label
+    #     self.ui.global_clock_lcd.display(time_text)
+    #     self.ui.am_pm_label.setText(am_pm)
     
     def to_float(self, val_str, default=0.0):
         # Helper for string->float conversion
@@ -397,6 +420,7 @@ class TrainControllerTestbenchWindow(QMainWindow):
         self.timer.start(100)
 
     def update_testbench(self):
+        self.display_commanded_power()
         self.display_air_conditioning()
         self.display_heating()
         self.display_headlights()
@@ -404,6 +428,9 @@ class TrainControllerTestbenchWindow(QMainWindow):
         self.display_doors()
         self.display_emergency_brakes()
         self.display_service_brakes()
+
+    def display_commanded_power(self):
+        self.ui.tb_power_lcd.display(self.train_controller_window.commanded_power)
 
     def display_service_brakes(self):
         if (self.train_controller_window.service_brake):
@@ -481,35 +508,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-
-def ssh_handler():
-    global sendData
-    prevData = deepcopy(sendData)
-    while True:
-        if not sendData==prevData:
-            print("Sending over SSH")
-            stdin.write(json.dumps(sendData)+'\n')
-            stdout.readline()
-            prevData = deepcopy(sendData)
-
-            print("Read in: " + stdout.readline().rstrip())
-            
-
-
-def input_handler():
-    global sendData
-    while True:
-        inputData = input("Input smth")
-        if inputData=="\q":
-            return
-        dataList=inputData.split(' ')
-        for i in range(len(dataList)):
-            sendData[sendDataFormat[i]] = float(dataList[i])
-
-ssh_thread=Thread(target=ssh_handler)
-ssh_thread.start()
-input_thread=Thread(target=input_handler)
-input_thread.start()
-input_thread.join()
-ssh_thread.join()
 print("Ended threads")
