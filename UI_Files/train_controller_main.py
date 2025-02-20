@@ -2,6 +2,8 @@
 Author: Aragya Goyal
 Date: 02-16-2025
 Description: 
+
+NOTE: When inputting 50 as speed limit display shows sum weird for some reason
 """
 import sys
 import os
@@ -73,6 +75,10 @@ class TrainControllerWindow(QMainWindow):
         self.door_right = False # Closed default state
         self.door_left = False # Close default state
         self.emergency_brake = False
+        self.driver_target_speed = 0.0
+        self.service_brake = False
+        self.position = 0.0
+        self.next_station = "Edgebrook"
 
         # Default for power calculation
         self.integral_error = 0.0
@@ -88,6 +94,7 @@ class TrainControllerWindow(QMainWindow):
         self.ui.headlights_off_button.clicked.connect(self.deactivate_headlights)
         self.ui.interior_lights_on_button.clicked.connect(self.activate_interior_lights)
         self.ui.interior_lights_off_button.clicked.connect(self.deactivate_interior_lights)
+        self.ui.target_speed_apply_button.clicked.connect(self.set_driver_target_speed)
 
         # Set up the door and emergency buttons to be toggles
         self.ui.door_right_button.setCheckable(True)
@@ -106,7 +113,7 @@ class TrainControllerWindow(QMainWindow):
         self.timer.start(100)
 
         # Set up timer for updating the clock every second
-        self.simulated_time = QTime(11, 59, 0)
+        self.simulated_time = QTime(6, 59, 0)
         self.clock_timer = QTimer(self)
         self.clock_timer.timeout.connect(self.update_clock)
         self.clock_timer.start(1000)
@@ -130,11 +137,41 @@ class TrainControllerWindow(QMainWindow):
         self.display_authority(str(distance_conversion(self.commanded_authority)))
         self.display_cabin_temperature(str(temp_conversion(self.temperature_status)))
 
-        # Check if auto or manual mode
+        # Check if auto or manual mode and calculate power
         if (self.ui.control_mode_switch.value() == 0):
+            # Auto Mode
             self.disable_for_auto()
+            if (self.commanded_wayside_speed > self.speed_limit):
+                # Unsafe
+                self.error = self.speed_limit - self.actual_speed
+            else:
+                # Safe
+                self.error = self.commanded_wayside_speed - self.actual_speed
         else:
+            # Manual Mode
             self.enable_for_manual()
+            if (self.driver_target_speed > self.speed_limit):
+                # Unsafe
+                self.error = self.speed_limit - self.actual_speed
+            else:
+                # Safe
+                self.error = self.driver_target_speed - self.actual_speed
+        self.integral_error += self.error * (0.001) # TODO: THIS SHOULD BE A DT CONSTANT THAT CHANGES THE RATE AT WHICH UPDATE FUNCTION ALSO RUNS
+        self.commanded_power = (self.Kp * self.error) + (self.Ki * self.integral_error) # TODO: need something for integral wind up
+
+        # Check for invalid power commands
+        if (self.commanded_power < 0):
+            self.commanded_power = 0.0
+            self.activate_service_brake()
+        elif (self.commanded_power > 120000):
+            self.commanded_power = 120000.0
+            self.deactivate_service_brake()
+        else:
+            self.deactivate_service_brake()
+
+        if (self.emergency_brake):
+            self.commanded_power = 0.0 # Kill engine if emergency brake is toggled
+        self.display_commanded_power(self.commanded_power)
 
         # Set Emergency Lights and handle emergency brakes
         self.activate_signal_failure() if self.signal_failure else self.deactivate_signal_failure()
@@ -148,15 +185,45 @@ class TrainControllerWindow(QMainWindow):
         self.activate_air_conditioning() if self.temperature_status > self.desired_temperature else self.deactivate_air_conditioning()
         self.activate_heating() if self.temperature_status < self.desired_temperature else self.deactivate_heating()
 
-        # Calculate the power
+        # Check time for lights
         if (self.ui.control_mode_switch.value() == 0):
-            # Auto Mode
-            self.error = self.actual_speed - self.commanded_wayside_speed # This could be driver input so we need logic for that
-            self.integral_error += self.error * (0.001) # THIS SHOULD BE A DT CONSTANT THAT CHANGES THE RATE AT WHICH UPDATE FUNCTION ALSO RUNS
-            self.commanded_power = (self.Kp * self.error) + (self.Ki * self.integral_error)
-        else:
-            pass
+            hour = self.simulated_time.hour()
+            if (hour >= 19 and hour <= 24) or (hour >= 0 and hour < 7):
+                self.activate_interior_lights()
+                self.activate_headlights()
+            else:
+                self.deactivate_interior_lights()
+                self.deactivate_headlights()
+
+        # Set next station
+        self.display_next_station()
     
+    def activate_on_air(self):
+        pass
+
+    def deactivate_on_air(self):
+        pass
+
+    def display_next_station(self):
+        self.ui.next_station_label.setText(self.next_station)
+
+    def activate_service_brake(self):
+        self.service_brake = True
+        self.ui.service_brake_on_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
+        self.ui.service_brake_off_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+
+    def deactivate_service_brake(self):
+        self.service_brake = False
+        self.ui.service_brake_on_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+        self.ui.service_brake_off_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
+
+    def set_driver_target_speed(self):
+        self.driver_target_speed = speed_conversion_in(self.ui.target_speed_spin_box.value()) # TODO: needs to be converted to m/s
+        self.ui.target_speed_lcd.display(speed_conversion(self.driver_target_speed))
+
+    def display_commanded_power(self, power):
+        self.ui.commanded_power_lcd.display(power)
+
     def display_cabin_temperature(self, temperature):
         self.ui.cabin_temperature_lcd.display(temperature)
 
@@ -173,11 +240,19 @@ class TrainControllerWindow(QMainWindow):
         self.ui.target_speed_apply_button.setEnabled(False)
         self.ui.door_left_button.setEnabled(False)
         self.ui.door_right_button.setEnabled(False)
+        self.ui.interior_lights_on_button.setEnabled(False)
+        self.ui.interior_lights_off_button.setEnabled(False)
+        self.ui.headlights_on_button.setEnabled(False)
+        self.ui.headlights_off_button.setEnabled(False)
 
     def enable_for_manual(self):
         self.ui.target_speed_apply_button.setEnabled(True)
         self.ui.door_left_button.setEnabled(True)
         self.ui.door_right_button.setEnabled(True)
+        self.ui.interior_lights_on_button.setEnabled(True)
+        self.ui.interior_lights_off_button.setEnabled(True)
+        self.ui.headlights_on_button.setEnabled(True)
+        self.ui.headlights_off_button.setEnabled(True)
 
     def handle_emergency_button(self, checked):
         if checked:
@@ -301,9 +376,15 @@ class TrainControllerTestbenchWindow(QMainWindow):
         self.display_internal_lights()
         self.display_doors()
         self.display_emergency_brakes()
+        self.display_service_brakes()
 
     def display_service_brakes(self):
-        pass
+        if (self.train_controller_window.service_brake):
+            self.ui.tb_service_brakes_on_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
+            self.ui.tb_service_brakes_off_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+        else:
+            self.ui.tb_service_brakes_on_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+            self.ui.tb_service_brakes_off_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
 
     def display_emergency_brakes(self):
         if (self.train_controller_window.emergency_brake):

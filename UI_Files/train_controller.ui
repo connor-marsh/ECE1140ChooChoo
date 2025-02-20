@@ -839,7 +839,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Output Power (W)</string>
+            <string>Commanded Power (W)</string>
            </property>
           </widget>
          </item>
@@ -881,7 +881,7 @@
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">background-color: rgb(250, 255, 185);</string>
+            <string notr="true"/>
            </property>
            <property name="frameShape">
             <enum>QFrame::WinPanel</enum>
@@ -917,7 +917,7 @@
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">background-color: rgb(250, 255, 185);</string>
+            <string notr="true"/>
            </property>
            <property name="frameShape">
             <enum>QFrame::WinPanel</enum>
@@ -1050,7 +1050,7 @@
           </widget>
          </item>
          <item row="4" column="2" colspan="3">
-          <widget class="QLCDNumber" name="output_power_lcd">
+          <widget class="QLCDNumber" name="commanded_power_lcd">
            <property name="digitCount">
             <number>10</number>
            </property>
