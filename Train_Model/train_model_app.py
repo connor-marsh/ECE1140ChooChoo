@@ -7,7 +7,8 @@ import os
 import time
 import math
 
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
 from train_model_ui_iteration_1 import Ui_MainWindow as TrainModelUI
@@ -21,10 +22,18 @@ os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 ###############################################################################
 def read_wayside_data(ui, to_float_func):
     # Read and convert wayside inputs from UI.
+    commanded_power = to_float_func(ui.CommandedPower.text(), 0.0)  # (Watts)
+    
+    # Cap the power at 60%
+    if commanded_power > 120000: # 120 kW
+        commanded_power = 120000.0 # 120 kW
+    elif commanded_power < 0:
+        commanded_power = 0.0
+
     return {
         "commanded_speed": to_float_func(ui.WaysideSpeed.text(), 0.0),   # (m/s)
         "authority":       to_float_func(ui.WaysideAuthority.text(), 0.0),
-        "commanded_power": to_float_func(ui.CommandedPower.text(), 0.0),  # (Watts)
+        "commanded_power": commanded_power,  # (Watts)
         "speed_limit":     to_float_func(ui.SpeedLimit.text(), 0.0),      # (m/s)
         "beacon_data":     ui.BeaconData.text(),
     }
@@ -80,7 +89,7 @@ def read_train_physical_data(ui, to_float_func):
 ###############################################################################
 # TESTBENCH APP
 ###############################################################################
-class TestBenchApp(QMainWindow):
+class TestBenchApp(QMainWindow): # type: ignore
     def __init__(self, train_app):
         super().__init__()
         self.ui = TestBenchUI()
@@ -197,7 +206,7 @@ class TestBenchApp(QMainWindow):
 ###############################################################################
 # TRAIN MODEL APP
 ###############################################################################
-class TrainModelApp(QMainWindow):
+class TrainModelApp(QMainWindow): # type: ignore
     """
     Main application that calculates acceleration from power and grade,
     simulating deceleration and updating UI elements accordingly.
@@ -231,13 +240,13 @@ class TrainModelApp(QMainWindow):
         self.previous_acceleration = 0.0
 
         # Update physics at 10 Hz (every 100ms)
-        self.timer = QTimer(self)
+        self.timer = QTimer(self) # type: ignore
         self.timer.timeout.connect(self.update_from_testbench)
         self.timer.start(100)
 
         # Clock update timer (every second)
-        self.simulated_time = QTime(11, 59, 0)
-        self.clock_timer = QTimer(self)
+        self.simulated_time = QTime(11, 59, 0) # type: ignore
+        self.clock_timer = QTimer(self) # type: ignore
         self.clock_timer.timeout.connect(self.update_clock)
         self.clock_timer.start(1000)
 
@@ -249,7 +258,7 @@ class TrainModelApp(QMainWindow):
 
     def update_from_testbench(self):
         """Reads inputs from the testbench, updates physics, and refreshes UI."""
-        current_time = QDateTime.currentMSecsSinceEpoch()
+        current_time = QDateTime.currentMSecsSinceEpoch() # type: ignore
         if self.prev_time is None:
             self.prev_time = current_time
             return
@@ -404,7 +413,7 @@ class TrainModelApp(QMainWindow):
 
         if hasattr(self.train_ui, "Temperature"):
             self.train_ui.Temperature.setText(f"{display_temp:.2f} °F")
-            self.train_ui.Temperature.setAlignment(Qt.AlignCenter)
+            self.train_ui.Temperature.setAlignment(Qt.AlignCenter) # type: ignore
 
         if hasattr(self.train_ui, "GradePercentage"):
             self.train_ui.GradePercentageValue.display(grade)
@@ -441,43 +450,52 @@ class TrainModelApp(QMainWindow):
         self.testbench.update_status()
 
     def init_failure_buttons(self):
-        """Sets checkable states for the 6 failure buttons and binds their toggle events."""
+        """Initializes the 6 failure buttons and makes each pair mutually exclusive."""
+        # Make all buttons checkable
         self.train_ui.Enabled1.setCheckable(True)
-        self.train_ui.Enabled2.setCheckable(True)
-        self.train_ui.Enabled3.setCheckable(True)
         self.train_ui.Disabled1.setCheckable(True)
+        self.train_ui.Enabled2.setCheckable(True)
         self.train_ui.Disabled2.setCheckable(True)
+        self.train_ui.Enabled3.setCheckable(True)
         self.train_ui.Disabled3.setCheckable(True)
 
-        self.train_ui.Enabled1.toggled.connect(lambda checked: self.on_failure_toggled("Enabled1", checked))
-        self.train_ui.Enabled2.toggled.connect(lambda checked: self.on_failure_toggled("Enabled2", checked))
-        self.train_ui.Enabled3.toggled.connect(lambda checked: self.on_failure_toggled("Enabled3", checked))
-        self.train_ui.Disabled1.toggled.connect(lambda checked: self.on_failure_toggled("Disabled1", checked))
-        self.train_ui.Disabled2.toggled.connect(lambda checked: self.on_failure_toggled("Disabled2", checked))
-        self.train_ui.Disabled3.toggled.connect(lambda checked: self.on_failure_toggled("Disabled3", checked))
+        # Create a button group for each pair and set them to be exclusive.
+        self.failure_group1 = QButtonGroup(self) # type: ignore
+        self.failure_group1.setExclusive(True)
+        self.failure_group1.addButton(self.train_ui.Enabled1)
+        self.failure_group1.addButton(self.train_ui.Disabled1)
 
-    def on_failure_toggled(self, button_name, checked):
-        """Update corresponding testbench label based on failure button toggling."""
-        text_to_set = "Enabled" if checked else "Disabled"
-        if button_name == "Enabled1":
-            self.testbench.ui.BrakeFailure.setText(text_to_set)
-            self.train_ui.Disabled1.setEnabled(not checked)
-        elif button_name == "Disabled1":
-            self.testbench.ui.BrakeFailure.setText(text_to_set)
-            self.train_ui.Enabled1.setEnabled(not checked)
-        elif button_name == "Enabled2":
-            self.testbench.ui.SignalFailure.setText(text_to_set)
-            self.train_ui.Disabled2.setEnabled(not checked)
-        elif button_name == "Disabled2":
-            self.testbench.ui.SignalFailure.setText(text_to_set)
-            self.train_ui.Enabled2.setEnabled(not checked)
-        elif button_name == "Enabled3":
-            self.testbench.ui.EngineFailure.setText(text_to_set)
-            self.train_ui.Disabled3.setEnabled(not checked)
-        elif button_name == "Disabled3":
-            self.testbench.ui.EngineFailure.setText(text_to_set)
-            self.train_ui.Enabled3.setEnabled(not checked)
-            
+        self.failure_group2 = QButtonGroup(self) # type: ignore
+        self.failure_group2.setExclusive(True)
+        self.failure_group2.addButton(self.train_ui.Enabled2)
+        self.failure_group2.addButton(self.train_ui.Disabled2)
+
+        self.failure_group3 = QButtonGroup(self) # type: ignore
+        self.failure_group3.setExclusive(True)
+        self.failure_group3.addButton(self.train_ui.Enabled3)
+        self.failure_group3.addButton(self.train_ui.Disabled3)
+
+        # Set the default state: each failure is disabled.
+        self.train_ui.Disabled1.setChecked(True)
+        self.train_ui.Disabled2.setChecked(True)
+        self.train_ui.Disabled3.setChecked(True)
+
+        # Optionally, connect the buttonClicked signals to update your testbench UI.
+        self.failure_group1.buttonClicked.connect(lambda btn: self.on_failure_group_toggled("BrakeFailure", btn))
+        self.failure_group2.buttonClicked.connect(lambda btn: self.on_failure_group_toggled("SignalFailure", btn))
+        self.failure_group3.buttonClicked.connect(lambda btn: self.on_failure_group_toggled("EngineFailure", btn))
+
+    def on_failure_group_toggled(self, failure_type, button):
+        """Updates the corresponding testbench label based on the button pressed."""
+        # Assumes that your button texts are set to "Enabled" and "Disabled".
+        new_status = button.text()
+        if failure_type == "BrakeFailure":
+            self.testbench.ui.BrakeFailure.setText(new_status)
+        elif failure_type == "SignalFailure":
+            self.testbench.ui.SignalFailure.setText(new_status)
+        elif failure_type == "EngineFailure":
+            self.testbench.ui.EngineFailure.setText(new_status)
+                
     def handle_emergency_button(self, pressed: bool):
         if not self.train_ui.button_emergency.isEnabled():
             return  # Service brakes are active, so do nothing
@@ -524,7 +542,7 @@ class TrainModelApp(QMainWindow):
 # MAIN
 ###############################################################################
 def main():
-    app = QApplication(sys.argv)
+    app = QApplication(sys.argv) # type: ignore
     train_model_app = TrainModelApp()
     train_model_app.show()
     train_model_app.testbench.show()

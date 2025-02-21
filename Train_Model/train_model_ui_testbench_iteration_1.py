@@ -8,15 +8,15 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PyQt5.QtCore import * # type: ignore
+from PyQt5.QtGui import * # type: ignore
+from PyQt5.QtWidgets import * # type: ignore
 
 import os
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
 class Ui_TestMainWindow(object):
-    def setupUi(self, MainWindow):
+    def setupUi(self, MainWindow): # type: ignore
         if not MainWindow.objectName():
             MainWindow.setObjectName("MainWindow")
         MainWindow.resize(732, 833)

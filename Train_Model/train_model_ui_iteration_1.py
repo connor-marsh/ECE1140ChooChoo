@@ -18,27 +18,26 @@ from PyQt5.QtWidgets import *  # type: ignore
 
 import os
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
-
 class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
+    def setupUi(self, MainWindow): # type: ignore
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.resize(710, 655)
-        font = QFont()
+        font = QFont() # type: ignore
         font.setPointSize(8)
         MainWindow.setFont(font)
         MainWindow.setStyleSheet(u"")
-        self.Main = QWidget(MainWindow)
+        self.Main = QWidget(MainWindow) # type: ignore
         self.Main.setObjectName(u"Main")
-        font1 = QFont()
+        font1 = QFont() # type: ignore
         font1.setPointSize(8)
         font1.setBold(True)
         font1.setWeight(75)
         self.Main.setFont(font1)
-        self.FailureBox = QGroupBox(self.Main)
+        self.FailureBox = QGroupBox(self.Main) # type: ignore
         self.FailureBox.setObjectName(u"FailureBox")
-        self.FailureBox.setGeometry(QRect(10, 140, 241, 251))
-        font2 = QFont()
+        self.FailureBox.setGeometry(QRect(10, 140, 241, 251)) # type: ignore
+        font2 = QFont() # type: ignore
         font2.setPointSize(13)
         font2.setBold(True)
         font2.setWeight(75)
@@ -46,22 +45,22 @@ class Ui_MainWindow(object):
         self.FailureBox.setAutoFillBackground(True)
         self.FailureBox.setStyleSheet(u"")
         self.FailureBox.setFlat(False)
-        self.FailBrake = QLabel(self.FailureBox)
+        self.FailBrake = QLabel(self.FailureBox) # type: ignore
         self.FailBrake.setObjectName(u"FailBrake")
-        self.FailBrake.setGeometry(QRect(10, 30, 121, 63))
-        font3 = QFont()
+        self.FailBrake.setGeometry(QRect(10, 30, 121, 63)) # type: ignore
+        font3 = QFont() # type: ignore
         font3.setPointSize(12)
         font3.setBold(True)
         font3.setWeight(75)
         self.FailBrake.setFont(font3)
         self.FailBrake.setStyleSheet(u"background-color: rgb(254, 53, 53);")
-        self.FailBrake.setFrameShape(QFrame.WinPanel)
-        self.FailBrake.setFrameShadow(QFrame.Sunken)
+        self.FailBrake.setFrameShape(QFrame.WinPanel) # type: ignore
+        self.FailBrake.setFrameShadow(QFrame.Sunken) # type: ignore
         self.FailBrake.setIndent(6)
-        self.Enabled1 = QPushButton(self.FailureBox)
+        self.Enabled1 = QPushButton(self.FailureBox) # type: ignore
         self.Enabled1.setObjectName(u"Enabled1")
-        self.Enabled1.setGeometry(QRect(140, 30, 91, 31))
-        font4 = QFont()
+        self.Enabled1.setGeometry(QRect(140, 30, 91, 31)) # type: ignore
+        font4 = QFont() # type: ignore
         font4.setBold(True)
         font4.setWeight(75)
         self.Enabled1.setFont(font4)
@@ -97,10 +96,10 @@ class Ui_MainWindow(object):
                 """
 )
         self.Enabled1.setFlat(False)
-        self.Disabled1 = QPushButton(self.FailureBox)
+        self.Disabled1 = QPushButton(self.FailureBox) # type: ignore
         self.Disabled1.setObjectName(u"Disabled1")
-        self.Disabled1.setGeometry(QRect(140, 62, 91, 31))
-        font5 = QFont()
+        self.Disabled1.setGeometry(QRect(140, 62, 91, 31)) # type: ignore
+        font5 = QFont() # type: ignore
         font5.setBold(True)
         font5.setWeight(75)
         font5.setStrikeOut(False)
@@ -136,26 +135,26 @@ class Ui_MainWindow(object):
                 """
 )
         self.Disabled1.setFlat(False)
-        self.FailSignal = QLabel(self.FailureBox)
+        self.FailSignal = QLabel(self.FailureBox) # type: ignore
         self.FailSignal.setObjectName(u"FailSignal")
-        self.FailSignal.setGeometry(QRect(10, 100, 121, 63))
+        self.FailSignal.setGeometry(QRect(10, 100, 121, 63)) # type: ignore
         self.FailSignal.setFont(font3)
         self.FailSignal.setStyleSheet(u"background-color: rgb(254, 53, 53);")
-        self.FailSignal.setFrameShape(QFrame.WinPanel)
-        self.FailSignal.setFrameShadow(QFrame.Sunken)
+        self.FailSignal.setFrameShape(QFrame.WinPanel) # type: ignore
+        self.FailSignal.setFrameShadow(QFrame.Sunken) # type: ignore
         self.FailSignal.setIndent(6)
-        self.FailEngine = QLabel(self.FailureBox)
+        self.FailEngine = QLabel(self.FailureBox) # type: ignore
         self.FailEngine.setObjectName(u"FailEngine")
-        self.FailEngine.setGeometry(QRect(10, 170, 121, 63))
+        self.FailEngine.setGeometry(QRect(10, 170, 121, 63)) # type: ignore
         self.FailEngine.setFont(font3)
         self.FailEngine.setStyleSheet(u"background-color: rgb(254, 53, 53);")
-        self.FailEngine.setFrameShape(QFrame.WinPanel)
-        self.FailEngine.setFrameShadow(QFrame.Sunken)
+        self.FailEngine.setFrameShape(QFrame.WinPanel) # type: ignore
+        self.FailEngine.setFrameShadow(QFrame.Sunken) # type: ignore
         self.FailEngine.setIndent(3)
-        self.Enabled2 = QPushButton(self.FailureBox)
+        self.Enabled2 = QPushButton(self.FailureBox) # type: ignore
         self.Enabled2.setObjectName(u"Enabled2")
-        self.Enabled2.setGeometry(QRect(140, 100, 91, 31))
-        font6 = QFont()
+        self.Enabled2.setGeometry(QRect(140, 100, 91, 31)) # type: ignore
+        font6 = QFont() # type: ignore
         font6.setBold(True)
         font6.setWeight(75)
         font6.setKerning(True)
@@ -192,9 +191,9 @@ class Ui_MainWindow(object):
                 """
 )
         self.Enabled2.setFlat(False)
-        self.Disabled2 = QPushButton(self.FailureBox)
+        self.Disabled2 = QPushButton(self.FailureBox) # type: ignore
         self.Disabled2.setObjectName(u"Disabled2")
-        self.Disabled2.setGeometry(QRect(140, 132, 91, 31))
+        self.Disabled2.setGeometry(QRect(140, 132, 91, 31)) # type: ignore
         self.Disabled2.setFont(font5)
         self.Disabled2.setStyleSheet(
                 u"""
@@ -227,9 +226,9 @@ class Ui_MainWindow(object):
                 """
 )
         self.Disabled2.setFlat(False)
-        self.Enabled3 = QPushButton(self.FailureBox)
+        self.Enabled3 = QPushButton(self.FailureBox) # type: ignore
         self.Enabled3.setObjectName(u"Enabled3")
-        self.Enabled3.setGeometry(QRect(140, 170, 91, 31))
+        self.Enabled3.setGeometry(QRect(140, 170, 91, 31)) # type: ignore
         self.Enabled3.setFont(font4)
         self.Enabled3.setStyleSheet(
                 u"""
@@ -263,9 +262,9 @@ class Ui_MainWindow(object):
                 """
 )
         self.Enabled3.setFlat(False)
-        self.Disabled3 = QPushButton(self.FailureBox)
+        self.Disabled3 = QPushButton(self.FailureBox) # type: ignore
         self.Disabled3.setObjectName(u"Disabled3")
-        self.Disabled3.setGeometry(QRect(140, 202, 91, 31))
+        self.Disabled3.setGeometry(QRect(140, 202, 91, 31)) # type: ignore
         self.Disabled3.setFont(font5)
         self.Disabled3.setStyleSheet(
                 u"""
@@ -298,27 +297,27 @@ class Ui_MainWindow(object):
                 """
 )
         self.Disabled3.setFlat(False)
-        self.Advertisements = QLabel(self.Main)
+        self.Advertisements = QLabel(self.Main) # type: ignore
         self.Advertisements.setObjectName(u"Advertisements")
-        self.Advertisements.setPixmap(QPixmap(r"Train_Model\pizza_hut_ad_1.jpg"))
+        self.Advertisements.setPixmap(QPixmap(r"Train_Model\pizza_hut_ad_1.jpg")) # type: ignore
         self.Advertisements.setScaledContents(True)
-        self.Advertisements.setGeometry(QRect(10, 5, 228, 83))
-        self.Advertisements.setMinimumSize(QSize(0, 0))
+        self.Advertisements.setGeometry(QRect(10, 5, 228, 83)) # type: ignore
+        self.Advertisements.setMinimumSize(QSize(0, 0)) # type: ignore
         self.Advertisements.setAutoFillBackground(True)
         self.Advertisements.setStyleSheet(u"")
-        self.Advertisements.setFrameShape(QFrame.WinPanel)
-        self.Advertisements.setFrameShadow(QFrame.Plain)
+        self.Advertisements.setFrameShape(QFrame.WinPanel) # type: ignore
+        self.Advertisements.setFrameShadow(QFrame.Plain) # type: ignore
         self.Advertisements.setTextFormat(Qt.AutoText)
         self.Advertisements.setScaledContents(False)
-        self.Announcement_2 = QLabel(self.Main)
+        self.Announcement_2 = QLabel(self.Main) # type: ignore
         self.Announcement_2.setObjectName(u"Announcement_2")
-        self.Announcement_2.setGeometry(QRect(224, 90, 471, 47))
+        self.Announcement_2.setGeometry(QRect(224, 90, 471, 47)) # type: ignore
         self.Announcement_2.setStyleSheet(u"background-color: rgb(255, 255, 255);")
-        self.Announcement_2.setFrameShape(QFrame.WinPanel)
-        self.Announcement_2.setFrameShadow(QFrame.Plain)
-        self.button_emergency = QPushButton(self.Main)
+        self.Announcement_2.setFrameShape(QFrame.WinPanel) # type: ignore 
+        self.Announcement_2.setFrameShadow(QFrame.Plain) # type: ignore
+        self.button_emergency = QPushButton(self.Main) # type: ignore
         self.button_emergency.setObjectName(u"button_emergency")
-        self.button_emergency.setGeometry(QRect(30, 400, 206, 206))
+        self.button_emergency.setGeometry(QRect(30, 400, 206, 206)) # type: ignore
         self.button_emergency.setFont(font4)
         self.button_emergency.setStyleSheet(
             u"""
@@ -353,39 +352,39 @@ class Ui_MainWindow(object):
             """
 )
         self.button_emergency.setFlat(False)
-        self.line = QFrame(self.Main)
+        self.line = QFrame(self.Main) # type: ignore
         self.line.setObjectName(u"line")
-        self.line.setGeometry(QRect(254, 150, 16, 461))
-        self.line.setFrameShape(QFrame.VLine)
-        self.line.setFrameShadow(QFrame.Sunken)
-        self.line_2 = QFrame(self.Main)
+        self.line.setGeometry(QRect(254, 150, 16, 461)) # type: ignore
+        self.line.setFrameShape(QFrame.VLine) # type: ignore
+        self.line.setFrameShadow(QFrame.Sunken) # type: ignore
+        self.line_2 = QFrame(self.Main) # type: ignore
         self.line_2.setObjectName(u"line_2")
-        self.line_2.setGeometry(QRect(498, 150, 16, 461))
-        self.line_2.setFrameShape(QFrame.VLine)
-        self.line_2.setFrameShadow(QFrame.Sunken)
-        self.LiveTrainData = QGroupBox(self.Main)
+        self.line_2.setGeometry(QRect(498, 150, 16, 461)) # type: ignore
+        self.line_2.setFrameShape(QFrame.VLine) # type: ignore
+        self.line_2.setFrameShadow(QFrame.Sunken) # type: ignore
+        self.LiveTrainData = QGroupBox(self.Main) # type: ignore
         self.LiveTrainData.setObjectName(u"LiveTrainData")
-        self.LiveTrainData.setGeometry(QRect(510, 140, 185, 391))
+        self.LiveTrainData.setGeometry(QRect(510, 140, 185, 391)) # type: ignore
         self.LiveTrainData.setFont(font2)
         self.LiveTrainData.setAutoFillBackground(True)
         self.LiveTrainData.setStyleSheet(u"")
         self.LiveTrainData.setFlat(False)
-        self.gridLayoutWidget = QWidget(self.LiveTrainData)
+        self.gridLayoutWidget = QWidget(self.LiveTrainData)  # type: ignore
         self.gridLayoutWidget.setObjectName(u"gridLayoutWidget")
-        self.gridLayoutWidget.setGeometry(QRect(0, 30, 183, 351))
-        self.LiveTrainDataGrid = QGridLayout(self.gridLayoutWidget)
+        self.gridLayoutWidget.setGeometry(QRect(0, 30, 183, 351)) # type: ignore
+        self.LiveTrainDataGrid = QGridLayout(self.gridLayoutWidget) # type: ignore
         self.LiveTrainDataGrid.setSpacing(0)
         self.LiveTrainDataGrid.setObjectName(u"LiveTrainDataGrid")
-        self.LiveTrainDataGrid.setContentsMargins(5, 0, 0, 0)
-        self.MassVehicleLabel = QLabel(self.gridLayoutWidget)
+        self.LiveTrainDataGrid.setContentsMargins(5, 0, 0, 0) 
+        self.MassVehicleLabel = QLabel(self.gridLayoutWidget) # type: ignore
         self.MassVehicleLabel.setObjectName(u"MassVehicleLabel")
-        font7 = QFont()
+        font7 = QFont() # type: ignore
         font7.setPointSize(11)
         font7.setBold(False)
         font7.setWeight(50)
         self.MassVehicleLabel.setFont(font7)
-        self.MassVehicleLabel.setFrameShape(QFrame.WinPanel)
-        self.MassVehicleLabel.setFrameShadow(QFrame.Sunken)
+        self.MassVehicleLabel.setFrameShape(QFrame.WinPanel) # type: ignore
+        self.MassVehicleLabel.setFrameShadow(QFrame.Sunken) # type: ignore
 
         self.LiveTrainDataGrid.addWidget(self.MassVehicleLabel, 5, 0, 1, 1)
 
