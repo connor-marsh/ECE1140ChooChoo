@@ -7,11 +7,12 @@ import os
 import time
 import math
 
-from PySide2.QtWidgets import QApplication, QMainWindow
-from PySide2.QtCore import *
+from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtCore import QTimer, QTime, QDateTime
 
 from train_model_ui_iteration_1 import Ui_MainWindow as TrainModelUI
 from train_model_ui_testbench_iteration_1 import Ui_TestMainWindow as TestBenchUI
+
 
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
@@ -29,18 +30,30 @@ def read_wayside_data(ui, to_float_func):
         "beacon_data":     ui.BeaconData.text(),
     }
 
-def read_lights_doors_data(ui):
+def read_lights_doors_data(controller, ui, fromTestbench):
     # Read the state of various lights, doors, and signals from UI.
-    return {
-        "service_brakes": ui.ServiceBrakes.isChecked(),
-        "ext_lights":     ui.ExtLights.isChecked(),
-        "int_lights":     ui.IntLights.isChecked(),
-        "left_doors":     ui.LeftDoors.isChecked(),
-        "right_doors":    ui.RightDoors.isChecked(),
-        "announcements":  ui.Announcements.text(),
-        "ac_signal":      ui.ACSignal.isChecked(),
-        "heat_signal":    ui.HeatingSignal.isChecked()
-    }
+    if fromTestbench:
+        return {
+            "service_brakes": ui.ServiceBrakes.isChecked(),
+            "ext_lights":     ui.ExtLights.isChecked(),
+            "int_lights":     ui.IntLights.isChecked(),
+            "left_doors":     ui.LeftDoors.isChecked(),
+            "right_doors":    ui.RightDoors.isChecked(),
+            "announcements":  ui.Announcements.text(),
+            "ac_signal":      ui.ACSignal.isChecked(),
+            "heat_signal":    ui.HeatingSignal.isChecked()
+        }
+    else:
+        return {
+            "service_brakes": controller.service_brake,
+            "ext_lights":     controller.headlights,
+            "int_lights":     controller.interior_lights,
+            "left_doors":     controller.door_left,
+            "right_doors":    controller.door_right,
+            "announcements":  controller.next_station,
+            "ac_signal":      controller.air_conditioning_signal,
+            "heat_signal":    controller.heating_signal
+        }
 
 def read_train_physical_data(ui, to_float_func):
     """
@@ -145,7 +158,7 @@ class TestBenchApp(QMainWindow):
         # Get inputs from UI, converting as needed.
         f = self.train_app.to_float
         wayside_data        = read_wayside_data(self.ui, f)
-        lights_doors_data   = read_lights_doors_data(self.ui)
+        lights_doors_data   = read_lights_doors_data(self.train_app.controller, self.ui, self.train_app.fromTestbench)
         train_physical_data = read_train_physical_data(self.ui, f)
         return wayside_data, lights_doors_data, train_physical_data
 
@@ -219,6 +232,8 @@ class TrainModelApp(QMainWindow):
         self.train_ui.setupUi(self)
 
         self.testbench = TestBenchApp(self)
+        self.fromTestbench = True
+        self.controller = TrainController(self)
 
         # Initialize physics state variables
         self.position = 0.0
@@ -232,7 +247,7 @@ class TrainModelApp(QMainWindow):
 
         # Update physics at 10 Hz (every 100ms)
         self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_from_testbench)
+        self.timer.timeout.connect(self.update)
         self.timer.start(100)
 
         # Clock update timer (every second)
@@ -247,7 +262,7 @@ class TrainModelApp(QMainWindow):
         # self.train_ui.button_emergency.toggled.connect(self.mark_emergency_displayed)
         self.train_ui.button_emergency.toggled.connect(self.handle_emergency_button)
 
-    def update_from_testbench(self):
+    def update(self):
         """Reads inputs from the testbench, updates physics, and refreshes UI."""
         current_time = QDateTime.currentMSecsSinceEpoch()
         if self.prev_time is None:
@@ -263,12 +278,18 @@ class TrainModelApp(QMainWindow):
         commanded_speed   = wayside_data["commanded_speed"]
         wayside_authority = wayside_data["authority"]
         commanded_power_watts = wayside_data["commanded_power"]
-        commanded_power_kw = commanded_power_watts / 1000.0
+        
         speed_limit       = wayside_data["speed_limit"]
 
         mass_kg  = train_data["mass_kg"]
         mass_lbs = mass_kg * self.KG_TO_LBS
         grade    = train_data["grade"]
+        # start by sending data to the train controller
+        self.controller.commanded_wayside_speed = commanded_speed
+        self.controller.commanded_authority = wayside_authority
+        self.controller.speed_limit = speed_limit
+        self.controller.actual_speed = self.actual_velocity
+
 
         # Convert dimensions from meters to feet
         length_ft = train_data["length_m"] * self.M_TO_FT
@@ -279,7 +300,8 @@ class TrainModelApp(QMainWindow):
         # if self.train_ui.button_emergency.isChecked() or lights_doors_data["service_brakes"]:
         #     commanded_power_watts = 0
 
-        # Calculate dynamic force component         
+        # Calculate dynamic force component   
+        commanded_power_watts = self.controller.commanded_power      
         try:
             # Use a minimum effective velocity to avoid dividing by (or near) zero.
             v_eff = self.actual_velocity if self.actual_velocity > 0.1 else 0.1
@@ -334,13 +356,15 @@ class TrainModelApp(QMainWindow):
         old_velocity = self.actual_velocity
         new_velocity = old_velocity + (dt / 2.0) * (a + self.previous_acceleration)
         if new_velocity < 0:
-            new_velocity = 0
-
-        # If both commanded speed and power are near zero, force zero acceleration and velocity.
-        threshold = 0.0001
-        if commanded_speed < threshold and commanded_power_watts < threshold:
             a = 0
             new_velocity = 0
+
+        # Connor Marsh - I dont think this is needed
+        # If both commanded speed and power are near zero, force zero acceleration and velocity.
+        # threshold = 0.0001
+        # if commanded_speed < threshold and commanded_power_watts < threshold:
+        #     a = 0
+        #     new_velocity = 0
 
         # Update previous acceleration for the next cycle.
         self.previous_acceleration = a
@@ -385,6 +409,8 @@ class TrainModelApp(QMainWindow):
         limit_mph      = speed_limit * self.MPS_TO_MPH
         acceleration_fts2 = self.current_acceleration * 3.281  # Convert to ft/s^2
 
+        commanded_power_kw = commanded_power_watts / 1000.0
+
         self.train_ui.AccValue.display(acceleration_fts2)
         self.train_ui.SpeedValue.display(velocity_mph)
         self.train_ui.CommandedSpeedValue.display(cmd_speed_mph)
@@ -404,7 +430,7 @@ class TrainModelApp(QMainWindow):
 
         if hasattr(self.train_ui, "Temperature"):
             self.train_ui.Temperature.setText(f"{display_temp:.2f} °F")
-            self.train_ui.Temperature.setAlignment(Qt.AlignCenter)
+            # self.train_ui.Temperature.setAlignment(Qt.AlignCenter)
 
         if hasattr(self.train_ui, "GradePercentage"):
             self.train_ui.GradePercentageValue.display(grade)
@@ -524,12 +550,17 @@ class TrainModelApp(QMainWindow):
 # MAIN
 ###############################################################################
 def main():
+    
     app = QApplication(sys.argv)
     train_model_app = TrainModelApp()
+    if __name__ == "__main__":
+        train_model_app.fromTestbench=False
     train_model_app.show()
+    train_model_app.controller.show()
     train_model_app.testbench.show()
     sys.exit(app.exec_())
 
 
 if __name__ == "__main__":
+    from train_controller_main import TrainControllerWindow as TrainController
     main()

@@ -12,10 +12,11 @@ import math
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
-from PyQt5.QtCore import QTimer, QTime
+from PyQt5.QtCore import QTimer, QTime, QDateTime
 
 from train_controller_ui import Ui_MainWindow as TrainControllerUI
 from train_controller_testbench_ui import Ui_TestBenchWindow as TrainControllerTestbenchUI
+from train_model_app import TrainModelApp as TrainModel
 
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
@@ -49,12 +50,13 @@ def distance_conversion_in(feet):
 Train Controller App
 """
 class TrainControllerWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, TrainModel):
         # Set up UI for both controller and testbench
         super().__init__()
         self.ui = TrainControllerUI()
         self.ui.setupUi(self)
         self.testbench = TrainControllerTestbenchWindow(self)
+        self.model = TrainModel
 
         # Set up defaults
         self.actual_speed = 0.0
@@ -85,6 +87,8 @@ class TrainControllerWindow(QMainWindow):
         self.integral_error = 0.0
         self.Kp = 1.0
         self.Ki = 1.0
+        self.prev_time = None
+        self.commanded_power = 0.0
 
         # Defaults for the UI
         self.ui.cabin_temperature_spin_box.setValue(int(temp_conversion(self.desired_temperature)))
@@ -134,6 +138,14 @@ class TrainControllerWindow(QMainWindow):
         self.announcement = self.testbench.ui.tb_announcement_checkbox.isChecked()
     
     def update(self):
+        # Get dt based off when this function is being called
+        current_time = QDateTime.currentMSecsSinceEpoch()
+        if self.prev_time is None:
+            self.prev_time = current_time
+            return
+        dt = (current_time - self.prev_time) / 1000.0  # time step in seconds
+        self.prev_time = current_time
+
         # Set the display values
         self.display_actual_speed(str(speed_conversion(self.actual_speed)))
         self.display_speed_limit(str(speed_conversion(self.speed_limit)))
@@ -159,12 +171,13 @@ class TrainControllerWindow(QMainWindow):
             else:
                 # Safe
                 self.error = self.driver_target_speed - self.actual_speed
-        self.integral_error += self.error * (0.001) # TODO: THIS SHOULD BE A DT CONSTANT THAT CHANGES THE RATE AT WHICH UPDATE FUNCTION ALSO RUNS
+        self.integral_error += self.error * dt
         self.commanded_power = (self.Kp * self.error) + (self.Ki * self.integral_error) # TODO: need something for integral wind up
-
+        
         # Check for invalid power commands
         if (self.commanded_power < 0):
             self.commanded_power = 0.0
+            self.integral_error = 0.0
             self.activate_service_brake()
         elif (self.commanded_power > 120000):
             self.commanded_power = 120000.0
@@ -201,6 +214,8 @@ class TrainControllerWindow(QMainWindow):
         if (self.actual_speed > 0):
             self.ui.door_left_button.setEnabled(False)
             self.ui.door_right_button.setEnabled(False)
+            self.door_right = False
+            self.door_left = False
 
         # Set next station and on air light
         self.display_next_station()
@@ -459,7 +474,7 @@ def main():
     app = QApplication(sys.argv)
     train_controller_window = TrainControllerWindow()
     train_controller_window.show()
-    train_controller_window.testbench.show()
+    # train_controller_window.testbench.show()
     sys.exit(app.exec_())
 
 if __name__ == "__main__":

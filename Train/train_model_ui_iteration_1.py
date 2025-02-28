@@ -8,9 +8,9 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import *  # type: ignore
-from PySide2.QtGui import *  # type: ignore
-from PySide2.QtWidgets import *  # type: ignore
+from PyQt5.QtCore import *  # type: ignore
+from PyQt5.QtGui import *  # type: ignore
+from PyQt5.QtWidgets import *  # type: ignore
 
 # from PyQt5.QtCore import *  # type: ignore
 # from PyQt5.QtGui import *  # type: ignore
@@ -300,7 +300,7 @@ class Ui_MainWindow(object):
         self.Disabled3.setFlat(False)
         self.Advertisements = QLabel(self.Main)
         self.Advertisements.setObjectName(u"Advertisements")
-        self.Advertisements.setPixmap(QPixmap(r"D:\ECE 1140\ECE1140ChooChoo\Train_Model\pizza_hut_ad_1.jpg"))
+        self.Advertisements.setPixmap(QPixmap(r"D:\ECE 1140\ECE1140ChooChoo\Train_Model\assets\pizza_hut_ad_1.jpg"))
         self.Advertisements.setScaledContents(True)
         self.Advertisements.setGeometry(QRect(10, 5, 228, 83))
         self.Advertisements.setMinimumSize(QSize(0, 0))
@@ -735,7 +735,7 @@ class Ui_MainWindow(object):
         self.Announcement_1.setFrameShape(QFrame.WinPanel)
         self.Advertisements_2 = QLabel(self.Main)
         self.Advertisements_2.setObjectName(u"Advertisements_2")
-        self.Advertisements_2.setPixmap(QPixmap(r"D:\ECE 1140\ECE1140ChooChoo\Train_Model\McD.jpg"))
+        self.Advertisements_2.setPixmap(QPixmap(r"D:\ECE 1140\ECE1140ChooChoo\Train_Model\assets\McD.jpg"))
         self.Advertisements_2.setScaledContents(True)
         self.Advertisements_2.setGeometry(QRect(240, 5, 228, 83))
         self.Advertisements_2.setMinimumSize(QSize(0, 0))
@@ -747,7 +747,7 @@ class Ui_MainWindow(object):
         self.Advertisements_2.setScaledContents(False)
         self.Advertisements_3 = QLabel(self.Main)
         self.Advertisements_3.setObjectName(u"Advertisements_3")
-        self.Advertisements_3.setPixmap(QPixmap(r"D:\ECE 1140\ECE1140ChooChoo\Train_Model\whopper.jpg"))
+        self.Advertisements_3.setPixmap(QPixmap(r"D:\ECE 1140\ECE1140ChooChoo\Train_Model\assets\whopper.jpg"))
         self.Advertisements_3.setScaledContents(True)
         self.Advertisements_3.setGeometry(QRect(470, 5, 224, 83))
         self.Advertisements_3.setMinimumSize(QSize(0, 0))
