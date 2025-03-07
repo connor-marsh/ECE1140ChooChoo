@@ -7,7 +7,9 @@ import os
 import time
 import math
 
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5 import *
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QButtonGroup
+from PyQt5.QtGui import *
 from PyQt5.QtCore import QTimer, QTime, QDateTime
 
 from train_model_ui_iteration_1 import Ui_MainWindow as TrainModelUI
@@ -256,6 +258,10 @@ class TrainModelApp(QMainWindow):
         self.clock_timer.timeout.connect(self.update_clock)
         self.clock_timer.start(1000)
 
+        # Shared emergency flag
+        self.emergency_brake = False
+        self.emergency_source = None  # Can be "model" or "controller"
+
         # Configure emergency brake button to be checkable
         self.train_ui.button_emergency.setCheckable(True)
         self.init_failure_buttons()
@@ -277,7 +283,7 @@ class TrainModelApp(QMainWindow):
         # Extract commanded values and physical parameters
         commanded_speed   = wayside_data["commanded_speed"]
         wayside_authority = wayside_data["authority"]
-        commanded_power_watts = wayside_data["commanded_power"]
+        commanded_power_watts = wayside_data["commanded_power"] # Iyan - Does this need to be checked with the controller Power?
         
         speed_limit       = wayside_data["speed_limit"]
 
@@ -289,7 +295,6 @@ class TrainModelApp(QMainWindow):
         self.controller.commanded_authority = wayside_authority
         self.controller.speed_limit = speed_limit
         self.controller.actual_speed = self.actual_velocity
-
 
         # Convert dimensions from meters to feet
         length_ft = train_data["length_m"] * self.M_TO_FT
@@ -391,15 +396,23 @@ class TrainModelApp(QMainWindow):
             # self.train_ui.button_emergency.setEnabled(True)
 
         # Update cabin temperature based on heating or AC signals.
-        degrees_per_second = 0.005  # Temperature change per second factor
-        if lights_doors_data["heat_signal"] and not lights_doors_data["ac_signal"]:
-            dtemp = degrees_per_second * dt  # Increase temperature
-        elif lights_doors_data["ac_signal"] and not lights_doors_data["heat_signal"]:
-            dtemp = -degrees_per_second * dt  # Decrease temperature
-        elif lights_doors_data["ac_signal"] and lights_doors_data["heat_signal"]:
-            dtemp = 0.0
-        else:
-            dtemp = 0.0005
+        # degrees_per_second = 0.005  # Temperature change per second factor
+        # if lights_doors_data["heat_signal"] and not lights_doors_data["ac_signal"]:
+        #     dtemp = degrees_per_second * dt  # Increase temperature
+        # elif lights_doors_data["ac_signal"] and not lights_doors_data["heat_signal"]:
+        #     dtemp = -degrees_per_second * dt  # Decrease temperature
+        # elif lights_doors_data["ac_signal"] and lights_doors_data["heat_signal"]:
+        #     dtemp = 0.0
+        # else:
+        #     dtemp = 0.0005
+
+        # Use the desired temperature from the Controller (assumed in Celsius)
+        desired_temp = self.controller.desired_temperature  # Make sure this is kept updated
+        error_temp = desired_temp - self.cabin_temp
+        # Choose a proportional constant (adjust as needed)
+        k_temp = 0.1  
+        dtemp = k_temp * error_temp * dt
+
         self.cabin_temp += dtemp
         display_temp = (self.cabin_temp * 1.8) + 32  # Convert to Fahrenheit
 
@@ -423,6 +436,13 @@ class TrainModelApp(QMainWindow):
         self.train_ui.HeightValue.display(height_ft)
         self.train_ui.WidthValue.display(width_ft)
 
+        # Automatically release emergency if no failures are active and the source is controller.
+        if self.emergency_brake and self.emergency_source == "controller":
+            if not (self.controller.brake_failure or 
+                    self.controller.signal_failure or 
+                    self.controller.engine_failure):
+                self.set_emergency_state(False)
+
         if hasattr(self.train_ui, "Announcement_2"):
             announcements_str = lights_doors_data["announcements"]
             self.train_ui.Announcement_2.setText(announcements_str)
@@ -437,17 +457,17 @@ class TrainModelApp(QMainWindow):
 
         if lights_doors_data["ext_lights"]:
             self.train_ui.ExteriorLightsOff.setStyleSheet("background-color: none; color: black;")
-            self.train_ui.ExteriorLightsOn.setStyleSheet("background-color: green; color: white;")
+            self.train_ui.ExteriorLightsOn.setStyleSheet("background-color: yellow; color: black;")
         else:
             self.train_ui.ExteriorLightsOn.setStyleSheet("background-color: none; color: black;")
-            self.train_ui.ExteriorLightsOff.setStyleSheet("background-color: red; color: black;")
+            self.train_ui.ExteriorLightsOff.setStyleSheet("background-color: yellow; color: black;")
 
         if lights_doors_data["int_lights"]:
             self.train_ui.InteriorLightsOff.setStyleSheet("background-color: none; color: black;")
-            self.train_ui.InteriorLightsOn.setStyleSheet("background-color: green; color: white;")
+            self.train_ui.InteriorLightsOn.setStyleSheet("background-color: yellow; color: black;")
         else:
             self.train_ui.InteriorLightsOn.setStyleSheet("background-color: none; color: black;")
-            self.train_ui.InteriorLightsOff.setStyleSheet("background-color: red; color: black;")
+            self.train_ui.InteriorLightsOff.setStyleSheet("background-color: yellow; color: black;")
 
         if lights_doors_data["left_doors"]:
             self.train_ui.LeftDoorClosed.setStyleSheet("background-color: none; color: black;")
@@ -467,63 +487,147 @@ class TrainModelApp(QMainWindow):
         self.testbench.update_status()
 
     def init_failure_buttons(self):
-        """Sets checkable states for the 6 failure buttons and binds their toggle events."""
+        """Initializes the 6 failure buttons and makes each pair mutually exclusive."""
+        # Make all buttons checkable
         self.train_ui.Enabled1.setCheckable(True)
-        self.train_ui.Enabled2.setCheckable(True)
-        self.train_ui.Enabled3.setCheckable(True)
         self.train_ui.Disabled1.setCheckable(True)
+        self.train_ui.Enabled2.setCheckable(True)
         self.train_ui.Disabled2.setCheckable(True)
+        self.train_ui.Enabled3.setCheckable(True)
         self.train_ui.Disabled3.setCheckable(True)
 
-        self.train_ui.Enabled1.toggled.connect(lambda checked: self.on_failure_toggled("Enabled1", checked))
-        self.train_ui.Enabled2.toggled.connect(lambda checked: self.on_failure_toggled("Enabled2", checked))
-        self.train_ui.Enabled3.toggled.connect(lambda checked: self.on_failure_toggled("Enabled3", checked))
-        self.train_ui.Disabled1.toggled.connect(lambda checked: self.on_failure_toggled("Disabled1", checked))
-        self.train_ui.Disabled2.toggled.connect(lambda checked: self.on_failure_toggled("Disabled2", checked))
-        self.train_ui.Disabled3.toggled.connect(lambda checked: self.on_failure_toggled("Disabled3", checked))
+        # Create a button group for each pair and set them to be exclusive.
+        self.failure_group1 = QButtonGroup(self) # type: ignore
+        self.failure_group1.setExclusive(True)
+        self.failure_group1.addButton(self.train_ui.Enabled1)
+        self.failure_group1.addButton(self.train_ui.Disabled1)
 
-    def on_failure_toggled(self, button_name, checked):
-        """Update corresponding testbench label based on failure button toggling."""
-        text_to_set = "Enabled" if checked else "Disabled"
-        if button_name == "Enabled1":
-            self.testbench.ui.BrakeFailure.setText(text_to_set)
-            self.train_ui.Disabled1.setEnabled(not checked)
-        elif button_name == "Disabled1":
-            self.testbench.ui.BrakeFailure.setText(text_to_set)
-            self.train_ui.Enabled1.setEnabled(not checked)
-        elif button_name == "Enabled2":
-            self.testbench.ui.SignalFailure.setText(text_to_set)
-            self.train_ui.Disabled2.setEnabled(not checked)
-        elif button_name == "Disabled2":
-            self.testbench.ui.SignalFailure.setText(text_to_set)
-            self.train_ui.Enabled2.setEnabled(not checked)
-        elif button_name == "Enabled3":
-            self.testbench.ui.EngineFailure.setText(text_to_set)
-            self.train_ui.Disabled3.setEnabled(not checked)
-        elif button_name == "Disabled3":
-            self.testbench.ui.EngineFailure.setText(text_to_set)
-            self.train_ui.Enabled3.setEnabled(not checked)
+        self.failure_group2 = QButtonGroup(self) # type: ignore
+        self.failure_group2.setExclusive(True)
+        self.failure_group2.addButton(self.train_ui.Enabled2)
+        self.failure_group2.addButton(self.train_ui.Disabled2)
+
+        self.failure_group3 = QButtonGroup(self) # type: ignore
+        self.failure_group3.setExclusive(True)
+        self.failure_group3.addButton(self.train_ui.Enabled3)
+        self.failure_group3.addButton(self.train_ui.Disabled3)
+
+        # Set the default state: each failure is disabled.
+        self.train_ui.Disabled1.setChecked(True)
+        self.train_ui.Disabled2.setChecked(True)
+        self.train_ui.Disabled3.setChecked(True)
+
+        # Optionally, connect the buttonClicked signals to update your testbench UI.
+        self.failure_group1.buttonClicked.connect(lambda btn: self.on_failure_group_toggled("BrakeFailure", btn))
+        self.failure_group2.buttonClicked.connect(lambda btn: self.on_failure_group_toggled("SignalFailure", btn))
+        self.failure_group3.buttonClicked.connect(lambda btn: self.on_failure_group_toggled("EngineFailure", btn))
+
+    def on_failure_group_toggled(self, failure_type, button):
+        """Updates the corresponding testbench label based on the button pressed."""
+        new_status = button.text()
+        is_enabled = (new_status == "Enabled")
+        if failure_type == "BrakeFailure":
+            self.testbench.ui.BrakeFailure.setText(new_status)
+            self.controller.brake_failure = is_enabled
+        elif failure_type == "SignalFailure":
+            self.testbench.ui.SignalFailure.setText(new_status)
+            self.controller.signal_failure = is_enabled
+        elif failure_type == "EngineFailure":
+            self.testbench.ui.EngineFailure.setText(new_status)
+            self.controller.engine_failure = is_enabled
+        # If any failure is enabled, force emergency.
+        if self.controller.brake_failure or self.controller.signal_failure or self.controller.engine_failure:
+            # Set the emergency source to "controller" so that the Controller can later release it.
+            self.emergency_source = "controller"
+            self.set_emergency_state(True)
             
+    # def handle_emergency_button(self, pressed: bool):
+    #     if not self.train_ui.button_emergency.isEnabled():
+    #         return  # Service brakes are active, so do nothing
+    #     if pressed:
+    #         # Lock the emergency button in the main UI.
+    #         self.train_ui.button_emergency.setEnabled(False)
+    #         # Update testbench indicator.
+    #         self.testbench.ui.PEmergencyStop.setText("Enabled")
+    #         self.testbench.ui.ServiceBrakes.setChecked(False)
+    #         self.testbench.ui.ServiceBrakes.setEnabled(False)
+    #         # Enable the testbench release control and set it to "active".
+    #         self.testbench.ui.EmergencyStop.setEnabled(True)
+    #         self.testbench.ui.EmergencyStop.setChecked(True)
+    #         # Update testbench Train Driver checkbox to be checked and disabled.
+    #         self.testbench.ui.TrainDriver.setChecked(True)
+    #         self.testbench.ui.TrainDriver.setEnabled(False)
+
+    #         # --- UPDATE CONTROLLER EMERGENCY STATE ---
+    #         self.controller.emergency_brake = True
+
+    #         # Force the controller emergency button to mirror the model (and disable it)
+    #         self.controller.ui.emergency_button.setChecked(True)
+    #         self.controller.ui.emergency_button.setEnabled(False)
+    #     else:
+    #         # (This branch is unlikely to be used since the button is locked when pressed.)
+    #         self.testbench.ui.PEmergencyStop.setText("Disabled")
+    #         self.testbench.ui.ServiceBrakes.setEnabled(True)
+
+    #         # Also update controller state if needed.
+    #         self.controller.emergency_brake = False
+    #         # Optionally, re-enable the controller emergency button only after release.
+    #         self.controller.ui.emergency_button.setChecked(False)
+    #         self.controller.ui.emergency_button.setEnabled(False)
+
     def handle_emergency_button(self, pressed: bool):
-        if not self.train_ui.button_emergency.isEnabled():
-            return  # Service brakes are active, so do nothing
+        """
+        This handler is attached to the Train Model UI emergency button.
+        It only allows engaging emergency (i.e. when pressed, it locks emergency on).
+        Attempts to disable it from the Model UI (i.e. unchecking) are ignored.
+        """
         if pressed:
-            # Lock the emergency button in the main UI.
-            self.train_ui.button_emergency.setEnabled(False)
-            # Update testbench indicator.
-            self.testbench.ui.PEmergencyStop.setText("Enabled")
-            self.testbench.ui.ServiceBrakes.setChecked(False)
-            self.testbench.ui.ServiceBrakes.setEnabled(False)
-            # Enable the testbench release control and set it to "active".
-            self.testbench.ui.EmergencyStop.setEnabled(True)
-            self.testbench.ui.EmergencyStop.setChecked(True)
-            # Update testbench Train Driver checkbox to be checked and disabled.
-            self.testbench.ui.TrainDriver.setChecked(True)
-            self.testbench.ui.TrainDriver.setEnabled(False)
+            self.emergency_source = "model"
+            self.set_emergency_state(True)
         else:
-            # (This branch is unlikely to be used since the button is locked when pressed.)
-            self.testbench.ui.PEmergencyStop.setText("Disabled")
-            self.testbench.ui.ServiceBrakes.setEnabled(True)
+            # Ignore disable attempts from the Model UI.
+            self.set_emergency_state(True)
+
+    def set_emergency_state(self, state: bool):
+        """
+        Update the emergency flag and synchronize both the Model and Controller UIs.
+        - When state is True, the Model emergency button is locked (disabled)
+        if emergency was triggered from the Model.
+        - When state is False (released via the Controller), both buttons become enabled.
+        Also, if emergency is engaged, the update() loop forces the commanded power to zero.
+        """
+        # If an attempt is made to disable emergency but any failure is active, ignore the disable request.
+        if not state:
+            if (self.controller.brake_failure or 
+                self.controller.signal_failure or 
+                self.controller.engine_failure):
+                state = True
+
+        self.emergency_brake = state
+
+        # Update the Train Model emergency button.
+        self.train_ui.button_emergency.blockSignals(True)
+        self.train_ui.button_emergency.setChecked(state)
+        if state and self.emergency_source == "model":
+            # Lock the Model button so it cannot be toggled off.
+            self.train_ui.button_emergency.setEnabled(False)
+        else:
+            self.train_ui.button_emergency.setEnabled(True)
+        self.train_ui.button_emergency.blockSignals(False)
+
+        # Update the Controller emergency button.
+        if hasattr(self.controller, 'ui'):
+            self.controller.ui.emergency_button.blockSignals(True)
+            self.controller.ui.emergency_button.setChecked(state)
+            # If emergency is active and any failure is active, disable the Controller button.
+            if state and (self.controller.brake_failure or 
+                        self.controller.signal_failure or 
+                        self.controller.engine_failure):
+                self.controller.ui.emergency_button.setEnabled(False)
+            else:
+                # Otherwise, allow toggling.
+                self.controller.ui.emergency_button.setEnabled(True)
+            self.controller.ui.emergency_button.blockSignals(False)
 
     def update_clock(self):
         """Update the simulated clock display every second."""

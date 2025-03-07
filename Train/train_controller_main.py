@@ -150,7 +150,13 @@ class TrainControllerWindow(QMainWindow):
         self.display_actual_speed(str(speed_conversion(self.actual_speed)))
         self.display_speed_limit(str(speed_conversion(self.speed_limit)))
         self.display_authority(str(distance_conversion(self.commanded_authority)))
-        self.display_cabin_temperature(str(temp_conversion(self.temperature_status)))
+        # self.display_cabin_temperature(str(temp_conversion(self.temperature_status)))
+        
+        # Changes by Iyan:
+        # First update desired_temperature from the spinbox:
+        self.desired_temperature = temp_conversion_in(self.ui.cabin_temperature_spin_box.value())
+        # Then display the setpoint (converted to Fahrenheit)
+        self.display_cabin_temperature(str(temp_conversion(self.desired_temperature)))
 
         # Check if auto or manual mode and calculate power
         if (self.ui.control_mode_switch.value() == 0):
@@ -276,11 +282,17 @@ class TrainControllerWindow(QMainWindow):
         self.ui.headlights_off_button.setEnabled(True)
 
     def handle_emergency_button(self, checked):
+        # if checked:
+        #     self.emergency_brake = True
+        # else:
+        #     self.emergency_brake = False
+        #     self.passenger_emergency_stop = False
         if checked:
-            self.emergency_brake = True
+            self.model.emergency_source = "controller"
+            self.model.set_emergency_state(True)
         else:
-            self.emergency_brake = False
-            self.passenger_emergency_stop = False
+            self.model.emergency_source = None
+            self.model.set_emergency_state(False)
     
     def activate_emergency_brake(self):
         self.ui.emergency_button.setChecked(True)
