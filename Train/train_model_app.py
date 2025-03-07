@@ -207,8 +207,6 @@ class TestBenchApp(QMainWindow):
         # Check Temperature
         self.ui.Temperature.setText(self.train_app.train_ui.Temperature.text())
 
-
-
 ###############################################################################
 # TRAIN MODEL APP
 ###############################################################################
@@ -395,17 +393,6 @@ class TrainModelApp(QMainWindow):
             self.train_ui.ServiceBrakesOff.setStyleSheet("background-color: yellow; color: black;")
             # self.train_ui.button_emergency.setEnabled(True)
 
-        # Update cabin temperature based on heating or AC signals.
-        # degrees_per_second = 0.005  # Temperature change per second factor
-        # if lights_doors_data["heat_signal"] and not lights_doors_data["ac_signal"]:
-        #     dtemp = degrees_per_second * dt  # Increase temperature
-        # elif lights_doors_data["ac_signal"] and not lights_doors_data["heat_signal"]:
-        #     dtemp = -degrees_per_second * dt  # Decrease temperature
-        # elif lights_doors_data["ac_signal"] and lights_doors_data["heat_signal"]:
-        #     dtemp = 0.0
-        # else:
-        #     dtemp = 0.0005
-
         # Use the desired temperature from the Controller (assumed in Celsius)
         desired_temp = self.controller.desired_temperature  # Make sure this is kept updated
         error_temp = desired_temp - self.cabin_temp
@@ -541,40 +528,6 @@ class TrainModelApp(QMainWindow):
             self.emergency_source = "controller"
             self.set_emergency_state(True)
             
-    # def handle_emergency_button(self, pressed: bool):
-    #     if not self.train_ui.button_emergency.isEnabled():
-    #         return  # Service brakes are active, so do nothing
-    #     if pressed:
-    #         # Lock the emergency button in the main UI.
-    #         self.train_ui.button_emergency.setEnabled(False)
-    #         # Update testbench indicator.
-    #         self.testbench.ui.PEmergencyStop.setText("Enabled")
-    #         self.testbench.ui.ServiceBrakes.setChecked(False)
-    #         self.testbench.ui.ServiceBrakes.setEnabled(False)
-    #         # Enable the testbench release control and set it to "active".
-    #         self.testbench.ui.EmergencyStop.setEnabled(True)
-    #         self.testbench.ui.EmergencyStop.setChecked(True)
-    #         # Update testbench Train Driver checkbox to be checked and disabled.
-    #         self.testbench.ui.TrainDriver.setChecked(True)
-    #         self.testbench.ui.TrainDriver.setEnabled(False)
-
-    #         # --- UPDATE CONTROLLER EMERGENCY STATE ---
-    #         self.controller.emergency_brake = True
-
-    #         # Force the controller emergency button to mirror the model (and disable it)
-    #         self.controller.ui.emergency_button.setChecked(True)
-    #         self.controller.ui.emergency_button.setEnabled(False)
-    #     else:
-    #         # (This branch is unlikely to be used since the button is locked when pressed.)
-    #         self.testbench.ui.PEmergencyStop.setText("Disabled")
-    #         self.testbench.ui.ServiceBrakes.setEnabled(True)
-
-    #         # Also update controller state if needed.
-    #         self.controller.emergency_brake = False
-    #         # Optionally, re-enable the controller emergency button only after release.
-    #         self.controller.ui.emergency_button.setChecked(False)
-    #         self.controller.ui.emergency_button.setEnabled(False)
-
     def handle_emergency_button(self, pressed: bool):
         """
         This handler is attached to the Train Model UI emergency button.
