@@ -420,17 +420,17 @@ class TrainModelApp(QMainWindow): # type: ignore
 
         if lights_doors_data["ext_lights"]:
             self.train_ui.ExteriorLightsOff.setStyleSheet("background-color: none; color: black;")
-            self.train_ui.ExteriorLightsOn.setStyleSheet("background-color: green; color: white;")
+            self.train_ui.ExteriorLightsOn.setStyleSheet("background-color: yellow; color: black;")
         else:
             self.train_ui.ExteriorLightsOn.setStyleSheet("background-color: none; color: black;")
-            self.train_ui.ExteriorLightsOff.setStyleSheet("background-color: red; color: black;")
+            self.train_ui.ExteriorLightsOff.setStyleSheet("background-color: yellow; color: black;")
 
         if lights_doors_data["int_lights"]:
             self.train_ui.InteriorLightsOff.setStyleSheet("background-color: none; color: black;")
-            self.train_ui.InteriorLightsOn.setStyleSheet("background-color: green; color: white;")
+            self.train_ui.InteriorLightsOn.setStyleSheet("background-color: yellow; color: black;")
         else:
             self.train_ui.InteriorLightsOn.setStyleSheet("background-color: none; color: black;")
-            self.train_ui.InteriorLightsOff.setStyleSheet("background-color: red; color: black;")
+            self.train_ui.InteriorLightsOff.setStyleSheet("background-color: yellow; color: black;")
 
         if lights_doors_data["left_doors"]:
             self.train_ui.LeftDoorClosed.setStyleSheet("background-color: none; color: black;")
