@@ -24,6 +24,14 @@ os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 ###############################################################################
 def read_wayside_data(ui, to_float_func):
     # Read and convert wayside inputs from UI.
+    commanded_power = to_float_func(ui.CommandedPower.text(), 0.0)  # (Watts)
+    
+    # Cap the power at 60%
+    if commanded_power > 120000: # 120 kW
+        commanded_power = 120000.0 # 120 kW
+    elif commanded_power < 0:
+        commanded_power = 0.0
+        
     return {
         "commanded_speed": to_float_func(ui.WaysideSpeed.text(), 0.0),   # (m/s)
         "authority":       to_float_func(ui.WaysideAuthority.text(), 0.0),
