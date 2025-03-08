@@ -381,6 +381,29 @@ class TrainModelApp(QMainWindow):
         if brake_off and new_velocity < self.MIN_SPEED_NO_BRAKE:
             new_velocity = self.MIN_SPEED_NO_BRAKE
 
+        # TEMPERATURE SETUP:
+        # Define the environmental (ambient) temperature of the train car (in Celsius)
+        T_env = 25.0
+
+        # Get desired target temperature from the controller (in Celsius)
+        T_target = self.controller.desired_temperature
+
+        # Calculate the error between the target and the current cabin temperature.
+        error_temp = T_target - self.cabin_temp
+        threshold = 1.0  # in Celsius; defines when to switch from active HVAC to ambient drift
+
+        if abs(error_temp) > threshold:
+            # Active HVAC: drive the temperature rapidly toward the target.
+            k_active = 0.005  # gain for active adjustment (tune as needed)
+            dtemp = k_active * error_temp * dt
+        else:
+            # When near the target, HVAC influence reduces and the temperature drifts slowly toward T_env.
+            k_env = 0.01  # gain for natural drift (much smaller than active gain)
+            dtemp = k_env * (T_target - self.cabin_temp) * dt
+
+        self.cabin_temp += dtemp
+        display_temp = (self.cabin_temp * 1.8) + 32  # Convert Celsius to Fahrenheit
+
         # Service brake UI updates.
         service_brake_active = lights_doors_data["service_brakes"] # or (speed_limit > 0 and self.actual_velocity > speed_limit)
         if service_brake_active:
@@ -392,16 +415,6 @@ class TrainModelApp(QMainWindow):
             self.train_ui.ServiceBrakesOn.setStyleSheet("background-color: none; color: black;")
             self.train_ui.ServiceBrakesOff.setStyleSheet("background-color: yellow; color: black;")
             # self.train_ui.button_emergency.setEnabled(True)
-
-        # Use the desired temperature from the Controller (assumed in Celsius)
-        desired_temp = self.controller.desired_temperature  # Make sure this is kept updated
-        error_temp = desired_temp - self.cabin_temp
-        # Choose a proportional constant (adjust as needed)
-        k_temp = 0.001  
-        dtemp = k_temp * error_temp * dt
-
-        self.cabin_temp += dtemp
-        display_temp = (self.cabin_temp * 1.8) + 32  # Convert to Fahrenheit
 
         # Update UI fields.
         velocity_mph   = self.actual_velocity * self.MPS_TO_MPH
