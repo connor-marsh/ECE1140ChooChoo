@@ -423,13 +423,6 @@ class TrainModelApp(QMainWindow):
         self.train_ui.HeightValue.display(height_ft)
         self.train_ui.WidthValue.display(width_ft)
 
-        # # Automatically release emergency if no failures are active and the source is controller.
-        # if self.emergency_brake and self.emergency_source == "controller":
-        #     if not (self.controller.brake_failure or 
-        #             self.controller.signal_failure or 
-        #             self.controller.engine_failure):
-        #         self.set_emergency_state(False)
-
         if hasattr(self.train_ui, "Announcement_2"):
             announcements_str = lights_doors_data["announcements"]
             self.train_ui.Announcement_2.setText(announcements_str)
@@ -549,8 +542,6 @@ class TrainModelApp(QMainWindow):
         an attempt to disable emergency (state==False) is ignored if any failure is active.
         - If triggered via the Controller (emergency_source == "controller"), toggle the emergency state
         exactly as requested.
-        
-        Iyan - is this needed? --> When emergency is engaged, the update() loop forces commanded power to zero.
         """
         # If triggered from the Model, ignore disable attempts when failures are active.
         if self.emergency_source == "model":
