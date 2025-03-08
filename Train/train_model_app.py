@@ -399,7 +399,7 @@ class TrainModelApp(QMainWindow):
         else:
             # When near the target, HVAC influence reduces and the temperature drifts slowly toward T_env.
             k_env = 0.01  # gain for natural drift (much smaller than active gain)
-            dtemp = k_env * (T_target - self.cabin_temp) * dt
+            dtemp = k_env * (T_env - self.cabin_temp) * dt
 
         self.cabin_temp += dtemp
         display_temp = (self.cabin_temp * 1.8) + 32  # Convert Celsius to Fahrenheit
