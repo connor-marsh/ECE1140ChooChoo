@@ -287,12 +287,14 @@ class TrainControllerWindow(QMainWindow):
         # else:
         #     self.emergency_brake = False
         #     self.passenger_emergency_stop = False
-        if checked:
-            self.model.emergency_source = "controller"
-            self.model.set_emergency_state(True)
-        else:
-            self.model.emergency_source = None
-            self.model.set_emergency_state(False)
+        """
+        Toggle emergency state via the Controller UI.
+        This method sets the emergency state exactly as requested by the Controller,
+        regardless of any failure flags.
+        """
+        # Set the source as 'controller' so the Model UI remains independent.
+        self.model.emergency_source = "controller"
+        self.model.set_emergency_state(checked)
     
     def activate_emergency_brake(self):
         self.ui.emergency_button.setChecked(True)

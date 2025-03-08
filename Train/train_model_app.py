@@ -397,7 +397,7 @@ class TrainModelApp(QMainWindow):
         desired_temp = self.controller.desired_temperature  # Make sure this is kept updated
         error_temp = desired_temp - self.cabin_temp
         # Choose a proportional constant (adjust as needed)
-        k_temp = 0.1  
+        k_temp = 0.001  
         dtemp = k_temp * error_temp * dt
 
         self.cabin_temp += dtemp
@@ -423,12 +423,12 @@ class TrainModelApp(QMainWindow):
         self.train_ui.HeightValue.display(height_ft)
         self.train_ui.WidthValue.display(width_ft)
 
-        # Automatically release emergency if no failures are active and the source is controller.
-        if self.emergency_brake and self.emergency_source == "controller":
-            if not (self.controller.brake_failure or 
-                    self.controller.signal_failure or 
-                    self.controller.engine_failure):
-                self.set_emergency_state(False)
+        # # Automatically release emergency if no failures are active and the source is controller.
+        # if self.emergency_brake and self.emergency_source == "controller":
+        #     if not (self.controller.brake_failure or 
+        #             self.controller.signal_failure or 
+        #             self.controller.engine_failure):
+        #         self.set_emergency_state(False)
 
         if hasattr(self.train_ui, "Announcement_2"):
             announcements_str = lights_doors_data["announcements"]
@@ -544,13 +544,25 @@ class TrainModelApp(QMainWindow):
     def set_emergency_state(self, state: bool):
         """
         Update the emergency flag and synchronize both the Model and Controller UIs.
-        - When state is True, the Model emergency button is locked (disabled)
-        if emergency was triggered from the Model.
-        - When state is False (released via the Controller), both buttons become enabled.
-        Also, if emergency is engaged, the update() loop forces the commanded power to zero.
+        
+        - If the emergency was triggered from the Model (emergency_source == "model"), then
+        an attempt to disable emergency (state==False) is ignored if any failure is active.
+        - If triggered via the Controller (emergency_source == "controller"), toggle the emergency state
+        exactly as requested.
+        
+        Iyan - is this needed? --> When emergency is engaged, the update() loop forces commanded power to zero.
         """
-        # If an attempt is made to disable emergency but any failure is active, ignore the disable request.
-        if not state:
+        # If triggered from the Model, ignore disable attempts when failures are active.
+        if self.emergency_source == "model":
+            # Only override disable attempts if emergency was triggered from the Model.
+            if not state:
+                if (self.controller.brake_failure or 
+                    self.controller.signal_failure or 
+                    self.controller.engine_failure):
+                    state = True  # Force emergency to remain on
+
+        # For a Controller-triggered toggle, if trying to disable but failures are active, force emergency on.
+        if self.emergency_source == "controller" and not state:
             if (self.controller.brake_failure or 
                 self.controller.signal_failure or 
                 self.controller.engine_failure):
@@ -558,11 +570,11 @@ class TrainModelApp(QMainWindow):
 
         self.emergency_brake = state
 
-        # Update the Train Model emergency button.
+        # Update the Model emergency button.
         self.train_ui.button_emergency.blockSignals(True)
         self.train_ui.button_emergency.setChecked(state)
         if state and self.emergency_source == "model":
-            # Lock the Model button so it cannot be toggled off.
+            # Lock the Model button so it cannot be toggled off when triggered from Model.
             self.train_ui.button_emergency.setEnabled(False)
         else:
             self.train_ui.button_emergency.setEnabled(True)
@@ -572,14 +584,8 @@ class TrainModelApp(QMainWindow):
         if hasattr(self.controller, 'ui'):
             self.controller.ui.emergency_button.blockSignals(True)
             self.controller.ui.emergency_button.setChecked(state)
-            # If emergency is active and any failure is active, disable the Controller button.
-            if state and (self.controller.brake_failure or 
-                        self.controller.signal_failure or 
-                        self.controller.engine_failure):
-                self.controller.ui.emergency_button.setEnabled(False)
-            else:
-                # Otherwise, allow toggling.
-                self.controller.ui.emergency_button.setEnabled(True)
+            # Always allow the Controller button to be enabled so the user can toggle it normally.
+            self.controller.ui.emergency_button.setEnabled(True)
             self.controller.ui.emergency_button.blockSignals(False)
 
     def update_clock(self):
