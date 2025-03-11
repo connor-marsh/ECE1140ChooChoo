@@ -1,7 +1,7 @@
 '''
 Author: Aaron Kuchta
 Date: 2-20-2025
-Revision: 1.3
+Version: 1.4
 '''
 
 
@@ -18,42 +18,10 @@ from centralized_traffic_controller_ui import Ui_MainWindow as CtcUI
 from centralized_traffic_controller_test_bench_ui import Ui_ctc_TestBench as CtcTestBenchUI
 
 
-'''
-Front End data reading
-'''
 
-def read_ctc_test_bench_data():
-    return{
 
-    }
 
-def read_ctc_data():
-    return{
-
-    }
-
-def open_file_dialog(self):
-    # Opens file dialog
-    file_name, _ = QFileDialog.getOpenFileName(self, 'Open File', '', 'Excel Files (*.xlsx)')
-
-    if not file_name:
-        return None  # If no file is selected, return None
-        
-    file_data = pd.read_excel(file_name)
-    return file_data
-    
-def read_train_data_file():
-    return{
-
-    }
-
-def read_wayside_data():
-    return{
-
-    }
-
-# Centralized Traffic Control Test Bench App
-class CentralizedTrafficControlTestBenchApp(QMainWindow):
+class TestBenchFrontEnd:
     def __init__(self, ctc_app):
         super().__init__()
         self.ctc_tb_ui = CtcTestBenchUI()
@@ -102,120 +70,61 @@ class CentralizedTrafficControlTestBenchApp(QMainWindow):
         message = ("Block " + str(block_id) + ": " + str(switch_state))
         self.ctc_tb_ui.tb_out_switch_states.setText(message)
 
-# Centralized Traffic Control App
+class WaysideSignal:
+    pass
 
-class CentralizedTrafficControlApp(QMainWindow):
-    def __init__(self):
+
+
+
+class CtcFrontEnd(QMainWindow):
+    def __init__(self, backend):
         super().__init__()
         self.ctc_ui = CtcUI()
         self.ctc_ui.setupUi(self)
+        self.backend = backend #Establishes backrend refrence
+        #self.backend.link_frontend(self)
 
-        self.test_bench = CentralizedTrafficControlTestBenchApp(self)
-
-        #Variables initialization
-
-        self.block_data = {}
-
-        self.current_block_section = " "
-        self.current_block_id = 0
-        self.current_block_occupancy = 0
-        self.current_block_speed_limit = 0
-        self.current_block_station = " "
-        self.current_block_length = 0
-        self.current_block_infrastructure = " "
-        self.current_block_switch = " "
-        self.current_block_railway_crossing = " "
-        self.current_block_traffic_light = " "
-        self.current_block_mainenance = 0
-
+        #Variable initializations
         self.train_count = 0
-        self.current_line = 0
-        self.current_mode = "Automatic"
-
-        self.current_block_id = " "
-        self.current_block_occupancy = " "
-        self.current_block_speed_limit = " "
-        self.suggested_authority = 0 #meters
-        self.suggested_speed = 0 #m/s
-
-        # Set Starting page for stacked widget
-        self.ctc_ui.multiPageWidget.setCurrentIndex(0)
-
-        
-
-        # clock timer
-        #self.simulated_time = QTime(12, 0, 0)
-        #self.clock_timer = QTimer(self)
-        #self.clock_timer.timeout.connect(self.update_clock)
-        #self.clock_timer.start(1000)
-
-
+        self.time = ""
+        self.active_block_id = ""
+        self.active_block_length = ""
+        self.active_block_speed = ""
 
         # Connect buttons
         self.ctc_ui.main_switch_to_dispatch_button.clicked.connect(self.switch_to_dispatch_page)
         self.ctc_ui.main_switch_to_select_button.clicked.connect(self.switch_to_select_page)
         self.ctc_ui.main_switch_to_maintenance_button.clicked.connect(self.switch_to_maintenance_page)
         self.ctc_ui.main_switch_to_upload_button.clicked.connect(self.get_train_schedule)
-        self.ctc_ui.main_upload_map_button.clicked.connect(self.get_map_data)
-
+        #self.ctc_ui.main_upload_map_button.clicked.connect(self.get_map_data)
         self.ctc_ui.sub_return_button.clicked.connect(self.switch_to_home)
         self.ctc_ui.sub_return_button2.clicked.connect(self.switch_to_home)
         self.ctc_ui.sub_return_button3.clicked.connect(self.switch_to_home)
-
         self.ctc_ui.maintenance_toggle.clicked.connect(self.toggle_maintenance_mode)
-
-        self.ctc_ui.main_map_table.cellClicked.connect(self.on_map_row_clicked)
-
-        # Mode Sliders
-        self.ctc_ui.main_mode_slider.sliderReleased.connect(self.toggle_mode)
+        #self.ctc_ui.main_map_table.cellClicked.connect(self.on_map_row_clicked)
         #self.ctc_ui.main_line_slider.sliderReleased.connect(self.toggle_active_line) #Not implemented yet
+        #self.ctc_ui.main_switch_knob.valueChanged.connect(self.set_switch_state)
+        #self.ctc_ui.sub_confirm_override_button.clicked.connect(self.update_override)
+        #self.ctc_ui.sub_activate_maintenance_button.clicked.connect(self.start_maintenance)
+        #self.ctc_ui.sub_end_maintenance_button.clicked.connect(self.end_maintenance)
+        self.ctc_ui.multiPageWidget.setCurrentIndex(0)# Set Starting page for stacked widget
+        #self.toggle_mode() #toggles manual mode, NEEDS CHANGED 
 
-        self.ctc_ui.main_switch_knob.valueChanged.connect(self.set_switch_state)
-
-        self.ctc_ui.sub_confirm_override_button.clicked.connect(self.update_override)
-
-        self.ctc_ui.sub_activate_maintenance_button.clicked.connect(self.start_maintenance)
-        self.ctc_ui.sub_end_maintenance_button.clicked.connect(self.end_maintenance)
-
-        self.toggle_mode()
         self.toggle_maintenance_mode()
+        self.initialize_map()
 
+    #Stacked Widget Navigation
+    def switch_to_dispatch_page(self):
+        self.ctc_ui.multiPageWidget.setCurrentIndex(1)
 
-    def get_test_bench_data(self, block_states, railway_crossing_states, light_states, switch_states):
+    def switch_to_select_page(self):
+        self.ctc_ui.multiPageWidget.setCurrentIndex(2)
 
-        #index counts for loop
-        cross_i = 0
-        light_i = 0
-        switch_i = 0
-        
+    def switch_to_maintenance_page(self):
+        self.ctc_ui.multiPageWidget.setCurrentIndex(3)
 
-        for block_id, block_info in self.block_data.items():
-
-            #ensures only given blocks are updated
-            if block_id  <= len(block_states):
-                block_info['occupancy'] = block_states[block_id-1]
-
-            if block_info['crossing'] == 1 and cross_i < len(railway_crossing_states):
-                block_info['crossing_active'] = railway_crossing_states[cross_i]
-                cross_i += 1
-            
-            if block_info['traffic_light'] == 1 and light_i < len(light_states):
-                block_info['light_color'] = light_states[light_i]
-                light_i += 1
-
-            if block_info['switch'] != 0 and switch_i < len(switch_states):
-                block_info['switch_state'] = switch_states[switch_i]
-                switch_i += 1
-        
-            self.update_map_row(block_info)
-
-
-    #Main Page Widget Functions
-    def get_train_schedule(self):
-        #open file dialog
-        #self.train_schedule = open_file_dialog(self)
-        pass
-            
+    def switch_to_home(self):
+        self.ctc_ui.multiPageWidget.setCurrentIndex(0)
 
     def open_file_dialog(self):
         # Opens file dialog
@@ -223,53 +132,32 @@ class CentralizedTrafficControlApp(QMainWindow):
 
         if not file_name:
             return None  # If no file is selected, return None
-        
+            
         file_data = pd.read_excel(file_name)
         return file_data
     
-    def read_map_file(self, map_data):
-        for index, row in map_data.iterrows():
-            block_section = row['Section']
-            block_id = int(row['Block Number'])
-            block_length = int(row['Block Length (m)'])
-            block_speed_limit = int(row['Speed Limit (Km/Hr)'])
-            block_station = row['Station'] if isinstance(row['Station'], str) else " "
-            block_switch = row['Switch'][7:] if isinstance(row['Switch'], str) else " " #remove "Switch " from string
-            block_crossing = 1 if pd.notna(row['Crossing']) else 0
-            block_traffic_light = 1 if pd.notna(row['Light']) else 0
-            block_transponder = 1 if pd.notna(row['Transponder']) else 0
-            block_underground = 1 if pd.notna(row['Underground']) else 0
+    def get_train_schedule(self):
+        #open file dialog
+        route_schedules = self.open_file_dialog()
+        self.backend.process_route_data(route_schedules)
 
-            #set default values for crossing and light
-            crossing_active = 0 #0 open, 1 closed
-            light_color = 0 #0 green, 1 yellow, 2 red
-            occupancy = 0 #0 unoccupied, 1 occupied, 2 failure
-            switch_state = 0 #0 left, 1 right
+    def on_map_row_clicked(self, row, column):
+        #stores data for clicked block
+        self.selected_row = row+1 #Stores for later use
+        block_info = self.block_data.get(row+1)
+        self.update_block_data_labels(block_info)
 
-            self.block_data[block_id] = {
-                'section': block_section,
-                'block_id': block_id,
-                'occupancy': occupancy,
-                'block_length': block_length,
-                'speed_limit': block_speed_limit,
-                'station': block_station,
-                'switch': block_switch,
-                'switch_state': switch_state,
-                'crossing': block_crossing,
-                'crossing_active': crossing_active,
-                'traffic_light': block_traffic_light,
-                'light_color': light_color,
-                'transponder': block_transponder,
-                'underground': block_underground
-            }
+    def update_block_data_labels(self,block_info):
+        #update block id, length, speed limit | on main page as well as maintenance page
+        self.ctc_ui.main_active_block_id.setText(str(block_info['block_id']))
+        self.ctc_ui.sub_active_block_id.setText(str(block_info['block_id']))
+        self.ctc_ui.main_active_block_length.setText(str(block_info['block_length']))
+        self.ctc_ui.main_active_block_speed_limit.setText(str(block_info['speed_limit']))
 
-    def get_map_data(self):
-        map_data = open_file_dialog(self)
-        if(map_data is not None):
-            self.read_map_file(map_data)
-            self.initialize_map()
 
+    #Map Ini - UPDATE NEEDED, SWITCH DIRECTION
     def initialize_map(self):
+        self.block_data = self.backend.get_blocks()
         #update map with block data
         self.ctc_ui.main_map_table.setRowCount(len(self.block_data))
 
@@ -327,43 +215,36 @@ class CentralizedTrafficControlApp(QMainWindow):
 
         self.ctc_ui.main_map_table.resizeColumnsToContents()
 
+    
 
-    def update_map_row(self, block_info):
-        #updates data per block
-        row_index = block_info['block_id'] - 1
+    def update_occupancy_map(self, occupancy):
+        pass
+    def update_switch_map(self, state):
+        pass
+    def update_light_map(self, state):
+        pass
+    def update_crossing_map(self, state):
+        pass
+    def update_maintenance_map(self, state):
+        pass
 
-        #print(f"Block #: {block_info['block_id']} Block crossing: {block_info['crossing']}") #Debug
-
-        case = block_info['occupancy']
-        if case == 0:
-            self.ctc_ui.main_map_table.item(row_index, 2).setBackground(QColor("green"))
-        elif case == 1:
-            self.ctc_ui.main_map_table.item(row_index, 2).setBackground(QColor("orange"))
-        elif case == 2:
-            self.ctc_ui.main_map_table.item(row_index, 2).setBackground(QColor("red"))
+    #maintenance page - Change to send data to backend
+    def start_maintenance(self):
+        #starts maintenance on selected block | activated by button
+        if self.selected_row is not None:
+            block_info = self.block_data.get(self.selected_row)
+            block_info['maintenance'] = 1
+            self.update_maintenance(block_info)
+            self.test_bench.print_maintenance(block_info['block_id'], 1)
         
-        case = block_info['light_color']
-        if block_info['traffic_light'] == 1:
-            if case == 0:
-                self.ctc_ui.main_map_table.item(row_index, 5).setBackground(QColor("green"))
-            elif case == 1:
-                self.ctc_ui.main_map_table.item(row_index, 5).setBackground(QColor("yellow"))
-            elif case == 2:
-                self.ctc_ui.main_map_table.item(row_index, 5).setBackground(QColor("red"))
-
-        
-        case = block_info['crossing_active']
-        if block_info['crossing'] == 1:
-            if case == 0:
-                self.ctc_ui.main_map_table.item(row_index, 6).setBackground(QColor("green"))
-            elif case == 1:
-                self.ctc_ui.main_map_table.item(row_index, 6).setBackground(QColor("red"))
-
-        #NEED TO ADD SECTION FOR SWITCH STATE
-        
-
-
-
+    def end_maintenance(self):
+        #ends maintenance on selected block | activated by button 
+        if self.selected_row is not None:
+            block_info = self.block_data.get(self.selected_row)
+            block_info['maintenance'] = 0
+            self.update_maintenance(block_info)
+            self.test_bench.print_maintenance(block_info['block_id'], 0)
+    
     def update_maintenance(self, block_info):
         #updates maintenance mode | activated by button
         case = block_info['maintenance']
@@ -371,85 +252,7 @@ class CentralizedTrafficControlApp(QMainWindow):
             self.ctc_ui.main_map_table.item(block_info['block_id']-1, 7).setBackground(QColor("white"))
         elif case == 1:
             self.ctc_ui.main_map_table.item(block_info['block_id']-1, 7).setBackground(QColor("red"))
-        
-
-    def update_active_trains_count(self):
-        #Updated mainscreen train count
-        #reads number of rows from train data file + manual sent trains
-        pass
-
-    def set_switch_state(self, block_info):
-        
-        if self.selected_row is not None:
-            block_info = self.block_data.get(self.selected_row)
-            case = self.ctc_ui.main_switch_knob.value()
-            if case == 0:
-                direction = "0"
-                self.test_bench.print_switch_state(block_info['block_id'], direction)
-            if case == 1:
-                pass
-            if case == 2:
-                direction = "1"
-                self.test_bench.print_switch_state(block_info['block_id'], direction)
-
-
-    # Navigation buttons for stacked widget
-    def switch_to_dispatch_page(self):
-        self.ctc_ui.multiPageWidget.setCurrentIndex(1)
-
-    def switch_to_select_page(self):
-        self.ctc_ui.multiPageWidget.setCurrentIndex(2)
-
-    def switch_to_maintenance_page(self):
-        self.ctc_ui.multiPageWidget.setCurrentIndex(3)
-
-    def on_map_row_clicked(self, row, column):
-        #stores data for clicked block
-        self.selected_row = row+1 #Stores for later use
-        block_info = self.block_data.get(row+1)
-        self.update_block_data(block_info)
-
-
-    def update_block_data(self,block_info):
-        #update block id, length, speed limit | on main page as well as maintenance page
-        self.ctc_ui.main_active_block_id.setText(str(block_info['block_id']))
-        self.ctc_ui.sub_active_block_id.setText(str(block_info['block_id']))
-        self.ctc_ui.main_active_block_length.setText(str(block_info['block_length']))
-        self.ctc_ui.main_active_block_speed_limit.setText(str(block_info['speed_limit']))
-        
-
-    # Activated by mode slider
-    def toggle_mode(self):
-        if self.ctc_ui.main_mode_slider.value() == 0:
-            self.current_mode = "Automatic"
-        else:
-            self.current_mode = "Manual"
-
-        self.update_mode()
-
-    def update_mode(self):
-        if self.current_mode == "Automatic":
-            self.ctc_ui.sub_dispatch_overide_new_radio.setEnabled(False)
-            self.ctc_ui.sub_dispatch_overide_active_radio.setEnabled(False)
-            self.ctc_ui.sub_select_active_train_combo.setEnabled(False)
-            self.ctc_ui.sub_block_letter_combo.setEnabled(False)
-            self.ctc_ui.sub_block_number_combo.setEnabled(False)
-            self.ctc_ui.sub_dispatch_confirm_button.setEnabled(False)
-            self.ctc_ui.sub_enter_authority_override.setEnabled(False)
-            self.ctc_ui.sub_enter_speed_override.setEnabled(False)
-            self.ctc_ui.sub_confirm_override_button.setEnabled(False)
-            #DISABLE AUTO DISPATCH
-        else:
-            self.ctc_ui.sub_dispatch_overide_new_radio.setEnabled(True)
-            self.ctc_ui.sub_dispatch_overide_active_radio.setEnabled(True)
-            self.ctc_ui.sub_select_active_train_combo.setEnabled(True)
-            self.ctc_ui.sub_block_letter_combo.setEnabled(True)
-            self.ctc_ui.sub_block_number_combo.setEnabled(True)
-            self.ctc_ui.sub_dispatch_confirm_button.setEnabled(True)
-            self.ctc_ui.sub_enter_authority_override.setEnabled(True)
-            self.ctc_ui.sub_enter_speed_override.setEnabled(True)
-            self.ctc_ui.sub_confirm_override_button.setEnabled(True)
-
+    
     def toggle_maintenance_mode(self):
         if self.ctc_ui.maintenance_toggle.isChecked():
             self.ctc_ui.main_switch_knob.setEnabled(True)
@@ -461,11 +264,62 @@ class CentralizedTrafficControlApp(QMainWindow):
             self.ctc_ui.sub_activate_maintenance_button.setEnabled(False)
             self.ctc_ui.sub_end_maintenance_button.setEnabled(False)
             self.ctc_ui.main_switch_knob.setSliderPosition(1)
-    #Sub Page Widget Functions
+        
 
-    #dispatch page
-    def switch_to_home(self):
-        self.ctc_ui.multiPageWidget.setCurrentIndex(0)
+class CtcBackEnd():
+
+    #Stations located green line
+    G_STATIONS = ("Pioneer", "Edgebrook", "Station", "Whited", "South Bank", "Centrral", "Inglewood", "Overbrook", "Glenbury", "Dormont", 
+                "MT Lebanon", "Poplar", "Castle Shannon", "Dormont", "Glenbury", "Overbrook", "Inglewood", "Central")
+    
+    #Stations located on red line
+    #R_STATIONS = ()
+
+    def __init__(self): #NEEDS UPDATED
+        super().__init__()
+        self.route_data = {}
+        self.frontend = None
+
+        #Controls active track data
+        self.green_line = Track("Green")
+        #self.red_line = Track("Red") #No red line implementation yet
+        self.active_line = self.green_line
+
+        
+        
+    def get_blocks(self):
+        return self.active_line.blocks
+
+   # def link_frontend(self, frontend):
+    #    self.frontend = frontend
+
+
+    
+
+    def process_route_data(self, file_data):
+        if(file_data is not None):
+            self.read_route_file(file_data)
+            self.initialize_route_table()   
+
+    def read_route_file(self, file_data):
+        for index, row in file_data.iterrows():
+            if row['Designation'] != "":
+                designation = row['Designation']
+                total_stops = row['Total # of Stops']
+                all_stops = [int(stop) for stop in row.iloc[2:].dropna().tolist()]
+
+                self.route_data[index] = {
+                    'designation': designation,
+                    'num_stops': total_stops,
+                    'listed_stops': all_stops
+                }
+
+    def initialize_route_table(self):
+        
+
+    #Scheduling Algorithm
+    #Suggested Authority
+    #Suggested Speed
 
     def upload_train_schedule(self):
         #uploads train schedule file | activated by button
@@ -475,25 +329,12 @@ class CentralizedTrafficControlApp(QMainWindow):
         #updates table of trains ready to dispatch
         pass
 
-    def update_train_to_dispatch(self):
-        #updates train that is ready dispatch | Selected from table or manual input, mutally exclusive
-        pass
-
-    def dispatch_train(self):
-        #dispatches selected train | activated by button | disabled if no train selected
-        pass
-
-    #select train page
-    def update_active_train_table(self):
-        #updates table of active trains on track
-        pass
-
-    def update_current_train_values(self):
-        #updates current train values | selected from table
+    def update_active_trains_count(self):
+        #Updated mainscreen train count
+        #reads number of rows from train data file + manual sent trains
         pass
 
     def update_override(self):
-
         if self.ctc_ui.sub_enter_speed_override.value() > 0:
             self.update_override_speed()
 
@@ -504,44 +345,98 @@ class CentralizedTrafficControlApp(QMainWindow):
         #updates override speed | input from user
         override_speed = self.ctc_ui.sub_enter_speed_override.text()
         self.test_bench.print_suggested_speed(override_speed)
-        
-
+    
     def update_override_authority(self):
         #updates override authority | input from user
         override_authority = self.ctc_ui.sub_enter_authority_override.text()
         self.test_bench.print_suggested_authority(override_authority)
+
+    
+class Track: 
+
+    GREEN_LINE = 'testTrack_v1.xlsx'
+    #RED_LINE = 'testTrack_red.xlsx'
+
+    def __init__(self, name):
+        super().__init__()
+        self.name = name
+        self.file_name = ''
+        self.blocks = {}
+        self.active_trains = {}
+
+        if name == "Green":
+            self.file_name = Track.GREEN_LINE
+        #elif name == "Red":
+        #    self.file_name = Track.RED_LINE
+        #ADD ELSE FOR ERROR DETECTION
+
+        self.initialize_blocks()
+
+
+
+    def initialize_blocks(self):
         
+        file_data = pd.read_excel(self.file_name)
+        for index, row in file_data.iterrows():
+            block_section = row['Section']
+            block_id = int(row['Block Number'])
+            block_length = int(row['Block Length (m)'])
+            block_speed_limit = int(row['Speed Limit (Km/Hr)'])
+            block_station = row['Station'] if isinstance(row['Station'], str) else " "
+            block_switch = row['Switch'][7:] if isinstance(row['Switch'], str) else " " #remove "Switch " from string
+            block_crossing = 1 if pd.notna(row['Crossing']) else 0
+            block_traffic_light = 1 if pd.notna(row['Light']) else 0
+            block_transponder = 1 if pd.notna(row['Transponder']) else 0
+            block_underground = 1 if pd.notna(row['Underground']) else 0
 
-    #maintenance page
-    def start_maintenance(self):
-        #starts maintenance on selected block | activated by button
-        if self.selected_row is not None:
-            block_info = self.block_data.get(self.selected_row)
-            block_info['maintenance'] = 1
-            self.update_maintenance(block_info)
-            self.test_bench.print_maintenance(block_info['block_id'], 1)
-        
+            #set default values for crossing and light
+            crossing_active = 0 #0 open, 1 closed
+            light_color = 0 #0 green, 1 red
+            occupancy = 0 #0 unoccupied, 1 occupied, 2 failure | TO CHANGE
+            switch_state = 0 #0 left, 1 right
 
-    def end_maintenance(self):
-        #ends maintenance on selected block | activated by button 
-        if self.selected_row is not None:
-            block_info = self.block_data.get(self.selected_row)
-            block_info['maintenance'] = 0
-            self.update_maintenance(block_info)
-            self.test_bench.print_maintenance(block_info['block_id'], 0)
-        
+            self.blocks[block_id] = {
+                'section': block_section,
+                'block_id': block_id,
+                'occupancy': occupancy,
+                'block_length': block_length,
+                'speed_limit': block_speed_limit,
+                'station': block_station,
+                'station_side': 'L', #UPDATE NEEDED ON XLXS
+                'switch': block_switch,
+                'switch_state': switch_state,
+                'crossing': block_crossing,
+                'crossing_active': crossing_active,
+                'traffic_light': block_traffic_light,
+                'light_color': light_color,
+                'transponder': block_transponder,
+                'underground': block_underground
+            }
 
-#END UI INTERACTIONS
 
 
+    def set_block_data(self, block_data):
+        pass
+
+    def add_active_train(self, train):
+        pass
+
+    def get_train_data(self, train_id):
+        pass   
+
+
+            
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
 def main():
     app = QApplication(sys.argv)
-    ctc_app = CentralizedTrafficControlApp()
+    
+    backend = CtcBackEnd()
+    ctc_app = CtcFrontEnd(backend)
+
 
     ctc_app.show()
-    ctc_app.test_bench.show()
+    #ctc_app.test_bench.show()
     sys.exit(app.exec_())
 
 

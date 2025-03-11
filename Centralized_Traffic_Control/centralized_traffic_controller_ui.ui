@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>677</width>
-    <height>832</height>
+    <width>747</width>
+    <height>719</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -316,7 +316,7 @@
              <number>0</number>
             </property>
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout" stretch="1,3,5">
+             <layout class="QVBoxLayout" name="verticalLayout" stretch="1,2,5">
               <item>
                <widget class="QGroupBox" name="groupBox_4">
                 <property name="title">
@@ -361,7 +361,7 @@
                  <bool>false</bool>
                 </property>
                 <property name="title">
-                 <string>Mode Selections</string>
+                 <string>Line Se;ection</string>
                 </property>
                 <layout class="QHBoxLayout" name="horizontalLayout_8">
                  <property name="spacing">
@@ -388,7 +388,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>Blue Line</string>
+                    <string>Green Line</string>
                    </property>
                   </widget>
                  </item>
@@ -430,88 +430,6 @@
                    </property>
                    <property name="text">
                     <string>Red Line</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="Line" name="line">
-                   <property name="windowModality">
-                    <enum>Qt::WindowModal</enum>
-                   </property>
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="frameShadow">
-                    <enum>QFrame::Plain</enum>
-                   </property>
-                   <property name="lineWidth">
-                    <number>2</number>
-                   </property>
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_5">
-                   <property name="font">
-                    <font>
-                     <weight>75</weight>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Automatic</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSlider" name="main_mode_slider">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>20</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16776985</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="maximum">
-                    <number>1</number>
-                   </property>
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_6">
-                   <property name="font">
-                    <font>
-                     <weight>75</weight>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Manual</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                    </property>
                   </widget>
                  </item>
@@ -569,7 +487,7 @@
                          <enum>QFrame::StyledPanel</enum>
                         </property>
                         <property name="text">
-                         <string>ft</string>
+                         <string>yd</string>
                         </property>
                         <property name="alignment">
                          <set>Qt::AlignCenter</set>
@@ -711,7 +629,7 @@
             <enum>QFrame::StyledPanel</enum>
            </property>
            <property name="currentIndex">
-            <number>0</number>
+            <number>1</number>
            </property>
            <widget class="QWidget" name="page">
             <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -905,9 +823,9 @@
                      </spacer>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="sub_upload_train_data_button">
+                     <widget class="QRadioButton" name="sub_dispatch_manual_radio">
                       <property name="text">
-                       <string>Upload Data</string>
+                       <string>Manual</string>
                       </property>
                      </widget>
                     </item>
@@ -1118,6 +1036,19 @@
                      </widget>
                     </item>
                     <item>
+                     <spacer name="horizontalSpacer_10">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item>
                      <widget class="QLabel" name="label_18">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -1158,13 +1089,36 @@
                       </property>
                      </spacer>
                     </item>
+                    <item>
+                     <widget class="QRadioButton" name="sub_select_manual_radio">
+                      <property name="text">
+                       <string>Manual</string>
+                      </property>
+                     </widget>
+                    </item>
                    </layout>
                   </item>
                  </layout>
                 </widget>
                </item>
                <item>
-                <widget class="QTableWidget" name="sub_train_select_table"/>
+                <widget class="QTableWidget" name="sub_train_select_table">
+                 <column>
+                  <property name="text">
+                   <string>Train ID</string>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string>Current Block</string>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string>Route</string>
+                  </property>
+                 </column>
+                </widget>
                </item>
                <item>
                 <widget class="QGroupBox" name="groupBox_7">
