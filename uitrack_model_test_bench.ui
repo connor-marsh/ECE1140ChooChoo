@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>619</width>
+    <height>762</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QLabel" name="inputs_display">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>10</y>
+      <width>60</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+     </font>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string>Inputs</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="track_switching_signal_display_tb">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>120</y>
+      <width>150</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string>Track Switching Signal</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="railway_crossing_signal_display_tb">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>150</y>
+      <width>150</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string>Railway Crossing Signal</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="traffic_light_signal_display">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>180</y>
+      <width>150</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string>Traffic Light Signal</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="block_occupied_display_tb">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>90</y>
+      <width>150</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string>Block Occupied</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="outputs_display">
+    <property name="geometry">
+     <rect>
+      <x>390</x>
+      <y>10</y>
+      <width>75</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+     </font>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string>Outputs</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="track_temperature_display">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>210</y>
+      <width>150</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string>Set Track Temperature</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="toggle_switch_input_tb">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>115</y>
+      <width>90</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Toggle</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="railway_crossing_toggle_input_tb">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>145</y>
+      <width>90</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Toggle</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="set_passenger_count_display">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>240</y>
+      <width>150</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string>Set Passenger Count</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="select_station_tb">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>173</y>
+      <width>110</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Green</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Yellow</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Red</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLineEdit" name="set_passenger_count_input_tb">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>238</y>
+      <width>90</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="block_selected">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>50</y>
+      <width>270</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>A1</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>A2</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>A3</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>A4</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>A5</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>B6</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>B7</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>B8</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>B9</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>B10</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>C11</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>C12</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>C13</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>C14</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>C15</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLineEdit" name="track_temperature_input_tb">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>208</y>
+      <width>90</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="beacon_data_display_tb">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>55</y>
+      <width>270</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string>Beacon Data</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="beacon_data_output_tb">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>80</y>
+      <width>270</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="select_block_occupancy_input_tb">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>83</y>
+      <width>120</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Unoccupied</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Occupied</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Maintenance</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Failure</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLabel" name="set_passengers_departing_display">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>270</y>
+      <width>165</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string>Set Passengers Departing</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="set_departing_input_tb">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>270</y>
+      <width>81</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="track_switch_output_display">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>110</y>
+      <width>150</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string>Track Switching Signal</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="track_switch_output_value_tb">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>110</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string>False</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
