@@ -1,9 +1,2 @@
-Train\__pycache__\train_controller_main.cpython-310.pyc
-Train\__pycache__\train_controller_testbench_ui.cpython-310.pyc
-Train\__pycache__\train_controller_ui.cpython-310.pyc
-Train\__pycache__\train_model_app.cpython-310.pyc
-Train\__pycache__\train_model_ui_iteration_1.cpython-310.pyc
-Train\__pycache__\train_model_ui_testbench_iteration_1.cpython-310.pyc
-UI_Files\__pycache__
-Train_Model\__pycache__\train_model_ui_iteration_1.cpython-310.pyc
-Train_Model\__pycache__\train_model_ui_testbench_iteration_1.cpython-310.pyc
+__pycache__
+.DS_Store
