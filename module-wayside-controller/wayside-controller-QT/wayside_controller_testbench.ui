@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <author>Connor Murray</author>
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>625</width>
+    <height>554</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QWidget" name="gridLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>20</y>
+      <width>561</width>
+      <height>461</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="1" column="0">
+      <widget class="QListWidget" name="select_block_list">
+       <property name="verticalScrollBarPolicy">
+        <enum>Qt::ScrollBarAsNeeded</enum>
+       </property>
+       <item>
+        <property name="text">
+         <string>A1</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>A2</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>A3 (Railway Crossing)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>A4</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>A5 (Switch)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>B6 (Switch, Light)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>B7</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>B8</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>B9 (Beacon)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>B10 (Station B)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>C11 (Switch, Light)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>C12</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>C13</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>C14 (Beacon)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>C15 (Station C)</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="select_block_label">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(255, 255, 255);
+border-color: rgb(0, 0, 0);</string>
+       </property>
+       <property name="text">
+        <string>Select Block:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="1">
+        <widget class="QComboBox" name="block_occupancy_combo_box">
+         <property name="placeholderText">
+          <string>Select Value Here</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>Unoccupied</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Occupied</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Maintenance</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Track Failure</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="block_occupancy_label">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(255, 255, 255);</string>
+         </property>
+         <property name="text">
+          <string>Block Occupancy:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="suggested_speed_label">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(255, 255, 255);</string>
+         </property>
+         <property name="text">
+          <string>Suggested Speed: (mph)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QPushButton" name="suggested_speed_confirm_button">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(110, 255, 102);</string>
+         </property>
+         <property name="text">
+          <string>Confirm</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="block_occupancy_confirm_button">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(110, 255, 102);</string>
+         </property>
+         <property name="text">
+          <string>Confirm</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="suggested_authority_label">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(255, 255, 255);</string>
+         </property>
+         <property name="text">
+          <string>Suggested Authority: (ft)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QPushButton" name="suggested_authority_confirm_button">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(110, 255, 102);</string>
+         </property>
+         <property name="text">
+          <string>Confirm</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="suggested_authority_line_edit">
+         <property name="placeholderText">
+          <string>Enter Value Here</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="suggested_speed_line_edit">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="placeholderText">
+          <string>Enter Value Here</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menu_bar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>625</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_Blue_Line_Controller_1">
+    <property name="title">
+     <string>Blue Line Controller #1</string>
+    </property>
+   </widget>
+   <addaction name="menu_Blue_Line_Controller_1"/>
+  </widget>
+  <widget class="QStatusBar" name="status_bar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
