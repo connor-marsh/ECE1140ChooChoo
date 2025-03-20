@@ -4,7 +4,7 @@ Date: 2/16/2025
 Description: The class implemented here builds on the generated QT desinger output for the wayside controller testbench ui.
 """
 import sys
-import wayside_constants
+import track_constants
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from wayside_controller_ui import Ui_MainWindow
@@ -20,11 +20,11 @@ class WaysideControllerWindow(QMainWindow):
     gui_table_data = pyqtSignal(dict) # first dictionary corresponds to block table, second corresponds to junction table
     manual_mode = pyqtSignal(bool)
 
-    block_occupancies = [None] * wayside_constants.NUMBER_OF_BLOCKS # List containing the block occupancies
-    suggested_speeds = [None] * wayside_constants.NUMBER_OF_BLOCKS # List contianing the suggested speeds
-    suggested_authorities = [None] * wayside_constants.NUMBER_OF_BLOCKS # List containing the suggested authorities
-    commanded_speeds = [None] * wayside_constants.NUMBER_OF_BLOCKS # List containing the commanded speeds
-    commanded_authorities = [None] * wayside_constants.NUMBER_OF_BLOCKS # List containing the commanded speeds
+    block_occupancies = [None] * track_constants.NUMBER_OF_BLOCKS # List containing the block occupancies
+    suggested_speeds = [None] * track_constants.NUMBER_OF_BLOCKS # List contianing the suggested speeds
+    suggested_authorities = [None] * track_constants.NUMBER_OF_BLOCKS # List containing the suggested authorities
+    commanded_speeds = [None] * track_constants.NUMBER_OF_BLOCKS # List containing the commanded speeds
+    commanded_authorities = [None] * track_constants.NUMBER_OF_BLOCKS # List containing the commanded speeds
 
     # Compiling all the lists into a dictionary so that it can be easily referenced when writing to the table
     block_table_data = {
@@ -36,9 +36,9 @@ class WaysideControllerWindow(QMainWindow):
     }
 
     junction_table_data = {
-        "Junction" : [None] * wayside_constants.NUMBER_OF_JUNCTIONS,
-        "Light Signals" : [None] * wayside_constants.NUMBER_OF_JUNCTIONS,
-        "Switch Position" : [None] * wayside_constants.NUMBER_OF_JUNCTIONS
+        "Junction" : [None] * track_constants.NUMBER_OF_JUNCTIONS,
+        "Light Signals" : [None] * track_constants.NUMBER_OF_JUNCTIONS,
+        "Switch Position" : [None] * track_constants.NUMBER_OF_JUNCTIONS
     }
 
     def __init__(self):
