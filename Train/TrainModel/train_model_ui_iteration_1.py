@@ -19,8 +19,7 @@ from PyQt5.QtWidgets import *  # type: ignore
 # from PyQt5.QtGui import *  # type: ignore
 # from PyQt5.QtWidgets import *  # type: ignore
 
-import os
-os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow): # type: ignore
         if not MainWindow.objectName():

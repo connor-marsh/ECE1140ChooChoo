@@ -8,7 +8,3 @@ class TrainCollection():
     
     def createTrain(self):
         self.train_list.append(TrainModel())
-
-a=TrainCollection()
-a.createTrain()
-print(a.train_list[0].power)
