@@ -15,11 +15,6 @@ from PyQt5.QtCore import *  # type: ignore
 from PyQt5.QtGui import *  # type: ignore
 from PyQt5.QtWidgets import *  # type: ignore
 
-# from PyQt5.QtCore import *  # type: ignore
-# from PyQt5.QtGui import *  # type: ignore
-# from PyQt5.QtWidgets import *  # type: ignore
-
-
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow): # type: ignore
         if not MainWindow.objectName():
@@ -853,12 +848,3 @@ class Ui_MainWindow(object):
         self.Advertisements_3.setText("")
         self.menuTrain_ID_1.setTitle(QCoreApplication.translate("MainWindow", u"Train ID 1", None))
     # retranslateUi
-
-# if __name__ == "__main__":
-#     import sys
-#     app = QApplication(sys.argv)
-#     MainWindow = QMainWindow()
-#     ui = Ui_MainWindow()
-#     ui.setupUi(MainWindow)
-#     MainWindow.show()
-#     sys.exit(app.exec_())
