@@ -28,8 +28,14 @@ class TrainModel:
         }
 
 class TrainCollection:
-    def __init__(self):
+    def __init__(self, num_trains=3):
         self.train_list = []
+        self.current_train = None  # This will store the default/current train.
+        for _ in range(num_trains):
+            self.createTrain()
+        if self.train_list:
+            self.current_train = self.train_list[0]  # Set the first train as the default.
 
     def createTrain(self):
+        # Create a new TrainModel and append it to the list.
         self.train_list.append(TrainModel())

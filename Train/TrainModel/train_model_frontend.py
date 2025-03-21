@@ -24,11 +24,11 @@ class TrainModelFrontEnd(QMainWindow):
         # Create simulation backend instance.
         self.simulator = TrainModelBackEnd()
 
-        # Create TrainCollection and populate with trains.
-        self.train_collection = TrainCollection()
-        for _ in range(3):
-            self.train_collection.createTrain()
-        self.current_train = self.train_collection.train_list[0] if self.train_collection.train_list else None
+        # Create TrainCollection and let it populate with trains.
+        self.train_collection = TrainCollection(num_trains=3)
+
+        # Use the current_train from the collection.
+        self.current_train = self.train_collection.current_train
 
         # Setup dropdown for selecting a train model.
         self.setup_train_dropdown()
