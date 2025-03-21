@@ -13,16 +13,16 @@ from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
 from train_model_ui_iteration_1 import Ui_MainWindow as TrainModelUI
 from train_model_ui_testbench_iteration_1 import Ui_TestMainWindow as TestBenchUI
 from train_collection import TrainCollection
-from train_model_backend import TrainSimulator
+from train_model_backend import TrainModelBackEnd
 
-class TrainModelApp(QMainWindow):
+class TrainModelFrontEnd(QMainWindow):
     def __init__(self):
         super().__init__()
         self.train_ui = TrainModelUI()
         self.train_ui.setupUi(self)
 
         # Create simulation backend instance.
-        self.simulator = TrainSimulator()
+        self.simulator = TrainModelBackEnd()
 
         # Create TrainCollection and populate with trains.
         self.train_collection = TrainCollection()
@@ -35,6 +35,10 @@ class TrainModelApp(QMainWindow):
 
         # Create the testbench window.
         self.testbench = TestBenchApp(self)
+        
+        # Load the initial train's data and simulation state.
+        self.load_train_data()
+        self.load_sim_state()
 
         # Initialize physics and clock timers.
         self.prev_time = None
@@ -62,13 +66,108 @@ class TrainModelApp(QMainWindow):
         widget_action = QWidgetAction(self)
         widget_action.setDefaultWidget(self.train_dropdown)
         self.train_ui.menuTrain_ID_1.addAction(widget_action)
+        
+    def save_current_train_data(self):
+        """Save every numeric value, announcement, and auxiliary function state from the TestBench UI (and emergency brake state) into the current train’s ui_data."""
+        data = {
+            "commanded_speed": self.to_float(self.testbench.ui.WaysideSpeed.text(), 0.0),
+            "authority": self.to_float(self.testbench.ui.WaysideAuthority.text(), 0.0),
+            "commanded_power": self.to_float(self.testbench.ui.CommandedPower.text(), 0.0),
+            "speed_limit": self.to_float(self.testbench.ui.SpeedLimit.text(), 0.0),
+            "beacon_data": self.testbench.ui.BeaconData.text(),
+            "announcements": self.testbench.ui.Announcements.text() if hasattr(self.testbench.ui, "Announcements") else "",
+            "grade": self.to_float(self.testbench.ui.GradePercent.text(), 0.0) if hasattr(self.testbench.ui, "GradePercent") else 0.0,
+            "passenger_count": self.to_float(self.testbench.ui.PassengerCount.text(), 0.0) if hasattr(self.testbench.ui, "PassengerCount") else 0.0,
+            "service_brakes": self.testbench.ui.ServiceBrakes.isChecked() if hasattr(self.testbench.ui, "ServiceBrakes") else False,
+            "ext_lights": self.testbench.ui.ExtLights.isChecked() if hasattr(self.testbench.ui, "ExtLights") else False,
+            "int_lights": self.testbench.ui.IntLights.isChecked() if hasattr(self.testbench.ui, "IntLights") else False,
+            "left_doors": self.testbench.ui.LeftDoors.isChecked() if hasattr(self.testbench.ui, "LeftDoors") else False,
+            "right_doors": self.testbench.ui.RightDoors.isChecked() if hasattr(self.testbench.ui, "RightDoors") else False,
+            "ac_signal": self.testbench.ui.ACSignal.isChecked() if hasattr(self.testbench.ui, "ACSignal") else False,
+            "heat_signal": self.testbench.ui.HeatingSignal.isChecked() if hasattr(self.testbench.ui, "HeatingSignal") else False,
+            "emergency_brake": self.train_ui.button_emergency.isChecked() if hasattr(self.train_ui, "button_emergency") else False,
+        }
+        if self.current_train is not None:
+            self.current_train.ui_data = data
+
+    def load_train_data(self):
+        """Load saved values from the current train’s ui_data into the TestBench UI and update emergency brake state."""
+        if self.current_train is None or not hasattr(self.current_train, "ui_data"):
+            return
+        data = self.current_train.ui_data
+        self.testbench.ui.WaysideSpeed.setText(str(data.get("commanded_speed", 0.0)))
+        self.testbench.ui.WaysideAuthority.setText(str(data.get("authority", 0.0)))
+        self.testbench.ui.CommandedPower.setText(str(data.get("commanded_power", 0.0)))
+        self.testbench.ui.SpeedLimit.setText(str(data.get("speed_limit", 0.0)))
+        self.testbench.ui.BeaconData.setText(data.get("beacon_data", ""))
+        if hasattr(self.testbench.ui, "Announcements"):
+            self.testbench.ui.Announcements.setText(data.get("announcements", ""))
+        if hasattr(self.testbench.ui, "GradePercent"):
+            self.testbench.ui.GradePercent.setText(str(data.get("grade", 0.0)))
+        if hasattr(self.testbench.ui, "PassengerCount"):
+            self.testbench.ui.PassengerCount.setText(str(data.get("passenger_count", 0.0)))
+        if hasattr(self.testbench.ui, "ServiceBrakes"):
+            self.testbench.ui.ServiceBrakes.setChecked(data.get("service_brakes", False))
+        if hasattr(self.testbench.ui, "ExtLights"):
+            self.testbench.ui.ExtLights.setChecked(data.get("ext_lights", False))
+        if hasattr(self.testbench.ui, "IntLights"):
+            self.testbench.ui.IntLights.setChecked(data.get("int_lights", False))
+        if hasattr(self.testbench.ui, "LeftDoors"):
+            self.testbench.ui.LeftDoors.setChecked(data.get("left_doors", False))
+        if hasattr(self.testbench.ui, "RightDoors"):
+            self.testbench.ui.RightDoors.setChecked(data.get("right_doors", False))
+        if hasattr(self.testbench.ui, "ACSignal"):
+            self.testbench.ui.ACSignal.setChecked(data.get("ac_signal", False))
+        if hasattr(self.testbench.ui, "HeatingSignal"):
+            self.testbench.ui.HeatingSignal.setChecked(data.get("heat_signal", False))
+        if hasattr(self.train_ui, "button_emergency"):
+            self.train_ui.button_emergency.setChecked(data.get("emergency_brake", False))
+
+    def save_current_sim_state(self):
+        """Save current simulation state from the simulator into the current train’s sim_state."""
+        if self.current_train is not None:
+            self.current_train.sim_state = {
+                "actual_velocity": self.simulator.actual_velocity,
+                "current_acceleration": self.simulator.current_acceleration,
+                "previous_acceleration": self.simulator.previous_acceleration,
+                "cabin_temp": self.simulator.cabin_temp
+            }
+
+    def load_sim_state(self):
+        """Load simulation state from the current train’s sim_state into the simulator."""
+        if self.current_train is None or not hasattr(self.current_train, "sim_state"):
+            return
+        state = self.current_train.sim_state
+        self.simulator.actual_velocity = state.get("actual_velocity", 0.0)
+        self.simulator.current_acceleration = state.get("current_acceleration", 0.0)
+        self.simulator.previous_acceleration = state.get("previous_acceleration", 0.0)
+        self.simulator.cabin_temp = state.get("cabin_temp", 25.0)
 
     def on_train_selection_changed(self, index):
+        # Save current train's UI and simulation state before switching.
+        self.save_current_train_data()
+        self.save_current_sim_state()
         if 0 <= index < len(self.train_collection.train_list):
             self.current_train = self.train_collection.train_list[index]
             self.train_ui.menuTrain_ID_1.setTitle(f"Train ID {index+1}")
             if hasattr(self.train_ui, "currentTrainLabel"):
                 self.train_ui.currentTrainLabel.setText(f"Selected: {self.train_dropdown.currentText()}")
+            # Load new train's data and simulation state.
+            self.load_train_data()
+            self.load_sim_state()
+            # Update emergency brake state.
+            if self.current_train.ui_data.get("emergency_brake", False):
+                self.train_ui.button_emergency.setChecked(True)
+                self.train_ui.button_emergency.setEnabled(False)
+                self.testbench.ui.EmergencyStop.setChecked(True)
+                self.testbench.ui.EmergencyStop.setEnabled(True)
+                self.testbench.ui.PEmergencyStop.setText("Enabled")
+            else:
+                self.train_ui.button_emergency.setChecked(False)
+                self.train_ui.button_emergency.setEnabled(True)
+                self.testbench.ui.EmergencyStop.setChecked(False)
+                self.testbench.ui.EmergencyStop.setEnabled(False)
+                self.testbench.ui.PEmergencyStop.setText("Disabled")
 
     @staticmethod
     def read_wayside_data(ui, to_float_func):
@@ -167,14 +266,54 @@ class TrainModelApp(QMainWindow):
             self.train_ui.Announcement_2.setStyleSheet("font-size: 20px; font-weight: bold;")
 
         if hasattr(self.train_ui, "Temperature"):
-            display_temp = (updated["cabin_temp"])
+            display_temp = updated["cabin_temp"]
             self.train_ui.Temperature.setText(f"{display_temp:.2f} °F")
             self.train_ui.Temperature.setAlignment(Qt.AlignCenter)
 
         if hasattr(self.train_ui, "GradePercentage"):
             self.train_ui.GradePercentageValue.display(train_data["grade"])
+            
+        # color features for auxiliary functions based on TestBench UI state.
+        # For service brakes:
+        self.update_color(self.testbench.ui.ServiceBrakes.isChecked(),
+                    self.train_ui.ServiceBrakesOn,
+                    self.train_ui.ServiceBrakesOff)
+
+        # For exterior lights:
+        self.update_color(self.testbench.ui.ExtLights.isChecked(),
+                    self.train_ui.ExteriorLightsOn,
+                    self.train_ui.ExteriorLightsOff)
+
+        # For interior lights:
+        self.update_color(self.testbench.ui.IntLights.isChecked(),
+                    self.train_ui.InteriorLightsOn,
+                    self.train_ui.InteriorLightsOff)
+
+        # For left doors:
+        self.update_color(self.testbench.ui.LeftDoors.isChecked(),
+                    self.train_ui.LeftDoorOpen,
+                    self.train_ui.LeftDoorClosed)
+
+        # For right doors:
+        self.update_color(self.testbench.ui.RightDoors.isChecked(),
+                    self.train_ui.RightDoorOpen,
+                    self.train_ui.RightDoorClosed)
 
         self.testbench.update_status()
+
+    @staticmethod
+    def update_color(checked, widget_on, widget_off):
+        """Set style sheets based on a boolean condition.
+        
+        If checked is True, the "on" widget gets yellow and the "off" widget gets default;
+        otherwise, the "on" widget gets default and the "off" widget gets yellow.
+        """
+        if checked:
+            widget_off.setStyleSheet("background-color: none; color: black;")
+            widget_on.setStyleSheet("background-color: yellow; color: black;")
+        else:
+            widget_on.setStyleSheet("background-color: none; color: black;")
+            widget_off.setStyleSheet("background-color: yellow; color: black;")
 
     def init_failure_buttons(self):
         self.train_ui.Enabled1.setCheckable(True)
@@ -293,14 +432,14 @@ class TestBenchApp(QMainWindow):
             self.ui.TrainDriver.setChecked(False)
 
     def read_inputs(self):
-        f = TrainModelApp.to_float
-        wayside = TrainModelApp.read_wayside_data(self.ui, f)
-        lights = TrainModelApp.read_lights_doors_data(self.ui)
-        physical = TrainModelApp.read_train_physical_data(self.ui, f)
+        f = TrainModelFrontEnd.to_float
+        wayside = TrainModelFrontEnd.read_wayside_data(self.ui, f)
+        lights = TrainModelFrontEnd.read_lights_doors_data(self.ui)
+        physical = TrainModelFrontEnd.read_train_physical_data(self.ui, f)
         return wayside, lights, physical
 
     def update_status(self):
-        f = TrainModelApp.to_float
+        f = TrainModelFrontEnd.to_float
         cmd_speed = self.ui.WaysideSpeed.text()
         cmd_val = f(cmd_speed, -999)
         cmd_val_mph = cmd_val * self.train_app.simulator.MPS_TO_MPH
@@ -333,7 +472,7 @@ class TestBenchApp(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    window = TrainModelApp()
+    window = TrainModelFrontEnd()
     window.show()
     window.testbench.show()
     sys.exit(app.exec_())
