@@ -5,7 +5,7 @@ Description:
     The class implemented here builds on the generated QT desinger output for the wayside controller testbench ui.
 """
 import sys
-import wayside_constants
+import track_constants
 from PyQt5.QtWidgets import QApplication, QMainWindow, QListWidgetItem
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QIntValidator
@@ -21,9 +21,9 @@ class WaysideTestbenchWindow(QMainWindow):
     
     # Variables
     current_block_index = None # index to the lists below
-    block_occupancies = ["Unoccupied"] * wayside_constants.NUMBER_OF_BLOCKS # List containing the block occupancies
-    suggested_authorities = [None] * wayside_constants.NUMBER_OF_BLOCKS # List containing the suggested authorities
-    suggested_speeds = [None] * wayside_constants.NUMBER_OF_BLOCKS # List contianing the suggested speeds
+    block_occupancies = ["Unoccupied"] * track_constants.NUMBER_OF_BLOCKS # List containing the block occupancies
+    suggested_authorities = [None] * track_constants.NUMBER_OF_BLOCKS # List containing the suggested authorities
+    suggested_speeds = [None] * track_constants.NUMBER_OF_BLOCKS # List contianing the suggested speeds
 
 
     # Signals specifying which block and the value to update with

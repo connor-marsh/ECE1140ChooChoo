@@ -1,8 +1,7 @@
 import sys
-import track_constants
-import signals
-from wayside_controller_front import WaysideFrontend
-from wayside_controller_back import Controller
+from track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT
+#from wayside_controller_frontend import WaysideControllerFrontend
+from wayside_controller_backend import WaysideController
 
 
 class WaysideControllerCollection():
@@ -11,9 +10,26 @@ class WaysideControllerCollection():
     The front end that will display information about the currently selected wayside controller is also contained in this class.
     """
 
-    def __init__(self, line_name):
+    def __init__(self, line_name="GREEN"):
         """
-        the initialization function will use constants in reference to the line name
+        :param line_name: Selects controller count etc. depending on the line. Either "RED" or "GREEN"
         """
-        controllers = [Controller] * track_constants.CONTROLLER_COUNT[line_name]
-        frontend = WaysideFrontend
+
+        # Create a list of backends which will handle different territory, devices, etc.
+        self.controllers = [None] * CONTROLLER_COUNT[line_name]
+        for i in range(CONTROLLER_COUNT[line_name]):
+            self.controllers[i] = WaysideController(0.5, BLOCK_COUNT[line_name][i], 
+                                                          SWITCH_COUNT[line_name][i], 
+                                                          LIGHT_COUNT[line_name][i],
+                                                          CROSSING_COUNT[line_name][i])
+       
+        # Initialize the frontend with access to the collection so that it may modify itself or the backend using the data from the backend
+        #self.frontend = WaysideControllerFrontend(self)
+
+if __name__ == "__main__":
+          
+    collection = WaysideControllerCollection()
+    
+    # test that it initializes
+    print(collection.controllers[1].block_occupancies[1])
+
