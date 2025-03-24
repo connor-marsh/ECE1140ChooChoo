@@ -25,8 +25,12 @@ class WaysideController():
         self.previous_occupancies = [False] * num_blocks # List of previous block occupancies
         self.program = None  # User-defined program
 
-    def load_program(self, file_path):
-        """Dynamically load a user-defined Python PLC program."""
+    def load_program(self, file_path="Track\WaysideController\example_plc_program.py"):
+        """
+        Dynamically load a user-defined Python PLC program.
+        
+        :param file_path: The file path to the plc program
+        """
         try:
             spec = importlib.util.spec_from_file_location("plc_program", file_path)
             module = importlib.util.module_from_spec(spec)
