@@ -27,6 +27,8 @@ class WaysideControllerFrontend(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        self.init_tables()
+
         # example code for changing the window name, put in the update function for the ui.
         #self.ui.menuWayside_Controller_Blue_Line_1.setTitle(self.ui.section_select_combo_box.currentText())
 
@@ -43,6 +45,21 @@ class WaysideControllerFrontend(QMainWindow):
         """
         Sets it so that the tables fit the screen appropriately. Sets the number of rows and names them
         """
+        self.setup_table_dimension(self.ui.block_table)
+        self.setup_table_dimensions(self.ui.junction_table)
+
+    def setup_table_dimensions(self, table):
+        """
+        Used in table initialization, resizes the table to fit the desired space
+        
+        :param table: A QTableWidget
+        """
+
+        col_header = table.horizontalHeader()
+
+        # Make all columns stretch equally
+        for col in range(table.columnCount()):
+            col_header.setSectionResizeMode(col, QHeaderView.Stretch)
 
     def update_ui(self):
         """

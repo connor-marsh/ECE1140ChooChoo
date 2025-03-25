@@ -38,7 +38,7 @@
     </item>
     <item>
      <property name="text">
-      <string>Manual Mode</string>
+      <string>Maintenance Mode</string>
      </property>
     </item>
    </widget>
@@ -107,81 +107,6 @@
     <property name="editTriggers">
      <set>QAbstractItemView::NoEditTriggers</set>
     </property>
-    <row>
-     <property name="text">
-      <string>A1</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>A2</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>A3</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>A4</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>A5</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>B6</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>B7</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>B8</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>B9</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>B10</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>C11</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>C12</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>C13</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>C14</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>C15</string>
-     </property>
-    </row>
     <column>
      <property name="text">
       <string>Occupancy</string>
@@ -207,106 +132,6 @@
       <string>Commanded Authority</string>
      </property>
     </column>
-    <item row="0" column="0">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="0" column="1">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="0" column="2">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="0" column="4">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="1" column="0">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="1" column="1">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="1" column="2">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="1" column="4">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="2" column="0">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="2" column="1">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="2" column="2">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="2" column="4">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="3" column="0">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="3" column="1">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="3" column="2">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="3" column="4">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="4" column="0">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="4" column="1">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="4" column="2">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="4" column="4">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
    </widget>
    <widget class="QPushButton" name="import_plc_button">
     <property name="geometry">
@@ -350,7 +175,7 @@
      <string>Current Filename:</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="section_select_combo_box">
+   <widget class="QComboBox" name="controller_select_combo_box">
     <property name="geometry">
      <rect>
       <x>410</x>
@@ -367,11 +192,6 @@
     <property name="maxVisibleItems">
      <number>10</number>
     </property>
-    <item>
-     <property name="text">
-      <string>Blue Line #1</string>
-     </property>
-    </item>
    </widget>
    <widget class="QPushButton" name="confirm_button">
     <property name="geometry">
@@ -404,12 +224,12 @@
      <height>26</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuWayside_Controller_Blue_Line_1">
+   <widget class="QMenu" name="menu_bar">
     <property name="title">
-     <string>Wayside Controller Blue Line #1</string>
+     <string> </string>
     </property>
    </widget>
-   <addaction name="menuWayside_Controller_Blue_Line_1"/>
+   <addaction name="menu_bar"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
