@@ -1,7 +1,7 @@
 # backend.py
 import math
 
-class TrainModelBackEnd:
+class TrainModel:
     # Conversion factors and constants
     MPS_TO_MPH  = 2.23694
     KG_TO_LBS   = 2.20462
@@ -19,6 +19,7 @@ class TrainModelBackEnd:
         self.current_acceleration = 0.0
         self.previous_acceleration = 0.0
         self.cabin_temp = 25  # in Celsius
+        self.commanded_power = 0
 
     def update(self, dt, wayside_data, lights_doors_data, train_data, emergency_active):
         commanded_speed = wayside_data["commanded_speed"]
@@ -98,3 +99,7 @@ class TrainModelBackEnd:
             "velocity": new_velocity,
             "cabin_temp": display_temp
         }
+    
+    def update_from_testbench(self, data):
+        # Sample code
+        self.commanded_power = data["commanded_power"]
