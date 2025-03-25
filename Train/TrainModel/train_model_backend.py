@@ -1,4 +1,10 @@
 # backend.py
+
+# Load in TrainController backend
+# import sys
+# sys.path.append("./Train/TrainController")
+# from train_controller_main import TrainControllerWindow
+
 import math
 
 class TrainModel:
@@ -14,12 +20,34 @@ class TrainModel:
     MIN_SPEED_NO_BRAKE= 0.1       # (m/s)
 
     def __init__(self):
+
+        # internal values
+        self.controller = None # CHANGE THIS TO INSTANTIATE NEW CONTROLLER
         self.position = 0.0
         self.actual_velocity = 0.0  # Start at 0 velocity
         self.current_acceleration = 0.0
         self.previous_acceleration = 0.0
         self.cabin_temp = 25  # in Celsius
+
+        # communicated values: Train Controller
         self.commanded_power = 0
+        self.service_brakes = False
+        self.driver_emergency_brake = False
+        self.cabin_lights = False
+        self.headlights = False
+        self.left_doors = False
+        self.right_doors = False
+        self.announcement = ""
+
+        # communicated values: Track Model
+        self.wayside_speed = 0
+        self.wayside_authority = 0
+        self.beacon_data = ""
+
+    # NEW UPDATE
+    def update(self):
+        # do physics, ur storing all the data anyways
+        pass
 
     def update(self, dt, wayside_data, lights_doors_data, train_data, emergency_active):
         commanded_speed = wayside_data["commanded_speed"]
