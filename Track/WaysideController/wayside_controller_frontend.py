@@ -24,7 +24,7 @@ class WaysideControllerFrontend(QMainWindow):
         """
         super().__init__()
         self.collection = collection_reference
-        self.current_controller = 0 # Tells the ui which backend controller from the collection to reference
+        self.current_controller_index = 0 # Tells the ui which backend controller from the collection to reference
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -78,12 +78,12 @@ class WaysideControllerFrontend(QMainWindow):
         table.clearContents() # Reset the contents of the table so that new ones can be written later
 
        
-        if table.rowCount() < BLOCK_COUNT[self.collection.line_name][self.current_controller]: # if the current row count is less
+        if table.rowCount() < BLOCK_COUNT[self.collection.line_name][self.current_controller_index]: # if the current row count is less
             # For each row that needs to be added
-            for row in range(table.rowCount(), BLOCK_COUNT[self.collection.line_name][self.current_controller], 1):
+            for row in range(table.rowCount(), BLOCK_COUNT[self.collection.line_name][self.current_controller_index], 1):
                 table.insertRow(row) # insert until row count is equivalent
         else:
-            for row in range(table.rowCount(), BLOCK_COUNT[self.collection.line_name][self.current_controller], -1):   
+            for row in range(table.rowCount(), BLOCK_COUNT[self.collection.line_name][self.current_controller_index], -1):   
                 table.removeRow(row) # remove until row count is equivalent
         
 
@@ -96,12 +96,37 @@ class WaysideControllerFrontend(QMainWindow):
         """
         Called to updates the UI when the combo box specifying the current wayside controller changes. 
         """
+        self.current_controller_index = self.ui.controller_select_combo_box.currentIndex()
+        # make sure to update the menu label
+        # make sure to update the row count of the tables
+        # make sure to set the mode combo box to be the correct mode
+
 
 
     def handle_mode_selection(self):
         """
         Called to open a window to allow the programmer to input test values when the mode changes from auto -> maintenance
         """
+        # Make some temporary variables in this scope to help with reading
+        active_controller = self.self.collection.controllers[self.current_controller_index]
+        maintenance_mode = False # assume not in maintenance mode
+
+        # Check what the mode is
+        if self.ui.mode_select_combo_box.currentIndex() == 1 and not active_controller.maintenance_mode: # changing mode from auto to maintenance
+            # Perform a check to see if there exists a block in the territory that is occupied
+            for block in active_controller.block_occupancies:
+                if block == True:
+                    maintenance_mode = False
+                    self.ui.mode_select_combo_box.setCurrentIndex(0) # reset the combo box back to automatic to signal it could not be changed
+                    return # exit early to avoid opening the manual input window
+            maintenance_mode = True # No occupied blocks detected
+            
+            # Set the exit blocks to be occupied and open the test bench window
+
+            
+
+        # Update the backend so that the mode is correct
+        self.collection.controllers[self.current_controller_index].mantenance_mode = maintenance_mode
 
     def handle_input_program(self):
         """
