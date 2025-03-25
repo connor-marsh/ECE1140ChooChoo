@@ -28,12 +28,41 @@ class WaysideControllerFrontend(QMainWindow):
         self.ui.setupUi(self)
 
         # example code for changing the window name, put in the update function for the ui.
-        self.ui.menuWayside_Controller_Blue_Line_1.setTitle(self.ui.section_select_combo_box.currentText())
+        #self.ui.menuWayside_Controller_Blue_Line_1.setTitle(self.ui.section_select_combo_box.currentText())
 
         # read data from the collection to populate the combo box with num of controllers etc.
         # read data from the collection to generate rows in the table for blocks etc
         # read data from the currently indexed backend to show in the table
+    
+    def init_combo_box(self):
+        """
+        Responsible for populating the combo box for selecting wayside controllers with the appropriate text
+        """
+    
+    def init_tables(self):
+        """
+        Sets it so that the tables fit the screen appropriately. Sets the number of rows and names them
+        """
 
+    def update_ui(self):
+        """
+        Timer based update to read values from the backend and display them in the frontend
+        """
+    
+    def handle_controller_selection(self):
+        """
+        Called to updates the UI when the combo box specifying the current wayside controller changes. 
+        """
+
+    def handle_mode_selection(self):
+        """
+        Called to open a window to allow the programmer to input test values when the mode changes from auto -> maintenance
+        """
+
+    def handle_input_program(self):
+        """
+        Called when the programmer clicks the input program button. 
+        """
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     collection = WaysideControllerCollection("GREEN")
