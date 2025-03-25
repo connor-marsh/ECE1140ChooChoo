@@ -20,6 +20,8 @@ class WaysideControllerCollection():
         """
         :param line_name: Selects controller count etc. depending on the line. Either "RED" or "GREEN"
         """
+        
+        self.line_name = line_name # Keep the line name as a member variable
 
         # Create a list of backends which will handle different territory, devices, etc.
         self.controllers = [None] * CONTROLLER_COUNT[line_name]

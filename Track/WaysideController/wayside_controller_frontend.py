@@ -29,28 +29,32 @@ class WaysideControllerFrontend(QMainWindow):
         self.ui.setupUi(self)
 
         self.init_tables()
-
-        # example code for changing the window name, put in the update function for the ui.
-        #self.ui.menuWayside_Controller_Blue_Line_1.setTitle(self.ui.section_select_combo_box.currentText())
+        self.init_combo_box()
+        
 
         # read data from the collection to populate the combo box with num of controllers etc.
         # read data from the collection to generate rows in the table for blocks etc
         # read data from the currently indexed backend to show in the table
     
-    def update_combo_box(self):
+    def init_combo_box(self):
         """
         Responsible for populating the combo box for selecting wayside controllers with the appropriate text
         """
+        combo_box = self.ui.controller_select_combo_box
         for i in range(CONTROLLER_COUNT[self.collection.line_name]):
-            
+            controller_name = self.collection.line_name + " Line Controller #" + str(i + 1)
+            combo_box.addItem(controller_name)
 
+        self.ui.menu_bar.setTitle(combo_box.currentText())
     
     def init_tables(self):
         """
-        Sets it so that the tables fit the screen appropriately. Sets the number of rows and names them
+        Makes it so that the tables fit the screen appropriately. Also sets the number of rows to be in accordance with the current number of blocks
         """
-        self.setup_table_dimension(self.ui.block_table)
+        self.setup_table_dimensions(self.ui.block_table)
         self.setup_table_dimensions(self.ui.junction_table)
+        self.set_row_count(self.ui.block_table)
+        self.set_row_count(self.ui.junction_table)
 
     def setup_table_dimensions(self, table):
         """
@@ -64,6 +68,24 @@ class WaysideControllerFrontend(QMainWindow):
         # Make all columns stretch equally
         for col in range(table.columnCount()):
             col_header.setSectionResizeMode(col, QHeaderView.Stretch)
+    
+    def set_row_count(self, table):
+        """
+        Makes it so that the table row count matches the number of blocks in the corresponding wayside controller's territory
+
+        :param table: A QTableWidget
+        """
+        table.clearContents() # Reset the contents of the table so that new ones can be written later
+
+       
+        if table.rowCount() < BLOCK_COUNT[self.collection.line_name][self.current_controller]: # if the current row count is less
+            # For each row that needs to be added
+            for row in range(table.rowCount(), BLOCK_COUNT[self.collection.line_name][self.current_controller], 1):
+                table.insertRow(row) # insert until row count is equivalent
+        else:
+            for row in range(table.rowCount(), BLOCK_COUNT[self.collection.line_name][self.current_controller], -1):   
+                table.removeRow(row) # remove until row count is equivalent
+        
 
     def update_ui(self):
         """
@@ -74,6 +96,7 @@ class WaysideControllerFrontend(QMainWindow):
         """
         Called to updates the UI when the combo box specifying the current wayside controller changes. 
         """
+
 
     def handle_mode_selection(self):
         """
@@ -88,5 +111,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     collection = WaysideControllerCollection("GREEN")
     wayside_window = WaysideControllerFrontend(collection)
+    wayside_window.setWindowTitle("Wayside Controller Module")
     wayside_window.show()
     sys.exit(app.exec_())
