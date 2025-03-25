@@ -29,6 +29,7 @@ class WaysideController():
         self.crossing_signals = [False] * crossing_count # List of crossings [ACTIVE == True, INACTIVE == False]
         self.previous_occupancies = [False] * block_count # List of previous block occupancies [OCCUPIED == True, UNOCCUPIED == False]
         self.exit_blocks = [False] * exit_block_count # List of exit blocks [1 hot vector, SELECTED/CURRENT == True, NOT SELECTED == False ]
+        self.maintenence_mode = False # A boolean that indicates when the wayside controller is in maintenance mode.
         self.program = None  # User-defined program
 
     def load_program(self, file_path="Track\WaysideController\example_plc_program.py"):

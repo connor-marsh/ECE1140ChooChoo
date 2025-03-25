@@ -1,3 +1,9 @@
+"""
+Author: Connor Murray
+Date: 3/20/2025
+Description: 
+    A Class that implements any necessary logic for the Wayside Controller UI 
+"""
 import sys
 import os
 from wayside_controller_collection import WaysideControllerCollection
@@ -15,13 +21,14 @@ class WaysideControllerFrontend(QMainWindow):
         """
         :param collection_reference: Reference to the Wayside Collection object so that the UI can display the values in the backend
         """
+        super().__init__()
         self.collection = collection_reference
-
+        self.current_controller = 0 # Tells the ui which backend controller from the collection to reference 
         self.ui = Ui_MainWindow()
         self.ui.setupUi()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    main_window = WaysideControllerFrontend()
-    main_window.show()
+    wayside_window = WaysideControllerFrontend()
+    wayside_window.show()
     sys.exit(app.exec_())

@@ -1,3 +1,9 @@
+"""
+Author: Connor Murray
+Date: 3/20/2025
+Description: 
+    A Class that contains several WaysideControllers and a Frontend. Responsible for interfacing with the Track Model and CTC
+"""
 import sys
 from track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT
 #from wayside_controller_frontend import WaysideControllerFrontend
