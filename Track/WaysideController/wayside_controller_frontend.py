@@ -9,6 +9,7 @@ import os
 from wayside_controller_collection import WaysideControllerCollection
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
+from track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT
 from wayside_controller_ui import Ui_MainWindow
 
 class WaysideControllerFrontend(QMainWindow):
@@ -36,10 +37,13 @@ class WaysideControllerFrontend(QMainWindow):
         # read data from the collection to generate rows in the table for blocks etc
         # read data from the currently indexed backend to show in the table
     
-    def init_combo_box(self):
+    def update_combo_box(self):
         """
         Responsible for populating the combo box for selecting wayside controllers with the appropriate text
         """
+        for i in range(CONTROLLER_COUNT[self.collection.line_name]):
+            
+
     
     def init_tables(self):
         """
