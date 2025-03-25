@@ -1,6 +1,6 @@
 
 
-#These are from my old cold and will probably be removed
+#These are from my old code and will probably be removed
 NUMBER_OF_BLOCKS = 15 
 MAX_SPEED_LIMIT = 50 # kmh 
 MAX_AUTHORITY = 500 # m
