@@ -103,30 +103,29 @@ class WaysideControllerFrontend(QMainWindow):
 
 
 
-    def handle_mode_selection(self):
+    def handle_mode_selection(self): # maybe do not allow the user to change the active controller when in manual mode?
         """
         Called to open a window to allow the programmer to input test values when the mode changes from auto -> maintenance
         """
         # Make some temporary variables in this scope to help with reading
         active_controller = self.self.collection.controllers[self.current_controller_index]
-        maintenance_mode = False # assume not in maintenance mode
 
-        # Check what the mode is
+        # Check if the mode was changed, otherwise do nothing
         if self.ui.mode_select_combo_box.currentIndex() == 1 and not active_controller.maintenance_mode: # changing mode from auto to maintenance
             # Perform a check to see if there exists a block in the territory that is occupied
             for block in active_controller.block_occupancies:
                 if block == True:
-                    maintenance_mode = False
                     self.ui.mode_select_combo_box.setCurrentIndex(0) # reset the combo box back to automatic to signal it could not be changed
                     return # exit early to avoid opening the manual input window
-            maintenance_mode = True # No occupied blocks detected
-            
-            # Set the exit blocks to be occupied and open the test bench window
+                
+             # Set the exit blocks to be occupied and open the test bench window
+             # Open the test bench window probably other stuff todo as well but whale i cant think of it
+            active_controller.maintenance_mode = True # No occupied blocks detected can safely set the active mode to maintenance
+        elif self.ui.mode_select_combo_box.currentIndex() == 0 and active_controller.maintenance_mode: # changing mode from maintenance to auto
+            active_controller.maintenance_mode = False
+            # Reset the controller inputs, but can leave the controller outputs as is.
+            # close the testbench window
 
-            
-
-        # Update the backend so that the mode is correct
-        self.collection.controllers[self.current_controller_index].mantenance_mode = maintenance_mode
 
     def handle_input_program(self):
         """
