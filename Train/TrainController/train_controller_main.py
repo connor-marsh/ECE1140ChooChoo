@@ -7,8 +7,6 @@ NOTE: When inputting 50 as speed limit display shows sum weird for some reason
 """
 import sys
 import os
-import time
-import math
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
