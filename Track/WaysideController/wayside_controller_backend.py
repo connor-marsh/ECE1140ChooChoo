@@ -1,3 +1,9 @@
+"""
+Author: Connor Murray
+Date: 3/20/2025
+Description: 
+    A Class representing a singular Wayside Controller Device. This class runs the user input PLC program.
+"""
 import importlib.util
 import sys
 import time
@@ -158,7 +164,7 @@ class WaysideController():
 
 if __name__ == "__main__":
     # --- Load User PLC Program ---
-    controller = WaysideController(block_count=5, switch_count=3, light_count=1, crossing_count=1)
+    controller = WaysideController(block_count=5, switch_count=3, light_count=1, crossing_count=1, exit_block_count=1)
 
     while True:
         user_file = input("Enter the path to the PLC program file: ")
