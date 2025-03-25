@@ -6,23 +6,23 @@ import os
 class WaysideController():
     """
     Accepts a user created plc program at runtime and executes it.
-    
-    
     """
-    def __init__(self, scan_time=0.5, num_blocks=5, num_switches=3, num_lights=1, num_crossings=1):
+    def __init__(self, scan_time=0.5, block_count=5, switch_count=3, light_count=1, crossing_count=1, exit_block_count=1):
         """
         :param scan_time: PLC scan time
-        :param num_blocks: Nonnegative Integer number of input blocks to the PLC program
-        :param num_switches: Nonnegative Integer number of switches controlled by the PLC program
-        :param num_lights: Nonnegative Integer number of light signals controlled by the PLC program
-        :param num_crossings: Nonnegative Integer number of crossing signals controlled by the PLC program
+        :param block_count: Nonnegative Integer number of input blocks to the PLC program
+        :param switch_count: Nonnegative Integer number of switches controlled by the PLC program
+        :param light_count: Nonnegative Integer number of light signals controlled by the PLC program
+        :param crossing_count: Nonnegative Integer number of crossing signals controlled by the PLC program
+        :param exit_block_count: Nonnegative integer number of exit blocks that the territory of the wayside has
         """
         self.scan_time = scan_time  # PLC scan time
-        self.block_occupancies = [False] * num_blocks  # List of block occupancies
-        self.switch_positions = [False] * num_switches  # List of switch positions
-        self.light_signals = [False] * num_lights # List of light signals
-        self.crossing_signals = [False] * num_crossings # List of crossings
-        self.previous_occupancies = [False] * num_blocks # List of previous block occupancies
+        self.block_occupancies = [False] * block_count  # List of block occupancies [OCCUPIED == True, UNOCCUPIED == False]
+        self.switch_positions = [False] * switch_count  # List of switch positions
+        self.light_signals = [False] * light_count # List of light signals [GREEN == True, RED == False]
+        self.crossing_signals = [False] * crossing_count # List of crossings [ACTIVE == True, INACTIVE == False]
+        self.previous_occupancies = [False] * block_count # List of previous block occupancies [OCCUPIED == True, UNOCCUPIED == False]
+        self.exit_blocks = [False] * exit_block_count # List of exit blocks [1 hot vector, SELECTED/CURRENT == True, NOT SELECTED == False ]
         self.program = None  # User-defined program
 
     def load_program(self, file_path="Track\WaysideController\example_plc_program.py"):
@@ -39,7 +39,7 @@ class WaysideController():
             
             # Verify that the program has a valid plc_logic function
             if not hasattr(module, "plc_logic") or not callable(module.plc_logic):
-                raise ValueError("Error: The PLC program must define a callable 'plc_logic(block_occupancies, switch_positions, light_signals, crossing_signals, previous_occupancies)' function.")
+                raise ValueError("Error: The PLC program must define a callable 'plc_logic(block_occupancies, switch_positions, light_signals, crossing_signals, previous_occupancies, exit_blocks)' function.")
 
             self.program = module
 
@@ -71,10 +71,15 @@ class WaysideController():
         
         if not isinstance(self.previous_occupancies, list) or not all(isinstance(value, bool) for value in self.previous_occupancies):
             raise TypeError("Error: Previous occupancies must be a list of boolean values (True/False).")
+        
+        if not isinstance(self.exit_blocks, list) or not all(isinstance(value, bool) for value in self.exit_blocks):
+            raise TypeError("Error: Exit blocks must be a list of boolean values (True/False).")
 
     def test_program_logic(self):
         """Test if the user-defined PLC logic function modifies only booleans."""
-        test_switches, test_lights, test_crossings, test_previous = self.program.plc_logic(self.block_occupancies, self.switch_positions, self.light_signals, self.crossing_signals, self.previous_occupancies)
+        test_switches, test_lights, test_crossings = self.program.plc_logic(self.block_occupancies, self.switch_positions, 
+                                                                                           self.light_signals, self.crossing_signals, 
+                                                                                           self.previous_occupancies, self.exit_blocks)
 
         # Verify outputs after execution
         if not all(isinstance(value, bool) for value in test_switches):
@@ -86,17 +91,18 @@ class WaysideController():
         if not all(isinstance(value, bool) for value in test_crossings):
             raise TypeError("Error: The PLC logic function must only modify crossing signals as boolean (True/False).")
         
-        if not all(isinstance(value, bool) for value in test_previous):
-            raise TypeError("Error: The PLC logic function must only modify occupancies as boolean (True/False).")
+        #if not all(isinstance(value, bool) for value in test_previous):
+            #raise TypeError("Error: The PLC logic function must only modify occupancies as boolean (True/False).")
 
 
 
     def execute_cycle(self):
-        """Simulates one PLC scan cycle with type checking."""
+        """Runs one PLC scan cycle"""
         if self.program and hasattr(self.program, "plc_logic"):
             # Run the user-defined PLC logic
-            self.switch_positions, self.light_signals, self.crossing_signals, self.previous_occupancies = self.program.plc_logic(self.block_occupancies, self.switch_positions, 
-                                                                                                                                 self.light_signals, self.crossing_signals, self.previous_occupancies)
+            self.switch_positions, self.light_signals, self.crossing_signals = self.program.plc_logic(self.block_occupancies, self.switch_positions, 
+                                                                                                                                 self.light_signals, self.crossing_signals, 
+                                                                                                                                 self.previous_occupancies, self.exit_blocks)
 
     def get_user_input(self):
         """Prompts the user to input block occupancies as a list of booleans."""
@@ -132,20 +138,27 @@ class WaysideController():
                 print(f"\n❌ {e}")
                 continue
                       
-            self.execute_cycle()
+            self.execute_cycle() # Run a cycle of the PLC with the user inputs
 
 
+            # Print input and output results to the screen 
             print(f"\n🖥️ PLC Execution Results:")
-            print(f"  Block Occupancies:    {self.block_occupancies} ->")
+            print(f"INPUTS:")
+            print(f"  Block Occupancies:    {self.block_occupancies}")
+            print(f"  Previous Occupancies: {self.previous_occupancies}")
+            print(f"  Exit Blocks:          {self.exit_blocks}")
+            print(f"OUTPUTS:")
             print(f"  Switch Positions:     {self.switch_positions}")
             print(f"  Light Signals:        {self.light_signals}")
             print(f"  Crossing Signals:     {self.crossing_signals}")
+
+            self.previous_occupancies = self.block_occupancies # Update the previous blocks to be the input to the previous cycle
             time.sleep(self.scan_time)  # Simulate PLC scan time
 
 
 if __name__ == "__main__":
     # --- Load User PLC Program ---
-    controller = WaysideController(num_blocks=5, num_switches=3, num_lights=1, num_crossings=1)
+    controller = WaysideController(block_count=5, switch_count=3, light_count=1, crossing_count=1)
 
     while True:
         user_file = input("Enter the path to the PLC program file: ")

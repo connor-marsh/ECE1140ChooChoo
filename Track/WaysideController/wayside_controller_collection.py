@@ -1,5 +1,5 @@
 import sys
-from track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT
+from track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT
 #from wayside_controller_frontend import WaysideControllerFrontend
 from wayside_controller_backend import WaysideController
 
@@ -18,10 +18,8 @@ class WaysideControllerCollection():
         # Create a list of backends which will handle different territory, devices, etc.
         self.controllers = [None] * CONTROLLER_COUNT[line_name]
         for i in range(CONTROLLER_COUNT[line_name]):
-            self.controllers[i] = WaysideController(0.5, BLOCK_COUNT[line_name][i], 
-                                                          SWITCH_COUNT[line_name][i], 
-                                                          LIGHT_COUNT[line_name][i],
-                                                          CROSSING_COUNT[line_name][i])
+            self.controllers[i] = WaysideController(0.5, BLOCK_COUNT[line_name][i], SWITCH_COUNT[line_name][i], 
+                                                          LIGHT_COUNT[line_name][i], CROSSING_COUNT[line_name][i], EXIT_BLOCK_COUNT[line_name][i])
        
         # Initialize the frontend with access to the collection so that it may modify itself or the backend using the data from the backend
         #self.frontend = WaysideControllerFrontend(self)
