@@ -23,12 +23,20 @@ class WaysideControllerFrontend(QMainWindow):
         """
         super().__init__()
         self.collection = collection_reference
-        self.current_controller = 0 # Tells the ui which backend controller from the collection to reference 
+        self.current_controller = 0 # Tells the ui which backend controller from the collection to reference
         self.ui = Ui_MainWindow()
-        self.ui.setupUi()
+        self.ui.setupUi(self)
+
+        # example code for changing the window name, put in the update function for the ui.
+        self.ui.menuWayside_Controller_Blue_Line_1.setTitle(self.ui.section_select_combo_box.currentText())
+
+        # read data from the collection to populate the combo box with num of controllers etc.
+        # read data from the collection to generate rows in the table for blocks etc
+        # read data from the currently indexed backend to show in the table
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    wayside_window = WaysideControllerFrontend()
+    collection = WaysideControllerCollection("GREEN")
+    wayside_window = WaysideControllerFrontend(collection)
     wayside_window.show()
     sys.exit(app.exec_())
