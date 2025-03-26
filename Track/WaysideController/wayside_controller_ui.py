@@ -98,6 +98,7 @@ class Ui_MainWindow(object):
         self.menubar.setGeometry(QtCore.QRect(0, 0, 826, 26))
         self.menubar.setObjectName("menubar")
         self.menu_bar = QtWidgets.QMenu(self.menubar)
+        self.menu_bar.setTitle("")
         self.menu_bar.setObjectName("menu_bar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -110,7 +111,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Wayside Controller Module"))
         self.mode_select_combo_box.setItemText(0, _translate("MainWindow", "Automatic Mode"))
         self.mode_select_combo_box.setItemText(1, _translate("MainWindow", "Maintenance Mode"))
         item = self.junction_table.verticalHeaderItem(0)
@@ -137,7 +138,6 @@ class Ui_MainWindow(object):
         self.import_plc_button.setText(_translate("MainWindow", "Import PLC File"))
         self.current_filename_label.setText(_translate("MainWindow", "Current Filename:"))
         self.confirm_button.setText(_translate("MainWindow", "Confirm"))
-        self.menu_bar.setTitle(_translate("MainWindow", " "))
 
 
 if __name__ == "__main__":

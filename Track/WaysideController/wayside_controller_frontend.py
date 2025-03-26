@@ -10,7 +10,8 @@ from wayside_controller_collection import WaysideControllerCollection
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT
-from wayside_controller_ui import Ui_MainWindow
+from wayside_controller_ui import Ui_MainWindow as WaysideUi
+
 
 class WaysideControllerFrontend(QMainWindow):
     """
@@ -25,7 +26,7 @@ class WaysideControllerFrontend(QMainWindow):
         super().__init__()
         self.collection = collection_reference
         self.current_controller_index = 0 # Tells the ui which backend controller from the collection to reference
-        self.ui = Ui_MainWindow()
+        self.ui = WaysideUi()
         self.ui.setupUi(self)
 
         self.init_tables()
