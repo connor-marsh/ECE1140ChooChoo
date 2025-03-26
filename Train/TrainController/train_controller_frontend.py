@@ -16,7 +16,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt5.QtCore import QTimer, QTime
 
 from train_controller_ui import Ui_MainWindow as TrainControllerUI
-from train_controller_testbench_ui import Ui_TestBenchWindow as TrainControllerTestbenchUI
+from train_controller_testbench import TrainControllerTestbench
 
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
@@ -30,7 +30,7 @@ class TrainControllerFrontend(QMainWindow):
         self.ui = TrainControllerUI()
         self.ui.setupUi(self)
         # Defaults for the UI
-        self.ui.cabin_temperature_spin_box.setValue(int(temp_conversion(self.desired_temperature)))
+        self.ui.cabin_temperature_spin_box.setValue(70)
 
         # Set up buttons to read inputs from UI
         self.ui.control_constants_apply_button.clicked.connect(self.set_k_constants)
@@ -48,9 +48,6 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.door_left_button.toggled.connect(self.handle_left_door)
         self.ui.emergency_button.toggled.connect(self.handle_emergency_button)
 
-        # Set up the button to read inputs and set the values from testbench
-        self.testbench.ui.tb_input_apply_button.clicked.connect(self.read_testbench_inputs)
-
         # Set up timer for callback/update function
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
@@ -64,9 +61,11 @@ class TrainControllerFrontend(QMainWindow):
 
     def update(self):
         # Set the display values
+        if not self.current_train:
+            return
         self.display_actual_speed(str(self.current_train.actual_speed))
         self.display_speed_limit(str(self.current_train.speed_limit))
-        self.display_authority(str(self.current_train.commanded_authority))
+        self.display_authority(str(self.current_train.wayside_authority))
         self.display_cabin_temperature(str(self.current_train.temperature_status))
         self.display_commanded_power(self.current_train.commanded_power)
 
@@ -90,7 +89,7 @@ class TrainControllerFrontend(QMainWindow):
         self.activate_signal_failure() if self.current_train.signal_failure else self.deactivate_signal_failure()
         self.activate_brake_failure() if self.current_train.brake_failure else self.deactivate_brake_failure()
         self.activate_engine_failure() if self.current_train.engine_failure else self.deactivate_engine_failure()
-        if self.passenger_emergency_stop:
+        if self.current_train.emergency_brake:
             self.activate_emergency_brake()
 
         # Set the Input temperature
@@ -102,16 +101,16 @@ class TrainControllerFrontend(QMainWindow):
 
         # Set next station and on air light
         self.display_next_station()
-        self.activate_announcement_light() if self.current_train.announcement else self.deactivate_announcement_light()
+        # self.activate_announcement_light() if self.current_train.announcement else self.deactivate_announcement_light()
 
-    def activate_announcement_light(self):
-        self.ui.announcement_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
+    # def activate_announcement_light(self):
+    #     self.ui.announcement_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
 
-    def deactivate_announcement_light(self):
-        self.ui.announcement_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+    # def deactivate_announcement_light(self):
+    #     self.ui.announcement_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
 
     def display_next_station(self):
-        self.ui.next_station_label.setText(self.next_station)
+        self.ui.next_station_label.setText(self.current_train.next_station)
 
     def activate_service_brake(self):
         self.ui.service_brake_on_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
@@ -122,8 +121,8 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.service_brake_off_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
 
     def set_driver_target_speed(self):
-        self.driver_target_speed = speed_conversion_in(self.ui.target_speed_spin_box.value()) # TODO: needs to be converted to m/s
-        self.ui.target_speed_lcd.display(speed_conversion(self.driver_target_speed))
+        self.driver_target_speed = self.ui.target_speed_spin_box.value() # TODO: needs to be converted to m/s
+        self.ui.target_speed_lcd.display(self.driver_target_speed)
 
     def display_commanded_power(self, power):
         self.ui.commanded_power_lcd.display(power)
@@ -259,9 +258,15 @@ class TrainControllerFrontend(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     from train_collection import TrainCollection
-    train_controller_frontend = TrainControllerFrontend(TrainCollection())
+    
+    train_controller_frontend = TrainControllerFrontend(None)
+    collection = TrainCollection(num_trains=3, controller=train_controller_frontend)
+    train_controller_frontend.collection = collection
+    train_controller_frontend.current_train = collection.train_list[0]
     train_controller_frontend.show()
-    train_controller_frontend.testbench.show()
+
+    train_controller_testbench = TrainControllerTestbench(collection)
+    train_controller_testbench.show()
     sys.exit(app.exec_())
 
 if __name__ == "__main__":

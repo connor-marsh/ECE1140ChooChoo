@@ -32,6 +32,8 @@ class TrainModel:
         self.left_doors = False
         self.right_doors = False
         self.announcement = ""
+        self.heating = False
+        self.air_conditioning = False
 
         # communicated values: Track Model
         self.wayside_speed = 0
@@ -157,3 +159,6 @@ class TrainModel:
             self.left_doors = selected_data["left_doors"]
             self.right_doors = selected_data["right_doors"]
             self.announcement = selected_data["announcements"]
+            self.heating = selected_data["heating"]
+            self.air_conditioning = selected_data["air_conditioning"]
+            

@@ -22,17 +22,31 @@ import sys
 sys.path.append("./Train/TrainModel")
 sys.path.append("./Train/TrainController")
 from train_model_backend import TrainModel
+from train_controller_backend import TrainController
 
 class TrainCollection:
-    def __init__(self, num_trains=0):
-        self.train_list = []
-        for _ in range(num_trains):
-            self.createTrain()
-        # Lazy import to avoid circular dependency:
-        from train_model_frontend import TrainModelFrontEnd
-        self.train_model_ui = TrainModelFrontEnd(self)  # Pass self to front-end
-        from train_controller_frontend import TrainControllerFrontEnd
-        self.train_controller_ui = TrainControllerFrontEnd(self)
+    def __init__(self, num_trains=0, model=None, controller=None):
+        # If model or controller != None, then we are running a single module with a testbench
+        if model:
+            self.train_model_ui = model
+            self.train_controller_ui = None
+        elif controller:
+            self.train_controller_ui = controller
+            self.train_model_ui = None
+            self.train_list = []
+            for _ in range(num_trains):
+                self.train_list.append(TrainController())
+        else:
+            # Lazy import to avoid circular dependency:
+            from train_model_frontend import TrainModelFrontEnd
+            self.train_model_ui = TrainModelFrontEnd(self)  # Pass self to front-end
+            from train_controller_frontend import TrainControllerFrontEnd
+            self.train_controller_ui = TrainControllerFrontEnd(self)
+
+        if not controller:
+            self.train_list = []
+            for _ in range(num_trains):
+                self.createTrain()
 
     def createTrain(self):
         # Create a new TrainModel and append it to the list.
