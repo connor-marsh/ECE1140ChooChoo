@@ -25,7 +25,8 @@ class TrainModelFrontEnd(QMainWindow):
         self.train_collection = collection
 
         # Use the current_train from the collection.
-        self.current_train = None
+        #self.current_train = None
+        self.current_train = self.train_collection.current_train
 
         # Setup dropdown for selecting a train model.
         self.setup_train_dropdown()
@@ -41,7 +42,7 @@ class TrainModelFrontEnd(QMainWindow):
         # Initialize physics and clock timers.
         self.prev_time = None
         self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_from_testbench)
+        self.timer.timeout.connect(self.update)
         self.timer.start(100)  # 10 Hz update
 
         self.simulated_time = QTime(11, 59, 0)
@@ -154,18 +155,18 @@ class TrainModelFrontEnd(QMainWindow):
             # self.load_train_data()
             # self.load_sim_state()
             # Update emergency brake state.
-            if self.current_train.ui_data.get("emergency_brake", False):
-                self.train_ui.button_emergency.setChecked(True)
-                self.train_ui.button_emergency.setEnabled(False)
-                self.testbench.ui.EmergencyStop.setChecked(True)
-                self.testbench.ui.EmergencyStop.setEnabled(True)
-                self.testbench.ui.PEmergencyStop.setText("Enabled")
-            else:
-                self.train_ui.button_emergency.setChecked(False)
-                self.train_ui.button_emergency.setEnabled(True)
-                self.testbench.ui.EmergencyStop.setChecked(False)
-                self.testbench.ui.EmergencyStop.setEnabled(False)
-                self.testbench.ui.PEmergencyStop.setText("Disabled")
+            # if self.current_train.ui_data.get("emergency_brake", False):
+            #     self.train_ui.button_emergency.setChecked(True)
+            #     self.train_ui.button_emergency.setEnabled(False)
+            #     self.testbench.ui.EmergencyStop.setChecked(True)
+            #     self.testbench.ui.EmergencyStop.setEnabled(True)
+            #     self.testbench.ui.PEmergencyStop.setText("Enabled")
+            # else:
+            #     self.train_ui.button_emergency.setChecked(False)
+            #     self.train_ui.button_emergency.setEnabled(True)
+            #     self.testbench.ui.EmergencyStop.setChecked(False)
+            #     self.testbench.ui.EmergencyStop.setEnabled(False)
+            #     self.testbench.ui.PEmergencyStop.setText("Disabled")
 
     # @staticmethod
     # def read_wayside_data(ui, to_float_func):
@@ -231,13 +232,13 @@ class TrainModelFrontEnd(QMainWindow):
         dt = (current_time - self.prev_time) / 1000.0
         self.prev_time = current_time
 
-        # # Step 1: Let the testbench do the merging into backend
-        # self.testbench.update_train_model()
+        # Merge testbench input into the backend.
+        self.testbench.update_train_model()
+        
+        # Now update the physics.
+        self.current_train.update(dt)
 
-        # # Step 2: Now do the physics
-        # updated = self.current_train.backend.update(dt)
-
-        # Step 3: Extract sub-values from the merged ui_data
+        # Extract sub-values from the merged ui_data
         #    (Because the testbench + update_from_testbench merged them)
         # ui_data = self.current_train.backend.ui_data
         # wayside_data = {
@@ -264,57 +265,78 @@ class TrainModelFrontEnd(QMainWindow):
         #     "width_m": ui_data.get("width_m", 0.0),
         # }
 
-        # Step 4: Use 'updated' plus these sub-dicts to update the front-end UI
-        # updated = self.current_train.backend.update(dt)
-        self.current_train.backend.current_acceleration = updated["current_acceleration"]
-        self.current_train.backend.actual_velocity = updated["velocity"]
-
-        velocity_mph = self.current_train.backend.actual_velocity * self.current_train.backend.MPS_TO_MPH
-        cmd_speed_mph = wayside_data["commanded_speed"] * self.current_train.backend.MPS_TO_MPH
-        speed_limit_mph = wayside_data["speed_limit"] * self.current_train.backend.MPS_TO_MPH
-        acceleration_fts2 = self.current_train.backend.current_acceleration * 3.281
-
+        # Directly use attributes:
+        velocity_mph = self.current_train.actual_velocity * self.current_train.MPS_TO_MPH
+        cmd_speed_mph = self.current_train.wayside_speed * self.current_train.MPS_TO_MPH
+        try:
+            speed_limit = self.current_train.speed_limit
+        except AttributeError:
+            speed_limit = 0.0
+        speed_limit_mph = speed_limit * self.current_train.MPS_TO_MPH
+        
+        acceleration_fts2 = self.current_train.current_acceleration * 3.281
+        commanded_power = self.current_train.commanded_power
+        
         self.train_ui.AccValue.display(acceleration_fts2)
         self.train_ui.SpeedValue.display(velocity_mph)
         self.train_ui.CommandedSpeedValue.display(cmd_speed_mph)
         self.train_ui.SpeedLimitValue.display(speed_limit_mph)
-        self.train_ui.PowerValue.display(wayside_data["commanded_power"] / 1000.0)
+        self.train_ui.PowerValue.display(commanded_power / 1000.0)
 
-        mass_lbs = train_data["mass_kg"] * self.current_train.backend.KG_TO_LBS
+        # For physical properties, assume they are now stored in the (or use defaults)
+        try:
+            mass_kg = self.current_train.mass_kg
+            grade = self.current_train.grade
+            passenger_count = self.current_train.passenger_count
+            crew_count = self.current_train.crew_count
+            length_m = self.current_train.length_m
+            height_m = self.current_train.height_m
+            width_m = self.current_train.width_m
+        except AttributeError:
+            mass_kg = 37103.86
+            grade = 0.0
+            passenger_count = 0.0
+            crew_count = 2.0
+            length_m = 32.2
+            height_m = 3.42
+            width_m = 2.65
+
+        mass_lbs = mass_kg * self.current_train.KG_TO_LBS
         self.train_ui.MassVehicleValue.display(mass_lbs)
-        self.train_ui.PassengerCountValue.display(train_data["passenger_count"])
-        self.train_ui.CrewCountValue.display(train_data["crew_count"])
-        self.train_ui.LengthVehicleValue.display(train_data["length_m"] * self.current_train.backend.M_TO_FT)
-        self.train_ui.HeightValue.display(train_data["height_m"] * self.current_train.backend.M_TO_FT)
-        self.train_ui.WidthValue.display(train_data["width_m"] * self.current_train.backend.M_TO_FT)
+        self.train_ui.PassengerCountValue.display(passenger_count)
+        self.train_ui.CrewCountValue.display(crew_count)
+        self.train_ui.LengthVehicleValue.display(length_m * self.current_train.M_TO_FT)
+        self.train_ui.HeightValue.display(height_m * self.current_train.M_TO_FT)
+        self.train_ui.WidthValue.display(width_m * self.current_train.M_TO_FT)
 
+        # Announcements from:
+        announcements = self.current_train.announcement
         if hasattr(self.train_ui, "Announcement_2"):
-            announcements = lights_data["announcements"]
             self.train_ui.Announcement_2.setText(announcements)
             self.train_ui.Announcement_2.setStyleSheet("font-size: 20px; font-weight: bold;")
 
         if hasattr(self.train_ui, "Temperature"):
-            display_temp = updated["cabin_temp"]
+            display_temp = self.current_train.cabin_temp * 9 / 5 + 32
             self.train_ui.Temperature.setText(f"{display_temp:.2f} °F")
             self.train_ui.Temperature.setAlignment(Qt.AlignCenter)
 
         if hasattr(self.train_ui, "GradePercentage"):
-            self.train_ui.GradePercentageValue.display(train_data["grade"])
+            self.train_ui.GradePercentageValue.display(grade)
             
-        # color features for auxiliary functions based on TestBench UI state.
-        self.update_color(self.testbench.ui.ServiceBrakes.isChecked(),
+        # Color features for auxiliary functions still rely on TestBench UI state.
+        self.update_color(self.current_train.service_brakes,
                           self.train_ui.ServiceBrakesOn,
                           self.train_ui.ServiceBrakesOff)
-        self.update_color(self.testbench.ui.ExtLights.isChecked(),
+        self.update_color(self.current_train.headlights,
                           self.train_ui.ExteriorLightsOn,
                           self.train_ui.ExteriorLightsOff)
-        self.update_color(self.testbench.ui.IntLights.isChecked(),
+        self.update_color(self.current_train.cabin_lights,
                           self.train_ui.InteriorLightsOn,
                           self.train_ui.InteriorLightsOff)
-        self.update_color(self.testbench.ui.LeftDoors.isChecked(),
+        self.update_color(self.current_train.left_doors,
                           self.train_ui.LeftDoorOpen,
                           self.train_ui.LeftDoorClosed)
-        self.update_color(self.testbench.ui.RightDoors.isChecked(),
+        self.update_color(self.current_train.right_doors,
                           self.train_ui.RightDoorOpen,
                           self.train_ui.RightDoorClosed)
 
