@@ -129,24 +129,31 @@ class TrainModel:
             "cabin_temp": display_temp
         }
     
-    def update_from_testbench(self, wayside_data, lights_doors_data, train_physical_data, emergency_active):
-        # Have it so that whatever data is entered in testbench gets stored in the variables, which gets then gets called in the frontend
-        self.commanded_power = wayside_data["commanded_power"]
-        self.service_brakes = lights_doors_data["service_brakes"]
-        self.driver_emergency_brake = emergency_active
-        self.cabin_lights = lights_doors_data["int_lights"]
-        self.headlights = lights_doors_data["ext_lights"]
-        self.left_doors = lights_doors_data["left_doors"]
-        self.right_doors = lights_doors_data["right_doors"]
-        self.announcement = lights_doors_data["announcements"]
-        self.wayside_speed = train_physical_data["commanded_speed"]
-        self.wayside_authority = train_physical_data["authority"]
-        self.beacon_data = train_physical_data["beacon_data"]
+    def set_input_data(self, testbench_data=None, wayside_data=None, train_controller_data=None):
+        selected_data = None
+        selected = ""
 
-        # # Merge the data from the testbench into a single dictionary and store in ui_data.
-        # merged = {}
-        # merged.update(wayside_data)
-        # merged.update(lights_data)
-        # merged.update(physical_data)
-        # merged['emergency_brake'] = emergency_active
-        # self.ui_data = merged
+        if testbench_data:
+            selected_data = testbench_data
+            selected = "testbench"
+        elif wayside_data:
+            selected_data = wayside_data
+            selected = "wayside"
+        elif train_controller_data:
+            selected_data = train_controller_data
+            selected = "train_controller"
+
+        if selected == "testbench" or selected == "wayside":
+            self.wayside_speed = selected_data["commanded_speed"]
+            self.wayside_authority = selected_data["authority"]
+            self.beacon_data = selected_data["beacon_data"]
+        
+        if selected == "testbench" or selected == "train_controller":
+            self.commanded_power = selected_data["commanded_power"]
+            self.service_brakes = selected_data["service_brakes"]
+            self.driver_emergency_brake = selected_data["emergency_active"]
+            self.cabin_lights = selected_data["int_lights"]
+            self.headlights = selected_data["ext_lights"]
+            self.left_doors = selected_data["left_doors"]
+            self.right_doors = selected_data["right_doors"]
+            self.announcement = selected_data["announcements"]
