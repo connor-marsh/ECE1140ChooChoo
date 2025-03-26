@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 from wayside_controller_collection import WaysideControllerCollection
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem, QFileDialog
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer
 from track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT
 from wayside_controller_ui import Ui_MainWindow as WaysideUi
 
@@ -27,13 +27,24 @@ class WaysideControllerFrontend(QMainWindow):
         super().__init__()
         self.collection = collection_reference
         self.current_controller_index = 0 # Tells the ui which backend controller from the collection to reference
-        self.ui = WaysideUi()
-        self.ui.setupUi(self)
+        self.ui = WaysideUi() # create a ui from the exported file
+        self.ui.setupUi(self) 
         
-        self.init_tables()
+        # Initialize any Ui elements that are dynamic
+        self.init_tables_lists()
         self.init_combo_box()
         
+        # Create a timer
+        self.timer = QTimer(self)
+        self.timer.setInterval(100)
+        self.timer.start()
+        
+        # Connect Signals to Slots
         self.ui.import_plc_button.clicked.connect(self.handle_input_program)
+        self.ui.controller_select_combo_box.currentIndexChanged.connect(self.handle_controller_selection)
+        self.ui.mode_select_combo_box.currentIndexChanged.connect(self.handle_mode_selection)
+        self.timer.timeout.connect(self.update_ui)
+
         # read data from the collection to populate the combo box with num of controllers etc.
         # read data from the collection to generate rows in the table for blocks etc
         # read data from the currently indexed backend to show in the table
@@ -49,14 +60,13 @@ class WaysideControllerFrontend(QMainWindow):
 
         self.ui.menu_bar.setTitle(combo_box.currentText())
     
-    def init_tables(self):
+    def init_tables_lists(self):
         """
         Makes it so that the tables fit the screen appropriately. Also sets the number of rows to be in accordance with the current number of blocks
         """
         self.setup_table_dimensions(self.ui.block_table)
-        self.setup_table_dimensions(self.ui.junction_table)
         self.set_row_count(self.ui.block_table)
-        self.set_row_count(self.ui.junction_table)
+
 
     def setup_table_dimensions(self, table):
         """
@@ -77,15 +87,12 @@ class WaysideControllerFrontend(QMainWindow):
 
         :param table: A QTableWidget
         """
-        table.clearContents() # Reset the contents of the table so that new ones can be written later
 
-       
         if table.rowCount() < BLOCK_COUNT[self.collection.line_name][self.current_controller_index]: # if the current row count is less
-            # For each row that needs to be added
-            for row in range(table.rowCount(), BLOCK_COUNT[self.collection.line_name][self.current_controller_index], 1):
+            for row in range(table.rowCount(), BLOCK_COUNT[self.collection.line_name][self.current_controller_index]):
                 table.insertRow(row) # insert until row count is equivalent
-        else:
-            for row in range(table.rowCount(), BLOCK_COUNT[self.collection.line_name][self.current_controller_index], -1):   
+        elif table.rowCount() > BLOCK_COUNT[self.collection.line_name][self.current_controller_index]:
+            for row in range(BLOCK_COUNT[self.collection.line_name][self.current_controller_index], table.rowCount()):
                 table.removeRow(row) # remove until row count is equivalent
         
     @pyqtSlot()
@@ -93,24 +100,35 @@ class WaysideControllerFrontend(QMainWindow):
         """
         Timer based update to read values from the backend and display them in the frontend
         """
-    
-    @pyqtSlot()
-    def handle_controller_selection(self):
+        self.set_row_count(self.ui.block_table)
+        #self.set_row_count(self.ui.junction_table)
+        # make several lists, Switch pos. | Lights | Crossings
+        # then update functions for those
+
+    @pyqtSlot(int)
+    def handle_controller_selection(self, index):
         """
-        Called to updates the UI when the combo box specifying the current wayside controller changes. 
+        Called to updates the UI when the combo box specifying the current wayside controller changes.
+
+        :param index: The index sent from the controller select combo box
         """
-        self.current_controller_index = self.ui.controller_select_combo_box.currentIndex()
+        if index != self.current_controller_index:
+            self.current_controller_index = index
+            self.ui.menu_bar.setTitle(self.ui.controller_select_combo_box.currentText())
+            
         # make sure to update the menu label
         # make sure to update the row count of the tables
-        # make sure to set the mode combo box to be the correct mode
+        # make sure to set the mode combo box to be the correct mode?
 
-    @pyqtSlot()
-    def handle_mode_selection(self): # maybe do not allow the user to change the active controller when in manual mode?
+    @pyqtSlot(int)
+    def handle_mode_selection(self, index): # maybe do not allow the user to change the active controller when in manual mode?
         """
         Called to open a window to allow the programmer to input test values when the mode changes from auto -> maintenance
+
+        :param index: The index sent by the mode selection combo box
         """
         # Make some temporary variables in this scope to help with reading
-        active_controller = self.self.collection.controllers[self.current_controller_index]
+        active_controller = self.self.collection.controllers[index]
 
         # Check if the mode was changed, otherwise do nothing
         if self.ui.mode_select_combo_box.currentIndex() == 1 and not active_controller.maintenance_mode: # changing mode from auto to maintenance
@@ -137,11 +155,13 @@ class WaysideControllerFrontend(QMainWindow):
 
         while True:
             program_file_path, _ = QFileDialog.getOpenFileName(self, "Select PLC Program", "", "Python File (*.py);;All Files (*)")
-            if active_controller.load_program(program_file_path):
-                filename = Path(program_file_path).name
-                self.ui.current_filename_label.setText("Current File: " + filename)
+            if program_file_path:
+                if active_controller.load_program(program_file_path):
+                    filename = Path(program_file_path).name
+                    self.ui.current_filename_label.setText("Current File: " + filename)
+                    break
+            else:
                 break
-            
                 
 
 
