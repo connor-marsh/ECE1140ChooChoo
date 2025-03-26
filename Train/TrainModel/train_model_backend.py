@@ -46,6 +46,9 @@ class TrainModel:
         self.length_m = 32.2
         self.height_m = 3.42
         self.width_m = 2.65
+        self.grade = 0.0 # percent
+        self.passenger_count = 0 
+        self.speed_limit = 0.0 # m/s
 
         # # For UI data and simulation state storage:
         # self.ui_data = {}
@@ -78,7 +81,7 @@ class TrainModel:
         net_force = dyn_force - grav_force
         a_base = net_force / self.mass_kg if self.mass_kg != 0 else 0.0
 
-        if self.emergency_active:
+        if self.driver_emergency_brake:
             target_a = self.EMERGENCY_DECEL - self.GRAVITY * math.sin(theta)
             self.current_acceleration = target_a
         elif self.service_brakes:
@@ -115,20 +118,20 @@ class TrainModel:
         self.actual_velocity = new_velocity
         self.current_acceleration = final_acceleration
 
-        brake_off = (not self.emergency_active) and (not self.service_brakes)
+        brake_off = (not self.driver_emergency_brake) and (not self.service_brakes)
         if brake_off and new_velocity < self.MIN_SPEED_NO_BRAKE:
             new_velocity = self.MIN_SPEED_NO_BRAKE
 
         # Temperature control logic
-        degrees_per_second = 0.005
-        if self.heat_signal and not self.ac_signal:
+        degrees_per_second = 0.05
+        if self.heating and not self.air_conditioning:
             dtemp = degrees_per_second * dt
-        elif self.ac_signal and not self.heat_signal:
+        elif self.air_conditioning and not self.heating:
             dtemp = -degrees_per_second * dt
-        elif self.ac_signal and self.heat_signal:
+        elif self.air_conditioning and self.heating:
             dtemp = 0.0
         else:
-            dtemp = 0.0005
+            dtemp = 0.0001
         self.cabin_temp += dtemp
         display_temp = (self.cabin_temp * 1.8) + 32
 
@@ -160,8 +163,8 @@ class TrainModel:
         if selected == "testbench" or selected == "train_controller":
             # clamo the commanded power to 120kW
             commanded_power = selected_data.get("commanded_power", self.commanded_power)
-            if commanded_power > 120:
-                commanded_power = 120.0
+            if commanded_power > 1200:
+                commanded_power = 1200.0
             elif commanded_power < 0:
                 commanded_power = 0.0
             self.commanded_power = commanded_power
@@ -184,7 +187,11 @@ class TrainModel:
                 grade = 0.0
             self.grade = grade
             self.passenger_count = selected_data.get("passenger_count", self.passenger_count)
-            # self.crew_count = selected_data.get("crew_count", self.crew_count)
+            
+            # update mass_kg based on passenger count
+            self.crew_count = selected_data.get("crew_count", self.crew_count)
+            self.mass_kg = 37103.86 + (self.passenger_count * 70) + (self.crew_count * 70)
+            
             # self.mass_kg = selected_data.get("mass_kg", self.mass_kg)
             # self.length_m = selected_data.get("length_m", self.length_m)
             # self.height_m = selected_data.get("height_m", self.height_m)

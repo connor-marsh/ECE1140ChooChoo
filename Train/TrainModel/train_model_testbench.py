@@ -81,14 +81,18 @@ class TestBenchApp(QMainWindow):
             "authority": to_float(self.ui.WaysideAuthority.text(), 0.0),
             "beacon_data": self.ui.BeaconData.text()
         }
+        
         lights = {
             "int_lights": self.ui.IntLights.isChecked(),
             "ext_lights": self.ui.ExtLights.isChecked(),
             "left_doors": self.ui.LeftDoors.isChecked(),
             "right_doors": self.ui.RightDoors.isChecked(),
+            "heat_signal": self.ui.HeatingSignal.isChecked(),
+            "ac_signal": self.ui.ACSignal.isChecked(),
             "announcements": self.ui.Announcements.text() if hasattr(self.ui, "Announcements") else ""
         }
-        # NEW: Read physical parameters from UI.
+
+        # read physical parameters from UI.
         physical = {
             "commanded_power": to_float(self.ui.CommandedPower.text(), 0.0),
             "service_brakes": self.ui.ServiceBrakes.isChecked(),
