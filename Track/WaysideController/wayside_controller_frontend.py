@@ -6,8 +6,9 @@ Description:
 """
 import sys
 import os
+from pathlib import Path
 from wayside_controller_collection import WaysideControllerCollection
-from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem, QFileDialog
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT
 from wayside_controller_ui import Ui_MainWindow as WaysideUi
@@ -28,11 +29,11 @@ class WaysideControllerFrontend(QMainWindow):
         self.current_controller_index = 0 # Tells the ui which backend controller from the collection to reference
         self.ui = WaysideUi()
         self.ui.setupUi(self)
-
+        
         self.init_tables()
         self.init_combo_box()
         
-
+        self.ui.import_plc_button.clicked.connect(self.handle_input_program)
         # read data from the collection to populate the combo box with num of controllers etc.
         # read data from the collection to generate rows in the table for blocks etc
         # read data from the currently indexed backend to show in the table
@@ -87,12 +88,13 @@ class WaysideControllerFrontend(QMainWindow):
             for row in range(table.rowCount(), BLOCK_COUNT[self.collection.line_name][self.current_controller_index], -1):   
                 table.removeRow(row) # remove until row count is equivalent
         
-
+    @pyqtSlot()
     def update_ui(self):
         """
         Timer based update to read values from the backend and display them in the frontend
         """
     
+    @pyqtSlot()
     def handle_controller_selection(self):
         """
         Called to updates the UI when the combo box specifying the current wayside controller changes. 
@@ -102,8 +104,7 @@ class WaysideControllerFrontend(QMainWindow):
         # make sure to update the row count of the tables
         # make sure to set the mode combo box to be the correct mode
 
-
-
+    @pyqtSlot()
     def handle_mode_selection(self): # maybe do not allow the user to change the active controller when in manual mode?
         """
         Called to open a window to allow the programmer to input test values when the mode changes from auto -> maintenance
@@ -127,11 +128,24 @@ class WaysideControllerFrontend(QMainWindow):
             # Reset the controller inputs, but can leave the controller outputs as is.
             # close the testbench window
 
-
+    @pyqtSlot()
     def handle_input_program(self):
         """
         Called when the programmer clicks the input program button. 
         """
+        active_controller = self.collection.controllers[self.current_controller_index]
+
+        while True:
+            program_file_path, _ = QFileDialog.getOpenFileName(self, "Select PLC Program", "", "Python File (*.py);;All Files (*)")
+            if active_controller.load_program(program_file_path):
+                filename = Path(program_file_path).name
+                self.ui.current_filename_label.setText("Current File: " + filename)
+                break
+            
+                
+
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     collection = WaysideControllerCollection("GREEN")
