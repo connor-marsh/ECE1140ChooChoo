@@ -3,6 +3,8 @@ import sys
 import os
 import math
 
+os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = "1"
+
 # Add the parent directory (if needed)
 current_dir = os.path.dirname(__file__)
 parent_dir = os.path.abspath(os.path.join(current_dir, ".."))
@@ -11,7 +13,6 @@ sys.path.insert(0, parent_dir)
 from PyQt5.QtWidgets import QMainWindow, QApplication, QComboBox, QWidgetAction, QButtonGroup
 from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
 from train_model_ui_iteration_1 import Ui_MainWindow as TrainModelUI
-from train_collection import TrainCollection
 from train_model_backend import TrainModel
 
 class TrainModelFrontEnd(QMainWindow):
@@ -24,12 +25,13 @@ class TrainModelFrontEnd(QMainWindow):
         self.train_collection = collection
 
         # Use the current_train from the collection.
-        self.current_train = None
+        self.current_train = self.train_collection.current_train
 
         # Setup dropdown for selecting a train model.
         self.setup_train_dropdown()
 
         # Create the testbench window.
+        from train_model_testbench import TestBenchApp  # Lazy import to avoid circular dependency
         self.testbench = TestBenchApp(self)
         
         # Load the initial train's data and simulation state.
@@ -123,10 +125,10 @@ class TrainModelFrontEnd(QMainWindow):
         """Save current simulation state from the simulator into the current train’s sim_state."""
         if self.current_train is not None:
             self.current_train.sim_state = {
-                "actual_velocity": self.simulator.actual_velocity,
-                "current_acceleration": self.simulator.current_acceleration,
-                "previous_acceleration": self.simulator.previous_acceleration,
-                "cabin_temp": self.simulator.cabin_temp
+                "actual_velocity": self.current_train.backend.actual_velocity,
+                "current_acceleration": self.current_train.backend.current_acceleration,
+                "previous_acceleration": self.current_train.backend.previous_acceleration,
+                "cabin_temp": self.current_train.backend.cabin_temp
             }
 
     def load_sim_state(self):
@@ -134,10 +136,10 @@ class TrainModelFrontEnd(QMainWindow):
         if self.current_train is None or not hasattr(self.current_train, "sim_state"):
             return
         state = self.current_train.sim_state
-        self.simulator.actual_velocity = state.get("actual_velocity", 0.0)
-        self.simulator.current_acceleration = state.get("current_acceleration", 0.0)
-        self.simulator.previous_acceleration = state.get("previous_acceleration", 0.0)
-        self.simulator.cabin_temp = state.get("cabin_temp", 25.0)
+        self.current_train.backend.actual_velocity = state.get("actual_velocity", 0.0)
+        self.current_train.backend.current_acceleration = state.get("current_acceleration", 0.0)
+        self.current_train.backend.previous_acceleration = state.get("previous_acceleration", 0.0)
+        self.current_train.backend.cabin_temp = state.get("cabin_temp", 25.0)
 
     def on_train_selection_changed(self, index):
         # Save current train's UI and simulation state before switching.
@@ -229,18 +231,47 @@ class TrainModelFrontEnd(QMainWindow):
         dt = (current_time - self.prev_time) / 1000.0
         self.prev_time = current_time
 
-        wayside_data, lights_data, train_data = self.testbench.read_inputs()
-        updated = self.simulator.update(
-            dt, wayside_data, lights_data, train_data,
-            emergency_active=self.train_ui.button_emergency.isChecked()
-        )
-        self.simulator.current_acceleration = updated["acceleration"]
-        self.simulator.actual_velocity = updated["velocity"]
+        # Step 1: Let the testbench do the merging into backend
+        self.testbench.update_train_model()
 
-        velocity_mph = self.simulator.actual_velocity * self.simulator.MPS_TO_MPH
-        cmd_speed_mph = wayside_data["commanded_speed"] * self.simulator.MPS_TO_MPH
-        speed_limit_mph = wayside_data["speed_limit"] * self.simulator.MPS_TO_MPH
-        acceleration_fts2 = self.simulator.current_acceleration * 3.281
+        # Step 2: Now do the physics
+        updated = self.current_train.backend.update(dt)
+
+        # Step 3: Extract sub-values from the merged ui_data
+        #    (Because the testbench + update_from_testbench merged them)
+        ui_data = self.current_train.backend.ui_data
+        wayside_data = {
+            "commanded_speed": ui_data.get("commanded_speed", 0.0),
+            "commanded_power": ui_data.get("commanded_power", 0.0),
+            "speed_limit": ui_data.get("speed_limit", 0.0),
+            "beacon_data": ui_data.get("beacon_data", ""),
+        }
+        lights_data = {
+            "announcements": ui_data.get("announcements", ""),
+            "service_brakes": ui_data.get("service_brakes", False),
+            "ext_lights": ui_data.get("ext_lights", False),
+            "int_lights": ui_data.get("int_lights", False),
+            "left_doors": ui_data.get("left_doors", False),
+            "right_doors": ui_data.get("right_doors", False),
+        }
+        train_data = {
+            "mass_kg": ui_data.get("mass_kg", 0.0),
+            "grade": ui_data.get("grade", 0.0),
+            "passenger_count": ui_data.get("passenger_count", 0.0),
+            "crew_count": ui_data.get("crew_count", 0.0),
+            "length_m": ui_data.get("length_m", 0.0),
+            "height_m": ui_data.get("height_m", 0.0),
+            "width_m": ui_data.get("width_m", 0.0),
+        }
+
+        # Step 4: Use 'updated' plus these sub-dicts to update the front-end UI
+        self.current_train.backend.current_acceleration = updated["acceleration"]
+        self.current_train.backend.actual_velocity = updated["velocity"]
+
+        velocity_mph = self.current_train.backend.actual_velocity * self.current_train.backend.MPS_TO_MPH
+        cmd_speed_mph = wayside_data["commanded_speed"] * self.current_train.backend.MPS_TO_MPH
+        speed_limit_mph = wayside_data["speed_limit"] * self.current_train.backend.MPS_TO_MPH
+        acceleration_fts2 = self.current_train.backend.current_acceleration * 3.281
 
         self.train_ui.AccValue.display(acceleration_fts2)
         self.train_ui.SpeedValue.display(velocity_mph)
@@ -248,13 +279,13 @@ class TrainModelFrontEnd(QMainWindow):
         self.train_ui.SpeedLimitValue.display(speed_limit_mph)
         self.train_ui.PowerValue.display(wayside_data["commanded_power"] / 1000.0)
 
-        mass_lbs = train_data["mass_kg"] * self.simulator.KG_TO_LBS
+        mass_lbs = train_data["mass_kg"] * self.current_train.backend.KG_TO_LBS
         self.train_ui.MassVehicleValue.display(mass_lbs)
         self.train_ui.PassengerCountValue.display(train_data["passenger_count"])
         self.train_ui.CrewCountValue.display(train_data["crew_count"])
-        self.train_ui.LengthVehicleValue.display(train_data["length_m"] * self.simulator.M_TO_FT)
-        self.train_ui.HeightValue.display(train_data["height_m"] * self.simulator.M_TO_FT)
-        self.train_ui.WidthValue.display(train_data["width_m"] * self.simulator.M_TO_FT)
+        self.train_ui.LengthVehicleValue.display(train_data["length_m"] * self.current_train.backend.M_TO_FT)
+        self.train_ui.HeightValue.display(train_data["height_m"] * self.current_train.backend.M_TO_FT)
+        self.train_ui.WidthValue.display(train_data["width_m"] * self.current_train.backend.M_TO_FT)
 
         if hasattr(self.train_ui, "Announcement_2"):
             announcements = lights_data["announcements"]
@@ -270,30 +301,21 @@ class TrainModelFrontEnd(QMainWindow):
             self.train_ui.GradePercentageValue.display(train_data["grade"])
             
         # color features for auxiliary functions based on TestBench UI state.
-        # For service brakes:
         self.update_color(self.testbench.ui.ServiceBrakes.isChecked(),
-                    self.train_ui.ServiceBrakesOn,
-                    self.train_ui.ServiceBrakesOff)
-
-        # For exterior lights:
+                          self.train_ui.ServiceBrakesOn,
+                          self.train_ui.ServiceBrakesOff)
         self.update_color(self.testbench.ui.ExtLights.isChecked(),
-                    self.train_ui.ExteriorLightsOn,
-                    self.train_ui.ExteriorLightsOff)
-
-        # For interior lights:
+                          self.train_ui.ExteriorLightsOn,
+                          self.train_ui.ExteriorLightsOff)
         self.update_color(self.testbench.ui.IntLights.isChecked(),
-                    self.train_ui.InteriorLightsOn,
-                    self.train_ui.InteriorLightsOff)
-
-        # For left doors:
+                          self.train_ui.InteriorLightsOn,
+                          self.train_ui.InteriorLightsOff)
         self.update_color(self.testbench.ui.LeftDoors.isChecked(),
-                    self.train_ui.LeftDoorOpen,
-                    self.train_ui.LeftDoorClosed)
-
-        # For right doors:
+                          self.train_ui.LeftDoorOpen,
+                          self.train_ui.LeftDoorClosed)
         self.update_color(self.testbench.ui.RightDoors.isChecked(),
-                    self.train_ui.RightDoorOpen,
-                    self.train_ui.RightDoorClosed)
+                          self.train_ui.RightDoorOpen,
+                          self.train_ui.RightDoorClosed)
 
         self.testbench.update_status()
 
@@ -386,7 +408,9 @@ class TrainModelFrontEnd(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    window = TrainModelFrontEnd()
+    from train_collection import TrainCollection
+    collection = TrainCollection()
+    window = TrainModelFrontEnd(collection)
     window.show()
     window.testbench.show()
     sys.exit(app.exec_())

@@ -4,11 +4,11 @@ from train_model_ui_testbench_iteration_1 import Ui_TestMainWindow as TestBenchU
 from train_model_backend import TrainModel
 
 class TestBenchApp(QMainWindow):
-    def __init__(self, train_model):
+    def __init__(self, train_app):
         super().__init__()
         self.ui = TestBenchUI()
         self.ui.setupUi(self)
-        self.train_model = train_model
+        self.train_app = train_app
 
         self.ui.PEmergencyStop.setText("Disabled")
         self.ui.BrakeFailure.setText("Disabled")
@@ -22,11 +22,24 @@ class TestBenchApp(QMainWindow):
         self.ui.TrainDriver.toggled.connect(self.handle_train_driver)
 
     def update_train_model(self):
-        # Sample code
-        data = {}
-        data["wayside_speed"] = 0
-        self.train_model.update_from_testbench(data)
-
+        """
+        Reads all the relevant UI fields, merges them into a single dictionary,
+        and passes them to the backend by calling update_from_testbench(...).
+        This does *not* run any physics update—that is left to the front end’s timer loop.
+        """
+        from train_model_frontend import TrainModelFrontEnd
+        f = TrainModelFrontEnd.to_float
+        
+        # Step 1: read the three sub-dictionaries from the testbench UI
+        wayside_data, lights_data, physical_data = self.read_inputs()
+        
+        # Step 2: read the emergency state from testbench UI or from the front-end’s emergency button
+        emergency_active = self.ui.EmergencyStop.isChecked()
+        
+        # Step 3: merge these into the backend
+        self.train_app.current_train.backend.update_from_testbench(
+            wayside_data, lights_data, physical_data, emergency_active
+        )
 
     def handle_train_driver(self, checked: bool):
         if checked:
@@ -54,6 +67,7 @@ class TestBenchApp(QMainWindow):
             self.ui.TrainDriver.setChecked(False)
 
     def read_inputs(self):
+        from train_model_frontend import TrainModelFrontEnd
         f = TrainModelFrontEnd.to_float
         wayside = TrainModelFrontEnd.read_wayside_data(self.ui, f)
         lights = TrainModelFrontEnd.read_lights_doors_data(self.ui)
@@ -61,33 +75,41 @@ class TestBenchApp(QMainWindow):
         return wayside, lights, physical
 
     def update_status(self):
+        # This method just checks that the front-end’s displayed speeds/authority
+        # match the testbench’s input fields, etc.
+        from train_model_frontend import TrainModelFrontEnd
         f = TrainModelFrontEnd.to_float
+
         cmd_speed = self.ui.WaysideSpeed.text()
         cmd_val = f(cmd_speed, -999)
-        cmd_val_mph = cmd_val * self.train_app.simulator.MPS_TO_MPH
+        cmd_val_mph = cmd_val * self.train_app.current_train.backend.MPS_TO_MPH
         model_val = self.train_app.train_ui.CommandedSpeedValue.value()
         if abs(cmd_val_mph - model_val) < 0.0001:
             self.ui.WaysideSpeed_2.setText(f"{cmd_val_mph:.2f}")
         else:
             self.ui.WaysideSpeed_2.setText("Not Displayed")
+
         auth_str = self.ui.WaysideAuthority.text()
         auth_val = f(auth_str, 0.0)
         if abs(auth_val) > 0.0001:
             self.ui.WaysideAuthority_2.setText(f"{(auth_val * 3.281):.2f}")
         else:
             self.ui.WaysideAuthority_2.setText("Not Displayed")
+
         speed_str = self.ui.SpeedLimit.text()
         speed_val = f(speed_str, 0.0)
-        speed_val_mph = speed_val * self.train_app.simulator.MPS_TO_MPH
+        speed_val_mph = speed_val * self.train_app.current_train.backend.MPS_TO_MPH
         model_speed_limit = self.train_app.train_ui.SpeedLimitValue.value()
         if abs(speed_val_mph - model_speed_limit) < 0.0001:
             self.ui.SpeedLimit_2.setText(f"{speed_val_mph:.2f}")
         else:
             self.ui.SpeedLimit_2.setText("Not Displayed")
+
         speed_ui = self.train_app.train_ui.SpeedValue.value()
-        internal_mph = self.train_app.simulator.actual_velocity * self.train_app.simulator.MPS_TO_MPH
+        internal_mph = self.train_app.current_train.backend.actual_velocity * self.train_app.current_train.backend.MPS_TO_MPH
         if abs(internal_mph - speed_ui) < 0.0001:
             self.ui.ActualVelocity.setText(f"{internal_mph:.2f}")
         else:
             self.ui.ActualVelocity.setText("Not Displayed")
+
         self.ui.Temperature.setText(self.train_app.train_ui.Temperature.text())
