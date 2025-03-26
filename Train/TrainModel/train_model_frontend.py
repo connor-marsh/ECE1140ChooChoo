@@ -25,7 +25,7 @@ class TrainModelFrontEnd(QMainWindow):
         self.train_collection = collection
 
         # Use the current_train from the collection.
-        self.current_train = self.train_collection.current_train
+        self.current_train = None
 
         # Setup dropdown for selecting a train model.
         self.setup_train_dropdown()
@@ -34,9 +34,9 @@ class TrainModelFrontEnd(QMainWindow):
         from train_model_testbench import TestBenchApp  # Lazy import to avoid circular dependency
         self.testbench = TestBenchApp(self)
         
-        # Load the initial train's data and simulation state.
-        self.load_train_data()
-        self.load_sim_state()
+        # # Load the initial train's data and simulation state.
+        # self.load_train_data()
+        # self.load_sim_state()
 
         # Initialize physics and clock timers.
         self.prev_time = None
@@ -65,94 +65,94 @@ class TrainModelFrontEnd(QMainWindow):
         widget_action.setDefaultWidget(self.train_dropdown)
         self.train_ui.menuTrain_ID_1.addAction(widget_action)
         
-    def save_current_train_data(self):
-        """Save every numeric value, announcement, and auxiliary function state from the TestBench UI (and emergency brake state) into the current train’s ui_data."""
-        data = {
-            "commanded_speed": self.to_float(self.testbench.ui.WaysideSpeed.text(), 0.0),
-            "authority": self.to_float(self.testbench.ui.WaysideAuthority.text(), 0.0),
-            "commanded_power": self.to_float(self.testbench.ui.CommandedPower.text(), 0.0),
-            "speed_limit": self.to_float(self.testbench.ui.SpeedLimit.text(), 0.0),
-            "beacon_data": self.testbench.ui.BeaconData.text(),
-            "announcements": self.testbench.ui.Announcements.text() if hasattr(self.testbench.ui, "Announcements") else "",
-            "grade": self.to_float(self.testbench.ui.GradePercent.text(), 0.0) if hasattr(self.testbench.ui, "GradePercent") else 0.0,
-            "passenger_count": self.to_float(self.testbench.ui.PassengerCount.text(), 0.0) if hasattr(self.testbench.ui, "PassengerCount") else 0.0,
-            "service_brakes": self.testbench.ui.ServiceBrakes.isChecked() if hasattr(self.testbench.ui, "ServiceBrakes") else False,
-            "ext_lights": self.testbench.ui.ExtLights.isChecked() if hasattr(self.testbench.ui, "ExtLights") else False,
-            "int_lights": self.testbench.ui.IntLights.isChecked() if hasattr(self.testbench.ui, "IntLights") else False,
-            "left_doors": self.testbench.ui.LeftDoors.isChecked() if hasattr(self.testbench.ui, "LeftDoors") else False,
-            "right_doors": self.testbench.ui.RightDoors.isChecked() if hasattr(self.testbench.ui, "RightDoors") else False,
-            "ac_signal": self.testbench.ui.ACSignal.isChecked() if hasattr(self.testbench.ui, "ACSignal") else False,
-            "heat_signal": self.testbench.ui.HeatingSignal.isChecked() if hasattr(self.testbench.ui, "HeatingSignal") else False,
-            "emergency_brake": self.train_ui.button_emergency.isChecked() if hasattr(self.train_ui, "button_emergency") else False,
-        }
-        if self.current_train is not None:
-            self.current_train.ui_data = data
+    # def save_current_train_data(self):
+    #     """Save every numeric value, announcement, and auxiliary function state from the TestBench UI (and emergency brake state) into the current train’s ui_data."""
+    #     data = {
+    #         "commanded_speed": self.to_float(self.testbench.ui.WaysideSpeed.text(), 0.0),
+    #         "authority": self.to_float(self.testbench.ui.WaysideAuthority.text(), 0.0),
+    #         "commanded_power": self.to_float(self.testbench.ui.CommandedPower.text(), 0.0),
+    #         "speed_limit": self.to_float(self.testbench.ui.SpeedLimit.text(), 0.0),
+    #         "beacon_data": self.testbench.ui.BeaconData.text(),
+    #         "announcements": self.testbench.ui.Announcements.text() if hasattr(self.testbench.ui, "Announcements") else "",
+    #         "grade": self.to_float(self.testbench.ui.GradePercent.text(), 0.0) if hasattr(self.testbench.ui, "GradePercent") else 0.0,
+    #         "passenger_count": self.to_float(self.testbench.ui.PassengerCount.text(), 0.0) if hasattr(self.testbench.ui, "PassengerCount") else 0.0,
+    #         "service_brakes": self.testbench.ui.ServiceBrakes.isChecked() if hasattr(self.testbench.ui, "ServiceBrakes") else False,
+    #         "ext_lights": self.testbench.ui.ExtLights.isChecked() if hasattr(self.testbench.ui, "ExtLights") else False,
+    #         "int_lights": self.testbench.ui.IntLights.isChecked() if hasattr(self.testbench.ui, "IntLights") else False,
+    #         "left_doors": self.testbench.ui.LeftDoors.isChecked() if hasattr(self.testbench.ui, "LeftDoors") else False,
+    #         "right_doors": self.testbench.ui.RightDoors.isChecked() if hasattr(self.testbench.ui, "RightDoors") else False,
+    #         "ac_signal": self.testbench.ui.ACSignal.isChecked() if hasattr(self.testbench.ui, "ACSignal") else False,
+    #         "heat_signal": self.testbench.ui.HeatingSignal.isChecked() if hasattr(self.testbench.ui, "HeatingSignal") else False,
+    #         "emergency_brake": self.train_ui.button_emergency.isChecked() if hasattr(self.train_ui, "button_emergency") else False,
+    #     }
+    #     if self.current_train is not None:
+    #         self.current_train.ui_data = data
 
-    def load_train_data(self):
-        """Load saved values from the current train’s ui_data into the TestBench UI and update emergency brake state."""
-        if self.current_train is None or not hasattr(self.current_train, "ui_data"):
-            return
-        data = self.current_train.ui_data
-        self.testbench.ui.WaysideSpeed.setText(str(data.get("commanded_speed", 0.0)))
-        self.testbench.ui.WaysideAuthority.setText(str(data.get("authority", 0.0)))
-        self.testbench.ui.CommandedPower.setText(str(data.get("commanded_power", 0.0)))
-        self.testbench.ui.SpeedLimit.setText(str(data.get("speed_limit", 0.0)))
-        self.testbench.ui.BeaconData.setText(data.get("beacon_data", ""))
-        if hasattr(self.testbench.ui, "Announcements"):
-            self.testbench.ui.Announcements.setText(data.get("announcements", ""))
-        if hasattr(self.testbench.ui, "GradePercent"):
-            self.testbench.ui.GradePercent.setText(str(data.get("grade", 0.0)))
-        if hasattr(self.testbench.ui, "PassengerCount"):
-            self.testbench.ui.PassengerCount.setText(str(data.get("passenger_count", 0.0)))
-        if hasattr(self.testbench.ui, "ServiceBrakes"):
-            self.testbench.ui.ServiceBrakes.setChecked(data.get("service_brakes", False))
-        if hasattr(self.testbench.ui, "ExtLights"):
-            self.testbench.ui.ExtLights.setChecked(data.get("ext_lights", False))
-        if hasattr(self.testbench.ui, "IntLights"):
-            self.testbench.ui.IntLights.setChecked(data.get("int_lights", False))
-        if hasattr(self.testbench.ui, "LeftDoors"):
-            self.testbench.ui.LeftDoors.setChecked(data.get("left_doors", False))
-        if hasattr(self.testbench.ui, "RightDoors"):
-            self.testbench.ui.RightDoors.setChecked(data.get("right_doors", False))
-        if hasattr(self.testbench.ui, "ACSignal"):
-            self.testbench.ui.ACSignal.setChecked(data.get("ac_signal", False))
-        if hasattr(self.testbench.ui, "HeatingSignal"):
-            self.testbench.ui.HeatingSignal.setChecked(data.get("heat_signal", False))
-        if hasattr(self.train_ui, "button_emergency"):
-            self.train_ui.button_emergency.setChecked(data.get("emergency_brake", False))
+    # def load_train_data(self):
+    #     """Load saved values from the current train’s ui_data into the TestBench UI and update emergency brake state."""
+    #     if self.current_train is None or not hasattr(self.current_train, "ui_data"):
+    #         return
+    #     data = self.current_train.ui_data
+    #     self.testbench.ui.WaysideSpeed.setText(str(data.get("commanded_speed", 0.0)))
+    #     self.testbench.ui.WaysideAuthority.setText(str(data.get("authority", 0.0)))
+    #     self.testbench.ui.CommandedPower.setText(str(data.get("commanded_power", 0.0)))
+    #     self.testbench.ui.SpeedLimit.setText(str(data.get("speed_limit", 0.0)))
+    #     self.testbench.ui.BeaconData.setText(data.get("beacon_data", ""))
+    #     if hasattr(self.testbench.ui, "Announcements"):
+    #         self.testbench.ui.Announcements.setText(data.get("announcements", ""))
+    #     if hasattr(self.testbench.ui, "GradePercent"):
+    #         self.testbench.ui.GradePercent.setText(str(data.get("grade", 0.0)))
+    #     if hasattr(self.testbench.ui, "PassengerCount"):
+    #         self.testbench.ui.PassengerCount.setText(str(data.get("passenger_count", 0.0)))
+    #     if hasattr(self.testbench.ui, "ServiceBrakes"):
+    #         self.testbench.ui.ServiceBrakes.setChecked(data.get("service_brakes", False))
+    #     if hasattr(self.testbench.ui, "ExtLights"):
+    #         self.testbench.ui.ExtLights.setChecked(data.get("ext_lights", False))
+    #     if hasattr(self.testbench.ui, "IntLights"):
+    #         self.testbench.ui.IntLights.setChecked(data.get("int_lights", False))
+    #     if hasattr(self.testbench.ui, "LeftDoors"):
+    #         self.testbench.ui.LeftDoors.setChecked(data.get("left_doors", False))
+    #     if hasattr(self.testbench.ui, "RightDoors"):
+    #         self.testbench.ui.RightDoors.setChecked(data.get("right_doors", False))
+    #     if hasattr(self.testbench.ui, "ACSignal"):
+    #         self.testbench.ui.ACSignal.setChecked(data.get("ac_signal", False))
+    #     if hasattr(self.testbench.ui, "HeatingSignal"):
+    #         self.testbench.ui.HeatingSignal.setChecked(data.get("heat_signal", False))
+    #     if hasattr(self.train_ui, "button_emergency"):
+    #         self.train_ui.button_emergency.setChecked(data.get("emergency_brake", False))
 
-    def save_current_sim_state(self):
-        """Save current simulation state from the simulator into the current train’s sim_state."""
-        if self.current_train is not None:
-            self.current_train.sim_state = {
-                "actual_velocity": self.current_train.backend.actual_velocity,
-                "current_acceleration": self.current_train.backend.current_acceleration,
-                "previous_acceleration": self.current_train.backend.previous_acceleration,
-                "cabin_temp": self.current_train.backend.cabin_temp
-            }
+    # def save_current_sim_state(self):
+    #     """Save current simulation state from the simulator into the current train’s sim_state."""
+    #     if self.current_train is not None:
+    #         self.current_train.sim_state = {
+    #             "actual_velocity": self.current_train.backend.actual_velocity,
+    #             "current_acceleration": self.current_train.backend.current_acceleration,
+    #             "previous_acceleration": self.current_train.backend.previous_acceleration,
+    #             "cabin_temp": self.current_train.backend.cabin_temp
+    #         }
 
-    def load_sim_state(self):
-        """Load simulation state from the current train’s sim_state into the simulator."""
-        if self.current_train is None or not hasattr(self.current_train, "sim_state"):
-            return
-        state = self.current_train.sim_state
-        self.current_train.backend.actual_velocity = state.get("actual_velocity", 0.0)
-        self.current_train.backend.current_acceleration = state.get("current_acceleration", 0.0)
-        self.current_train.backend.previous_acceleration = state.get("previous_acceleration", 0.0)
-        self.current_train.backend.cabin_temp = state.get("cabin_temp", 25.0)
+    # def load_sim_state(self):
+    #     """Load simulation state from the current train’s sim_state into the simulator."""
+    #     if self.current_train is None or not hasattr(self.current_train, "sim_state"):
+    #         return
+    #     state = self.current_train.sim_state
+    #     self.current_train.backend.actual_velocity = state.get("actual_velocity", 0.0)
+    #     self.current_train.backend.current_acceleration = state.get("current_acceleration", 0.0)
+    #     self.current_train.backend.previous_acceleration = state.get("previous_acceleration", 0.0)
+    #     self.current_train.backend.cabin_temp = state.get("cabin_temp", 25.0)
 
     def on_train_selection_changed(self, index):
         # Save current train's UI and simulation state before switching.
-        self.save_current_train_data()
-        self.save_current_sim_state()
+        # self.save_current_train_data()
+        # self.save_current_sim_state()
         if 0 <= index < len(self.train_collection.train_list):
             self.current_train = self.train_collection.train_list[index]
             self.train_ui.menuTrain_ID_1.setTitle(f"Train ID {index+1}")
             if hasattr(self.train_ui, "currentTrainLabel"):
                 self.train_ui.currentTrainLabel.setText(f"Selected: {self.train_dropdown.currentText()}")
             # Load new train's data and simulation state.
-            self.load_train_data()
-            self.load_sim_state()
+            # self.load_train_data()
+            # self.load_sim_state()
             # Update emergency brake state.
             if self.current_train.ui_data.get("emergency_brake", False):
                 self.train_ui.button_emergency.setChecked(True)
@@ -167,63 +167,63 @@ class TrainModelFrontEnd(QMainWindow):
                 self.testbench.ui.EmergencyStop.setEnabled(False)
                 self.testbench.ui.PEmergencyStop.setText("Disabled")
 
-    @staticmethod
-    def read_wayside_data(ui, to_float_func):
-        commanded_power = to_float_func(ui.CommandedPower.text(), 0.0)
-        if commanded_power > 120000:
-            commanded_power = 120000.0
-        elif commanded_power < 0:
-            commanded_power = 0.0
-        return {
-            "commanded_speed": to_float_func(ui.WaysideSpeed.text(), 0.0),
-            "authority": to_float_func(ui.WaysideAuthority.text(), 0.0),
-            "commanded_power": commanded_power,
-            "speed_limit": to_float_func(ui.SpeedLimit.text(), 0.0),
-            "beacon_data": ui.BeaconData.text(),
-        }
+    # @staticmethod
+    # def read_wayside_data(ui, to_float_func):
+    #     commanded_power = to_float_func(ui.CommandedPower.text(), 0.0)
+    #     if commanded_power > 120000:
+    #         commanded_power = 120000.0
+    #     elif commanded_power < 0:
+    #         commanded_power = 0.0
+    #     return {
+    #         "commanded_speed": to_float_func(ui.WaysideSpeed.text(), 0.0),
+    #         "authority": to_float_func(ui.WaysideAuthority.text(), 0.0),
+    #         "commanded_power": commanded_power,
+    #         "speed_limit": to_float_func(ui.SpeedLimit.text(), 0.0),
+    #         "beacon_data": ui.BeaconData.text(),
+    #     }
 
-    @staticmethod
-    def read_lights_doors_data(ui):
-        return {
-            "service_brakes": ui.ServiceBrakes.isChecked(),
-            "ext_lights": ui.ExtLights.isChecked(),
-            "int_lights": ui.IntLights.isChecked(),
-            "left_doors": ui.LeftDoors.isChecked(),
-            "right_doors": ui.RightDoors.isChecked(),
-            "announcements": ui.Announcements.text(),
-            "ac_signal": ui.ACSignal.isChecked(),
-            "heat_signal": ui.HeatingSignal.isChecked()
-        }
+    # @staticmethod
+    # def read_lights_doors_data(ui):
+    #     return {
+    #         "service_brakes": ui.ServiceBrakes.isChecked(),
+    #         "ext_lights": ui.ExtLights.isChecked(),
+    #         "int_lights": ui.IntLights.isChecked(),
+    #         "left_doors": ui.LeftDoors.isChecked(),
+    #         "right_doors": ui.RightDoors.isChecked(),
+    #         "announcements": ui.Announcements.text(),
+    #         "ac_signal": ui.ACSignal.isChecked(),
+    #         "heat_signal": ui.HeatingSignal.isChecked()
+    #     }
 
-    @staticmethod
-    def read_train_physical_data(ui, to_float_func):
-        base_mass_kg = to_float_func(ui.MassVehicle.text(), 37103.86)
-        passenger_count = to_float_func(ui.PassengerCount.text(), 0.0)
-        crew_count = to_float_func(ui.CrewCount.text(), 2.0)
-        added_passenger_mass = passenger_count * 70.0
-        added_crew_mass = crew_count * 70.0
-        length_m = to_float_func(ui.LengthVehicle.text(), 32.2)
-        height_m = to_float_func(ui.HeightVehicle.text(), 3.42)
-        width_m = to_float_func(ui.WidthVehicle.text(), 2.65)
-        grade_percent = to_float_func(ui.GradePercent.text(), 0.0)
-        temperature = to_float_func(ui.Temperature.text(), 25.0)
+    # @staticmethod
+    # def read_train_physical_data(ui, to_float_func):
+    #     base_mass_kg = to_float_func(ui.MassVehicle.text(), 37103.86)
+    #     passenger_count = to_float_func(ui.PassengerCount.text(), 0.0)
+    #     crew_count = to_float_func(ui.CrewCount.text(), 2.0)
+    #     added_passenger_mass = passenger_count * 70.0
+    #     added_crew_mass = crew_count * 70.0
+    #     length_m = to_float_func(ui.LengthVehicle.text(), 32.2)
+    #     height_m = to_float_func(ui.HeightVehicle.text(), 3.42)
+    #     width_m = to_float_func(ui.WidthVehicle.text(), 2.65)
+    #     grade_percent = to_float_func(ui.GradePercent.text(), 0.0)
+    #     temperature = to_float_func(ui.Temperature.text(), 25.0)
         
-        if grade_percent > 60:
-            grade_percent = 60.0
-        elif grade_percent < 0:
-            grade_percent = 0.0
-        return {
-            "length_m": length_m,
-            "height_m": height_m,
-            "width_m": width_m,
-            "grade": grade_percent,
-            "mass_kg": base_mass_kg + added_passenger_mass + added_crew_mass,
-            "passenger_count": passenger_count,
-            "crew_count": crew_count,
-            "temperature": temperature
-        }
+    #     if grade_percent > 60:
+    #         grade_percent = 60.0
+    #     elif grade_percent < 0:
+    #         grade_percent = 0.0
+    #     return {
+    #         "length_m": length_m,
+    #         "height_m": height_m,
+    #         "width_m": width_m,
+    #         "grade": grade_percent,
+    #         "mass_kg": base_mass_kg + added_passenger_mass + added_crew_mass,
+    #         "passenger_count": passenger_count,
+    #         "crew_count": crew_count,
+    #         "temperature": temperature
+    #     }
 
-    def update_from_testbench(self):
+    def update(self):
         current_time = QDateTime.currentMSecsSinceEpoch()
         if self.prev_time is None:
             self.prev_time = current_time
@@ -231,41 +231,42 @@ class TrainModelFrontEnd(QMainWindow):
         dt = (current_time - self.prev_time) / 1000.0
         self.prev_time = current_time
 
-        # Step 1: Let the testbench do the merging into backend
-        self.testbench.update_train_model()
+        # # Step 1: Let the testbench do the merging into backend
+        # self.testbench.update_train_model()
 
-        # Step 2: Now do the physics
-        updated = self.current_train.backend.update(dt)
+        # # Step 2: Now do the physics
+        # updated = self.current_train.backend.update(dt)
 
         # Step 3: Extract sub-values from the merged ui_data
         #    (Because the testbench + update_from_testbench merged them)
-        ui_data = self.current_train.backend.ui_data
-        wayside_data = {
-            "commanded_speed": ui_data.get("commanded_speed", 0.0),
-            "commanded_power": ui_data.get("commanded_power", 0.0),
-            "speed_limit": ui_data.get("speed_limit", 0.0),
-            "beacon_data": ui_data.get("beacon_data", ""),
-        }
-        lights_data = {
-            "announcements": ui_data.get("announcements", ""),
-            "service_brakes": ui_data.get("service_brakes", False),
-            "ext_lights": ui_data.get("ext_lights", False),
-            "int_lights": ui_data.get("int_lights", False),
-            "left_doors": ui_data.get("left_doors", False),
-            "right_doors": ui_data.get("right_doors", False),
-        }
-        train_data = {
-            "mass_kg": ui_data.get("mass_kg", 0.0),
-            "grade": ui_data.get("grade", 0.0),
-            "passenger_count": ui_data.get("passenger_count", 0.0),
-            "crew_count": ui_data.get("crew_count", 0.0),
-            "length_m": ui_data.get("length_m", 0.0),
-            "height_m": ui_data.get("height_m", 0.0),
-            "width_m": ui_data.get("width_m", 0.0),
-        }
+        # ui_data = self.current_train.backend.ui_data
+        # wayside_data = {
+        #     "commanded_speed": self.current_train.backend.commanded_speed,
+        #     "commanded_power": ui_data.get("commanded_power", 0.0),
+        #     "speed_limit": ui_data.get("speed_limit", 0.0),
+        #     "beacon_data": ui_data.get("beacon_data", ""),
+        # }
+        # lights_data = {
+        #     "announcements": ui_data.get("announcements", ""),
+        #     "service_brakes": ui_data.get("service_brakes", False),
+        #     "ext_lights": ui_data.get("ext_lights", False),
+        #     "int_lights": ui_data.get("int_lights", False),
+        #     "left_doors": ui_data.get("left_doors", False),
+        #     "right_doors": ui_data.get("right_doors", False),
+        # }
+        # train_data = {
+        #     "mass_kg": ui_data.get("mass_kg", 0.0),
+        #     "grade": ui_data.get("grade", 0.0),
+        #     "passenger_count": ui_data.get("passenger_count", 0.0),
+        #     "crew_count": ui_data.get("crew_count", 0.0),
+        #     "length_m": ui_data.get("length_m", 0.0),
+        #     "height_m": ui_data.get("height_m", 0.0),
+        #     "width_m": ui_data.get("width_m", 0.0),
+        # }
 
         # Step 4: Use 'updated' plus these sub-dicts to update the front-end UI
-        self.current_train.backend.current_acceleration = updated["acceleration"]
+        # updated = self.current_train.backend.update(dt)
+        self.current_train.backend.current_acceleration = updated["current_acceleration"]
         self.current_train.backend.actual_velocity = updated["velocity"]
 
         velocity_mph = self.current_train.backend.actual_velocity * self.current_train.backend.MPS_TO_MPH
@@ -409,8 +410,7 @@ class TrainModelFrontEnd(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     from train_collection import TrainCollection
-    collection = TrainCollection()
-    window = TrainModelFrontEnd(collection)
+    window=TrainModelFrontEnd(TrainCollection())
     window.show()
     window.testbench.show()
     sys.exit(app.exec_())
