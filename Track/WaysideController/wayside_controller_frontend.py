@@ -128,7 +128,7 @@ class WaysideControllerFrontend(QMainWindow):
         :param index: The index sent by the mode selection combo box
         """
         # Make some temporary variables in this scope to help with reading
-        active_controller = self.self.collection.controllers[index]
+        active_controller = self.collection.controllers[index]
 
         # Check if the mode was changed, otherwise do nothing
         if self.ui.mode_select_combo_box.currentIndex() == 1 and not active_controller.maintenance_mode: # changing mode from auto to maintenance
