@@ -13,7 +13,7 @@ class WaysideController():
     """
     Accepts a user created plc program at runtime and executes it.
     """
-    def __init__(self, scan_time=0.5, block_count=5, switch_count=3, light_count=1, crossing_count=1, exit_block_count=1):
+    def __init__(self, block_count: int, switch_count: int, light_count: int, crossing_count: int, exit_block_count: int, scan_time=0.5):
         """
         :param scan_time: PLC scan time
         :param block_count: Nonnegative Integer number of input blocks to the PLC program
@@ -23,16 +23,24 @@ class WaysideController():
         :param exit_block_count: Nonnegative integer number of exit blocks that the territory of the wayside has
         """
         self.scan_time = scan_time  # PLC scan time
+        self.plc_filename = "" # The name of the plc file
         self.block_occupancies = [False] * block_count  # List of block occupancies [OCCUPIED == True, UNOCCUPIED == False]
         self.switch_positions = [False] * switch_count  # List of switch positions
         self.light_signals = [False] * light_count # List of light signals [GREEN == True, RED == False]
         self.crossing_signals = [False] * crossing_count # List of crossings [ACTIVE == True, INACTIVE == False]
         self.previous_occupancies = [False] * block_count # List of previous block occupancies [OCCUPIED == True, UNOCCUPIED == False]
         self.exit_blocks = [False] * exit_block_count # List of exit blocks [1 hot vector, SELECTED/CURRENT == True, NOT SELECTED == False ]
+        self.suggested_authorities = [None] * block_count # List of the suggested authority to each block
+        self.suggested_speeds = [None] * block_count # List of the suggested speed to each block
+        self.commanded_authorities = [None] * block_count # List of the commanded authority to each block
+        self.commanded_speeds = [None] * block_count # List of the commanded speed to each block
+        
+        
+
         self.maintenance_mode = False # A boolean that indicates when the wayside controller is in maintenance mode.
         self.program = None  # User-defined program
 
-    def load_program(self, file_path="Track\WaysideController\example_plc_program.py"):
+    def load_program(self, file_path="Track\WaysideController\example_plc_program.py") -> bool:
         """
         Dynamically load a user-defined Python PLC program.
         

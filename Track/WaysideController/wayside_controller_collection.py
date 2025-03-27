@@ -26,8 +26,8 @@ class WaysideControllerCollection():
         # Create a list of backends which will handle different territory, devices, etc.
         self.controllers = [None] * CONTROLLER_COUNT[line_name]
         for i in range(CONTROLLER_COUNT[line_name]):
-            self.controllers[i] = WaysideController(0.5, BLOCK_COUNT[line_name][i], SWITCH_COUNT[line_name][i], 
-                                                          LIGHT_COUNT[line_name][i], CROSSING_COUNT[line_name][i], EXIT_BLOCK_COUNT[line_name][i])
+            self.controllers[i] = WaysideController(BLOCK_COUNT[line_name][i], SWITCH_COUNT[line_name][i], 
+                                                          LIGHT_COUNT[line_name][i], CROSSING_COUNT[line_name][i], EXIT_BLOCK_COUNT[line_name][i], 0.5)
        
         # Initialize the frontend with access to the collection so that it may modify itself or the backend using the data from the backend
         from wayside_controller_frontend import WaysideControllerFrontend # lazy import to avoid circular import (do NOT tell me about design patterns)

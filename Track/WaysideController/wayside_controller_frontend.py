@@ -96,14 +96,43 @@ class WaysideControllerFrontend(QMainWindow):
         elif table.rowCount() > BLOCK_COUNT[self.collection.line_name][self.current_controller_index]:
             for row in range(BLOCK_COUNT[self.collection.line_name][self.current_controller_index], table.rowCount()):
                 table.removeRow(row) # remove until row count is equivalent
+    
+    def populate_table(self, table):
+        """
+        Writes the latest values from the currently selected backend to the table
+
+        :param table: A QTableWidget
+        """
+        active_controller = self.collection.controllers[self.current_controller_index] # Figure out the current controller
+
+        # Get an iterable form of the data that looks like the table
+        # This is probably a bad and stupid way to do this
+        data = [active_controller.block_occupancies, 
+                active_controller.suggested_speeds, 
+                active_controller.suggested_authorities,
+                active_controller.commanded_speeds,
+                active_controller.commanded_authorities]
         
+        for col in range(table.columnCount()):
+            for row in range(table.rowCount()):
+                if data[col][row] != None:
+                    item = QTableWidgetItem()
+                    item.setText(str(data[col][row]))
+                    table.setItem(row, col, item)
+
+
     @pyqtSlot()
     def update_ui(self):
         """
         Timer based update to read values from the backend and display them in the frontend
         """
+        active_controller = self.collection.controllers[self.current_controller_index] # Figure out the current controller
+
+        # Update every ui element
         self.set_row_count(self.ui.block_table)
-        
+        self.ui.current_filename_label.setText("Current File: " + active_controller.plc_filename) # update the current filename on screen
+        self.ui.menu_bar.setTitle(self.ui.controller_select_combo_box.currentText())
+        self.populate_table(self.ui.block_table)
         #self.set_row_count(self.ui.junction_table)
         # make several lists, Switch pos. | Lights | Crossings
         # then update functions for those
@@ -117,7 +146,6 @@ class WaysideControllerFrontend(QMainWindow):
         """
         if index != self.current_controller_index:
             self.current_controller_index = index
-            self.ui.menu_bar.setTitle(self.ui.controller_select_combo_box.currentText())
             
         # make sure to update the menu label
         # make sure to update the row count of the tables
@@ -161,8 +189,7 @@ class WaysideControllerFrontend(QMainWindow):
             program_file_path, _ = QFileDialog.getOpenFileName(self, "Select PLC Program", "", "Python File (*.py);;All Files (*)")
             if program_file_path:
                 if active_controller.load_program(program_file_path):
-                    filename = Path(program_file_path).name
-                    self.ui.current_filename_label.setText("Current File: " + filename)
+                    active_controller.plc_filename = Path(program_file_path).name # store the filename in the backend
                     break
             else:
                 break
