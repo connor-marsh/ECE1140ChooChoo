@@ -107,18 +107,24 @@ class WaysideControllerFrontend(QMainWindow):
 
         # Get an iterable form of the data that looks like the table
         # This is probably a bad and stupid way to do this
+        
         data = [active_controller.block_occupancies, 
-                active_controller.suggested_speeds, 
+                active_controller.suggested_speeds,  # The rest of the values are simply floats that can just be 
                 active_controller.suggested_authorities,
                 active_controller.commanded_speeds,
                 active_controller.commanded_authorities]
         
-        for col in range(table.columnCount()):
-            for row in range(table.rowCount()):
-                if data[col][row] != None:
-                    item = QTableWidgetItem()
-                    item.setText(str(data[col][row]))
-                    table.setItem(row, col, item)
+        for col in range(table.columnCount()): # Each Column in the table is one of the lists in the matrix above
+            for row in range(table.rowCount()): # Each row is an item in the lists
+                if data[col][row] != None: # Skip rows that don't need to be written
+                    item = QTableWidgetItem() # Create an item to go in the table
+                    unit = " yards" if col % 2 == 0 else " mph" # Figure out what the unit should be depending on the position in the table
+                    if type(data[col][row]) is float or type(data[col][row]) is int: # If the column has a numeric value it should have a unit attatched
+                        text = str(data[col][row]) + unit
+                    elif type(data[col][row]) is bool: # For bools the text should say occupied/unoccupied since only bool in table is occupancy
+                        text = "Occupied" if data[col][row] else "Unoccupied"
+                    item.setText(text) # set the items text attribute
+                    table.setItem(row, col, item) # put the item in the table
 
 
     @pyqtSlot()
@@ -169,13 +175,14 @@ class WaysideControllerFrontend(QMainWindow):
                     self.ui.mode_select_combo_box.setCurrentIndex(0) # reset the combo box back to automatic to signal it could not be changed
                     return # exit early to avoid opening the manual input window
             
-
-             # Set the exit blocks to be occupied and open the test bench window
+            # SOMEHOW SWITCH TO READING THE VALUES FROM THE TESTBENCH
+             # Set the exit blocks to be occupied and open the test bench window 
              # Open the test bench window probably other stuff todo as well but whale i cant think of it
             active_controller.maintenance_mode = True # No occupied blocks detected can safely set the active mode to maintenance
         elif self.ui.mode_select_combo_box.currentIndex() == 0 and active_controller.maintenance_mode: # changing mode from maintenance to auto
             active_controller.maintenance_mode = False
-            # Reset the controller inputs, but can leave the controller outputs as is.
+
+            # SWITCH BACK TO READING THE VALUES FROM THE 
             # close the testbench window
 
     @pyqtSlot()
