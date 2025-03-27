@@ -20,6 +20,7 @@ class WaysideControllerFrontend(QMainWindow):
     The front end that will display information about the currently selected wayside controller is also contained in this class. Inherits from teh QMainWindow because ?
     """
     open_testbench = pyqtSignal(str) # signal that opens a testbench with the name of the window
+    close_testbench = pyqtSignal() # signal that closes a testbench
 
     def __init__(self, collection_reference: WaysideControllerCollection):
         """
@@ -39,7 +40,7 @@ class WaysideControllerFrontend(QMainWindow):
         
         # Create a timer
         self.timer = QTimer(self)
-        self.timer.setInterval(100)
+        self.timer.setInterval(10)
         self.timer.start()
         
         # Connect Signals to Slots
@@ -134,11 +135,6 @@ class WaysideControllerFrontend(QMainWindow):
         Timer based update to read values from the backend and display them in the frontend
         """
         active_controller = self.collection.controllers[self.current_controller_index] # Figure out the current controller
-
-        # Update every ui element
-        self.set_row_count(self.ui.block_table)
-        self.ui.current_filename_label.setText("Current File: " + active_controller.plc_filename) # update the current filename on screen
-        self.ui.menu_bar.setTitle(self.ui.controller_select_combo_box.currentText())
         self.populate_table(self.ui.block_table)
        
         # make several lists, Switch pos. | Lights | Crossings
@@ -166,10 +162,10 @@ class WaysideControllerFrontend(QMainWindow):
         :param index: The index sent by the mode selection combo box
         """
         # Make some temporary variables in this scope to help with reading
-        active_controller = self.collection.controllers[index]
+        active_controller = self.collection.controllers[self.current_controller_index]
 
         # Check if the mode was changed, otherwise do nothing
-        if self.ui.mode_select_combo_box.currentIndex() == 1 and not active_controller.maintenance_mode: # changing mode from auto to maintenance
+        if index == 1 and not active_controller.maintenance_mode: # changing mode from auto to maintenance
             # Perform a check to see if there exists a block in the territory that is occupied
             for block in active_controller.block_occupancies:
                 if block == True:
@@ -179,12 +175,14 @@ class WaysideControllerFrontend(QMainWindow):
             # SOMEHOW SWITCH TO READING THE VALUES FROM THE TESTBENCH
             testbench_window_name = self.ui.menu_bar.title() + " Testbench"
             self.open_testbench.emit(testbench_window_name)
+            active_controller.maintenance_mode = True
              # Set the exit blocks to be occupied and open the test bench window 
              # Open the test bench window probably other stuff todo as well but whale i cant think of it
-            active_controller.maintenance_mode = True # No occupied blocks detected can safely set the active mode to maintenance
-        elif self.ui.mode_select_combo_box.currentIndex() == 0 and active_controller.maintenance_mode: # changing mode from maintenance to auto
-            active_controller.maintenance_mode = False
+          
 
+        elif index == 0 and active_controller.maintenance_mode: # changing mode from maintenance to auto
+            self.close_testbench.emit() # close the window
+            active_controller.maintenance_mode = False
             # SWITCH BACK TO READING THE VALUES FROM THE 
             # close the testbench window
 
@@ -212,10 +210,20 @@ class WaysideControllerTestbench(QMainWindow):
     
     @pyqtSlot(str)
     def open_window(self, window_name: str):
+        """
+        opens the testbench window when the user switches to maintenance mode
+
+        :param window_name: The title of the menu? window
+        """
         self.setWindowTitle("Wayside Testbench Module")
         self.test_ui.menu_Blue_Line_Controller_1.setTitle(window_name)
         self.show()
-
+    
+    @pyqtSlot()
+    def close_window(self):
+        # probably need to do cleanup here?
+        # or just leave the previous values?
+        self.hide()
 
 
 if __name__ == "__main__":

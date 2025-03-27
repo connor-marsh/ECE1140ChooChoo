@@ -60,7 +60,11 @@ class WaysideControllerCollection():
         """
 
     def connect_signals(self):
+        """
+        Connects any necessary signals for communication using the pyqt framework
+        """
         self.frontend.open_testbench.connect(self.testbench.open_window)
+        self.frontend.close_testbench.connect(self.testbench.close_window)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
