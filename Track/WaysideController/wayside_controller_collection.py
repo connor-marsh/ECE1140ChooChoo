@@ -33,6 +33,28 @@ class WaysideControllerCollection():
         from wayside_controller_frontend import WaysideControllerFrontend # lazy import to avoid circular import (do NOT tell me about design patterns)
         self.frontend = WaysideControllerFrontend(self)
 
+    def get_plc_outputs(self, line_name : str, controller_index : int) -> tuple[list[bool], list[bool], list[bool]]:
+        """
+        This function returns a tuple containing 3 lists of booleans containing the switch postions, light signals, crossing signals
+        
+        :param line_name: The name of the line to select
+
+        :param controller_index: The index to the controller 
+
+        :return plc_outputs: tuple containing 3 lists of booleans containing each of the corresponding outputs of the select controller's plc
+        """
+
+    def get_wayside_commanded(self, line_name : str, controller_index : int) -> tuple[list[float], list[float]]:
+        """
+        This function returns a tuple containing 2 lists of floats, Commanded Authority and Commanded Speed
+        
+        :param line_name: The name of the line to select
+
+        :param controller_index: The index to the controller 
+
+        :return commanded_values: Tuple containing 2 lists of booleans for each of the corresponding outputs of the select controller's plc
+        """
+        
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     collection = WaysideControllerCollection("GREEN")

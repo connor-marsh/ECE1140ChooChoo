@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer
 from track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT
 from wayside_controller_ui import Ui_MainWindow as WaysideUi
-
+from wayside_controller_testbench_ui import Ui_MainWindow as TestbenchUi
 
 class WaysideControllerFrontend(QMainWindow):
     """
@@ -30,6 +30,8 @@ class WaysideControllerFrontend(QMainWindow):
         self.ui = WaysideUi() # create a ui from the exported file
         self.ui.setupUi(self) 
         
+        
+
         # Initialize any Ui elements that are dynamic
         self.init_tables_lists()
         self.init_combo_box()
@@ -101,6 +103,7 @@ class WaysideControllerFrontend(QMainWindow):
         Timer based update to read values from the backend and display them in the frontend
         """
         self.set_row_count(self.ui.block_table)
+        
         #self.set_row_count(self.ui.junction_table)
         # make several lists, Switch pos. | Lights | Crossings
         # then update functions for those
@@ -137,7 +140,8 @@ class WaysideControllerFrontend(QMainWindow):
                 if block == True:
                     self.ui.mode_select_combo_box.setCurrentIndex(0) # reset the combo box back to automatic to signal it could not be changed
                     return # exit early to avoid opening the manual input window
-                
+            
+
              # Set the exit blocks to be occupied and open the test bench window
              # Open the test bench window probably other stuff todo as well but whale i cant think of it
             active_controller.maintenance_mode = True # No occupied blocks detected can safely set the active mode to maintenance
@@ -169,7 +173,7 @@ class WaysideControllerFrontend(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     collection = WaysideControllerCollection("GREEN")
-    wayside_window = WaysideControllerFrontend(collection)
+    wayside_window = collection.frontend
     wayside_window.setWindowTitle("Wayside Controller Module")
     wayside_window.show()
     sys.exit(app.exec_())
