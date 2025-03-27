@@ -201,7 +201,11 @@ class WaysideControllerFrontend(QMainWindow):
             else:
                 break
                 
-
+class WaysideControllerTestbench(QMainWindow):
+    def __init__(self):
+    super().__init__()
+    self.ui = TestbenchUi() # create a ui from the exported file
+    self.ui.setupUi(self) 
 
 
 if __name__ == "__main__":
