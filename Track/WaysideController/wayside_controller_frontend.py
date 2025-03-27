@@ -139,7 +139,7 @@ class WaysideControllerFrontend(QMainWindow):
         self.ui.current_filename_label.setText("Current File: " + active_controller.plc_filename) # update the current filename on screen
         self.ui.menu_bar.setTitle(self.ui.controller_select_combo_box.currentText())
         self.populate_table(self.ui.block_table)
-        #self.set_row_count(self.ui.junction_table)
+       
         # make several lists, Switch pos. | Lights | Crossings
         # then update functions for those
 
@@ -150,7 +150,7 @@ class WaysideControllerFrontend(QMainWindow):
 
         :param index: The index sent from the controller select combo box
         """
-        if index != self.current_controller_index:
+        if index != self.current_controller_index: # i guess check to see if it changes
             self.current_controller_index = index
             
         # make sure to update the menu label
