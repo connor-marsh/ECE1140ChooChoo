@@ -18,8 +18,8 @@ class TrainController(QMainWindow):
         self.commanded_power = 0.0
         self.passenger_emergency_stop = False
         self.beacon_data = ""
-        self.temperature_status = 25.0 # Celcius
-        self.desired_temperature = 25.0 # Celcius
+        self.temperature_status = 77.0 # Farenheight
+        self.desired_temperature = 77.0 # Farenheight
         self.signal_failure = False
         self.brake_failure = False
         self.engine_failure = False

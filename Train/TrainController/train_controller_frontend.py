@@ -29,8 +29,9 @@ class TrainControllerFrontend(QMainWindow):
 
         self.ui = TrainControllerUI()
         self.ui.setupUi(self)
+
         # Defaults for the UI
-        self.ui.cabin_temperature_spin_box.setValue(70)
+        self.ui.cabin_temperature_spin_box.setValue(77)
 
         # Set up buttons to read inputs from UI
         self.ui.control_constants_apply_button.clicked.connect(self.set_k_constants)
@@ -48,6 +49,9 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.door_left_button.toggled.connect(self.handle_left_door)
         self.ui.emergency_button.toggled.connect(self.handle_emergency_button)
 
+        # TODO: This is temporary - remove once fully integrated
+        self.train_list = ["Train 1", "Train 2", "Train 3"]
+
         # Set up timer for callback/update function
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
@@ -60,6 +64,9 @@ class TrainControllerFrontend(QMainWindow):
         self.clock_timer.start(1000)
 
     def update(self):
+        # Set up drop down menu
+        self.update_train_dropdown(self.train_list)
+        
         # Set the display values
         if not self.current_train:
             return
@@ -101,13 +108,10 @@ class TrainControllerFrontend(QMainWindow):
 
         # Set next station and on air light
         self.display_next_station()
-        # self.activate_announcement_light() if self.current_train.announcement else self.deactivate_announcement_light()
 
-    # def activate_announcement_light(self):
-    #     self.ui.announcement_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
-
-    # def deactivate_announcement_light(self):
-    #     self.ui.announcement_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
+    def update_train_dropdown(self, train_ids):
+        self.ui.train_id_dropdown.clear()  # Clear existing items
+        self.ui.train_id_dropdown.addItems(train_ids)  # Add updated list
 
     def display_next_station(self):
         self.ui.next_station_label.setText(self.current_train.next_station)
