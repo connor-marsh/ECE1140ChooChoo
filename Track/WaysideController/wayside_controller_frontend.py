@@ -213,15 +213,13 @@ class WaysideControllerTestbench(QMainWindow):
     @pyqtSlot(str)
     def open_window(self, window_name: str):
         self.setWindowTitle("Wayside Testbench Module")
-        self.test_ui.menu_bar.setTitle(window_name)
-        self.show_window()
+        self.test_ui.menu_Blue_Line_Controller_1.setTitle(window_name)
+        self.show()
 
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     collection = WaysideControllerCollection("GREEN")
-    
-    wayside_window = collection.frontend
-    wayside_window.show()
+    collection.frontend.show()
     sys.exit(app.exec_())

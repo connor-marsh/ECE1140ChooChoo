@@ -31,7 +31,11 @@ class WaysideControllerCollection():
        
         # Initialize the frontend with access to the collection so that it may modify itself or the backend using the data from the backend
         from wayside_controller_frontend import WaysideControllerFrontend # lazy import to avoid circular import (do NOT tell me about design patterns)
+        from wayside_controller_frontend import WaysideControllerTestbench
         self.frontend = WaysideControllerFrontend(self)
+        self.testbench = WaysideControllerTestbench()
+
+        self.connect_signals()
 
     def get_plc_outputs(self, line_name : str, controller_index : int) -> tuple[list[bool], list[bool], list[bool]]:
         """
@@ -54,7 +58,10 @@ class WaysideControllerCollection():
 
         :return commanded_values: Tuple containing 2 lists of booleans for each of the corresponding outputs of the select controller's plc
         """
-        
+
+    def connect_signals(self):
+        self.frontend.open_testbench.connect(self.testbench.open_window)
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     collection = WaysideControllerCollection("GREEN")
