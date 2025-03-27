@@ -19,8 +19,8 @@ class WaysideControllerFrontend(QMainWindow):
     A class that contains several wayside controllers and handles interfacing with the other modules such as the Track Model and The CTC.
     The front end that will display information about the currently selected wayside controller is also contained in this class. Inherits from teh QMainWindow because ?
     """
-    open_testbench = pyqtSignal(str) # signal that opens a testbench with the name of the window
-    close_testbench = pyqtSignal() # signal that closes a testbench
+    open_testbench = pyqtSignal(str, int) # signal that opens a testbench with the name of the window
+    close_testbench = pyqtSignal(int) # signal that closes a testbench
 
     def __init__(self, collection_reference: WaysideControllerCollection):
         """
@@ -174,14 +174,17 @@ class WaysideControllerFrontend(QMainWindow):
             
             # SOMEHOW SWITCH TO READING THE VALUES FROM THE TESTBENCH
             testbench_window_name = self.ui.menu_bar.title() + " Testbench"
-            self.open_testbench.emit(testbench_window_name)
+            active_testbench = self.collection.testbenches[self.current_controller_index]
+            active_testbench.open_window(testbench_window_name)
             active_controller.maintenance_mode = True
              # Set the exit blocks to be occupied and open the test bench window 
              # Open the test bench window probably other stuff todo as well but whale i cant think of it
           
 
         elif index == 0 and active_controller.maintenance_mode: # changing mode from maintenance to auto
-            self.close_testbench.emit() # close the window
+            #self.close_testbench.emit() # close the window
+            active_testbench = self.collection.testbenches[self.current_controller_index]
+            active_testbench.close_window()
             active_controller.maintenance_mode = False
             # SWITCH BACK TO READING THE VALUES FROM THE 
             # close the testbench window
@@ -208,7 +211,7 @@ class WaysideControllerTestbench(QMainWindow):
         self.test_ui = TestbenchUi() # create a ui from the exported file
         self.test_ui.setupUi(self) 
     
-    @pyqtSlot(str)
+    
     def open_window(self, window_name: str):
         """
         opens the testbench window when the user switches to maintenance mode
@@ -219,7 +222,6 @@ class WaysideControllerTestbench(QMainWindow):
         self.test_ui.menu_Blue_Line_Controller_1.setTitle(window_name)
         self.show()
     
-    @pyqtSlot()
     def close_window(self):
         # probably need to do cleanup here?
         # or just leave the previous values?

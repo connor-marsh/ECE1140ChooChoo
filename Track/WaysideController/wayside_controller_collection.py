@@ -25,17 +25,19 @@ class WaysideControllerCollection():
 
         # Create a list of backends which will handle different territory, devices, etc.
         self.controllers = [None] * CONTROLLER_COUNT[line_name]
+
+        from wayside_controller_frontend import WaysideControllerTestbench # lazy import
+        self.testbenches = [WaysideControllerTestbench()] * CONTROLLER_COUNT[line_name]
+
         for i in range(CONTROLLER_COUNT[line_name]):
             self.controllers[i] = WaysideController(BLOCK_COUNT[line_name][i], SWITCH_COUNT[line_name][i], 
                                                           LIGHT_COUNT[line_name][i], CROSSING_COUNT[line_name][i], EXIT_BLOCK_COUNT[line_name][i], 0.5)
        
         # Initialize the frontend with access to the collection so that it may modify itself or the backend using the data from the backend
         from wayside_controller_frontend import WaysideControllerFrontend # lazy import to avoid circular import (do NOT tell me about design patterns)
-        from wayside_controller_frontend import WaysideControllerTestbench
         self.frontend = WaysideControllerFrontend(self)
-        self.testbench = WaysideControllerTestbench()
 
-        self.connect_signals()
+        #self.connect_signals()
 
     def get_plc_outputs(self, line_name : str, controller_index : int) -> tuple[list[bool], list[bool], list[bool]]:
         """
@@ -59,12 +61,14 @@ class WaysideControllerCollection():
         :return commanded_values: Tuple containing 2 lists of booleans for each of the corresponding outputs of the select controller's plc
         """
 
-    def connect_signals(self):
-        """
-        Connects any necessary signals for communication using the pyqt framework
-        """
-        self.frontend.open_testbench.connect(self.testbench.open_window)
-        self.frontend.close_testbench.connect(self.testbench.close_window)
+    #def connect_signals(self):
+    #    """
+    #    Connects any necessary signals for communication using the pyqt framework
+    #    """
+    #    for testbench in self.testbenches
+
+        #self.frontend.open_testbench.connect(self.testbench.open_window)
+        #self.frontend.close_testbench.connect(self.testbench.close_window)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
