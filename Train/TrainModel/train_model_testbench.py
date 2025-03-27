@@ -84,7 +84,10 @@ class TestBenchApp(QMainWindow):
             self.ui.EngineFailure.setText(new_status)
 
     # def handle_emergency_button(self, pressed: bool):
+    #     if not self.train_ui.button_emergency.isEnabled():
+    #         return
     #     if pressed:
+    #         self.train_ui.button_emergency.setEnabled(False)
     #         self.ui.PEmergencyStop.setText("Enabled")
     #         self.ui.ServiceBrakes.setChecked(False)
     #         self.ui.ServiceBrakes.setEnabled(False)
@@ -95,6 +98,20 @@ class TestBenchApp(QMainWindow):
     #     else:
     #         self.ui.PEmergencyStop.setText("Disabled")
     #         self.ui.ServiceBrakes.setEnabled(True)
+    
+    def handle_emergency_button(self, pressed: bool):
+        if pressed:
+            self.ui.PEmergencyStop.setText("Enabled")
+            self.ui.ServiceBrakes.setChecked(False)
+            self.ui.ServiceBrakes.setEnabled(False)
+            self.ui.EmergencyStop.setEnabled(True)
+            self.ui.EmergencyStop.setChecked(True)
+            self.ui.TrainDriver.setChecked(True)
+            self.ui.TrainDriver.setEnabled(False)
+        else:
+            self.ui.PEmergencyStop.setText("Disabled")
+            self.ui.ServiceBrakes.setEnabled(True)
+
 
     def read_inputs(self):
         # Helper to convert text to float.

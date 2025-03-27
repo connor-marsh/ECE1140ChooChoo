@@ -32,10 +32,6 @@ class TrainModelFrontEnd(QMainWindow):
         
         # Setup dropdown for selecting a train model.
         self.setup_train_dropdown()
-
-        # Create the testbench window.
-        # from train_model_testbench import TestBenchApp  # Lazy import to avoid circular dependency
-        # self.testbench = TestBenchApp(self)
         
         # # Load the initial train's data and simulation state.
         # self.load_train_data()
@@ -53,9 +49,8 @@ class TrainModelFrontEnd(QMainWindow):
         self.clock_timer.start(1000)
 
         # Configure emergency brake button.
-        self.train_ui.button_emergency.setCheckable(True)
         self.init_failure_buttons()
-        self.train_ui.button_emergency.toggled.connect(self.handle_emergency_button)
+        self.init_emergency_button()
 
     def setup_train_dropdown(self):
         if self.train_collection:
@@ -171,98 +166,9 @@ class TrainModelFrontEnd(QMainWindow):
             #     self.testbench.ui.EmergencyStop.setEnabled(False)
             #     self.testbench.ui.PEmergencyStop.setText("Disabled")
 
-    # @staticmethod
-    # def read_wayside_data(ui, to_float_func):
-    #     commanded_power = to_float_func(ui.CommandedPower.text(), 0.0)
-    #     if commanded_power > 120000:
-    #         commanded_power = 120000.0
-    #     elif commanded_power < 0:
-    #         commanded_power = 0.0
-    #     return {
-    #         "commanded_speed": to_float_func(ui.WaysideSpeed.text(), 0.0),
-    #         "authority": to_float_func(ui.WaysideAuthority.text(), 0.0),
-    #         "commanded_power": commanded_power,
-    #         "speed_limit": to_float_func(ui.SpeedLimit.text(), 0.0),
-    #         "beacon_data": ui.BeaconData.text(),
-    #     }
-
-    # @staticmethod
-    # def read_lights_doors_data(ui):
-    #     return {
-    #         "service_brakes": ui.ServiceBrakes.isChecked(),
-    #         "ext_lights": ui.ExtLights.isChecked(),
-    #         "int_lights": ui.IntLights.isChecked(),
-    #         "left_doors": ui.LeftDoors.isChecked(),
-    #         "right_doors": ui.RightDoors.isChecked(),
-    #         "announcements": ui.Announcements.text(),
-    #         "ac_signal": ui.ACSignal.isChecked(),
-    #         "heat_signal": ui.HeatingSignal.isChecked()
-    #     }
-
-    # @staticmethod
-    # def read_train_physical_data(ui, to_float_func):
-    #     base_mass_kg = to_float_func(ui.MassVehicle.text(), 37103.86)
-    #     passenger_count = to_float_func(ui.PassengerCount.text(), 0.0)
-    #     crew_count = to_float_func(ui.CrewCount.text(), 2.0)
-    #     added_passenger_mass = passenger_count * 70.0
-    #     added_crew_mass = crew_count * 70.0
-    #     length_m = to_float_func(ui.LengthVehicle.text(), 32.2)
-    #     height_m = to_float_func(ui.HeightVehicle.text(), 3.42)
-    #     width_m = to_float_func(ui.WidthVehicle.text(), 2.65)
-    #     grade_percent = to_float_func(ui.GradePercent.text(), 0.0)
-    #     temperature = to_float_func(ui.Temperature.text(), 25.0)
-        
-    #     if grade_percent > 60:
-    #         grade_percent = 60.0
-    #     elif grade_percent < 0:
-    #         grade_percent = 0.0
-    #     return {
-    #         "length_m": length_m,
-    #         "height_m": height_m,
-    #         "width_m": width_m,
-    #         "grade": grade_percent,
-    #         "mass_kg": base_mass_kg + added_passenger_mass + added_crew_mass,
-    #         "passenger_count": passenger_count,
-    #         "crew_count": crew_count,
-    #         "temperature": temperature
-    #     }
-
     def update(self): 
         if self.current_train is not None:
             
-            # Merge testbench input into the backend.
-            # self.testbench.update_train_model()
-            
-            # Now update the physics.
-            # self.current_train.update()
-
-            # Extract sub-values from the merged ui_data
-            #    (Because the testbench + update_from_testbench merged them)
-            # ui_data = self.current_train.backend.ui_data
-            # wayside_data = {
-            #     "commanded_speed": self.current_train.backend.commanded_speed,
-            #     "commanded_power": ui_data.get("commanded_power", 0.0),
-            #     "speed_limit": ui_data.get("speed_limit", 0.0),
-            #     "beacon_data": ui_data.get("beacon_data", ""),
-            # }
-            # lights_data = {
-            #     "announcements": ui_data.get("announcements", ""),
-            #     "service_brakes": ui_data.get("service_brakes", False),
-            #     "ext_lights": ui_data.get("ext_lights", False),
-            #     "int_lights": ui_data.get("int_lights", False),
-            #     "left_doors": ui_data.get("left_doors", False),
-            #     "right_doors": ui_data.get("right_doors", False),
-            # }
-            # train_data = {
-            #     "mass_kg": ui_data.get("mass_kg", 0.0),
-            #     "grade": ui_data.get("grade", 0.0),
-            #     "passenger_count": ui_data.get("passenger_count", 0.0),
-            #     "crew_count": ui_data.get("crew_count", 0.0),
-            #     "length_m": ui_data.get("length_m", 0.0),
-            #     "height_m": ui_data.get("height_m", 0.0),
-            #     "width_m": ui_data.get("width_m", 0.0),
-            # }
-
             # Directly use attributes:
             velocity_mph = self.current_train.actual_velocity * self.current_train.MPS_TO_MPH
             cmd_speed_mph = self.current_train.wayside_speed * self.current_train.MPS_TO_MPH
@@ -386,6 +292,14 @@ class TrainModelFrontEnd(QMainWindow):
         self.failure_group2.buttonClicked.connect(lambda btn: self.testbench.on_failure_group_toggled("SignalFailure", btn))
         self.failure_group3.buttonClicked.connect(lambda btn: self.testbench.on_failure_group_toggled("EngineFailure", btn))
 
+    def init_emergency_button(self):
+        self.train_ui.button_emergency.setCheckable(True)
+        # Use a lambda that calls testbench.handle_emergency_button only if self.testbench exists.
+        self.train_ui.button_emergency.toggled.connect(
+            lambda pressed: self.testbench.handle_emergency_button(pressed)
+            if hasattr(self, 'testbench') else None
+        )
+
     # def on_failure_group_toggled(self, failure_type, button):
     #     new_status = button.text()
     #     if failure_type == "BrakeFailure":
@@ -395,21 +309,21 @@ class TrainModelFrontEnd(QMainWindow):
     #     elif failure_type == "EngineFailure":
     #         self.testbench.ui.EngineFailure.setText(new_status)
 
-    def handle_emergency_button(self, pressed: bool):
-        if not self.train_ui.button_emergency.isEnabled():
-            return
-        if pressed:
-            self.train_ui.button_emergency.setEnabled(False)
-            self.testbench.ui.PEmergencyStop.setText("Enabled")
-            self.testbench.ui.ServiceBrakes.setChecked(False)
-            self.testbench.ui.ServiceBrakes.setEnabled(False)
-            self.testbench.ui.EmergencyStop.setEnabled(True)
-            self.testbench.ui.EmergencyStop.setChecked(True)
-            self.testbench.ui.TrainDriver.setChecked(True)
-            self.testbench.ui.TrainDriver.setEnabled(False)
-        else:
-            self.testbench.ui.PEmergencyStop.setText("Disabled")
-            self.testbench.ui.ServiceBrakes.setEnabled(True)
+    # def handle_emergency_button(self, pressed: bool):
+    #     if not self.train_ui.button_emergency.isEnabled():
+    #         return
+    #     if pressed:
+    #         self.train_ui.button_emergency.setEnabled(False)
+    #         self.testbench.ui.PEmergencyStop.setText("Enabled")
+    #         self.testbench.ui.ServiceBrakes.setChecked(False)
+    #         self.testbench.ui.ServiceBrakes.setEnabled(False)
+    #         self.testbench.ui.EmergencyStop.setEnabled(True)
+    #         self.testbench.ui.EmergencyStop.setChecked(True)
+    #         self.testbench.ui.TrainDriver.setChecked(True)
+    #         self.testbench.ui.TrainDriver.setEnabled(False)
+    #     else:
+    #         self.testbench.ui.PEmergencyStop.setText("Disabled")
+    #         self.testbench.ui.ServiceBrakes.setEnabled(True)
 
     def update_clock(self):
         self.simulated_time = self.simulated_time.addSecs(1)
