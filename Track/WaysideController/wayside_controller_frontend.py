@@ -195,7 +195,7 @@ class WaysideControllerFrontend(QMainWindow):
         while True:
             program_file_path, _ = QFileDialog.getOpenFileName(self, "Select PLC Program", "", "Python File (*.py);;All Files (*)")
             if program_file_path:
-                if active_controller.load_program(program_file_path):
+                if active_controller.load_program(program_file_path): # should validate if it is accepted
                     active_controller.plc_filename = Path(program_file_path).name # store the filename in the backend
                     break
             else:

@@ -66,6 +66,7 @@ class WaysideController():
 
         except (FileNotFoundError, ValueError, TypeError) as e:
             print(f"\n❌ {e}\nPlease enter a valid PLC program file.")
+            self.program = None # make sure there is no program stored
             return False  # Indicate failure
         
         return True  # Indicate success
@@ -177,7 +178,7 @@ if __name__ == "__main__":
 
     while True:
         user_file = input("Enter the path to the PLC program file: ")
-        if os.path.exists(user_file) and user_file.endswith(".py") and controller.load_program(user_file):
+        if os.path.exists(user_file) and user_file.endswith(".py") and controller.load_program(user_file): #use this to have the wayside controller do nothing when no program exists?
             break  # Exit loop once a valid program is loaded
 
     # --- Start the Wayside Controller ---
