@@ -248,7 +248,7 @@ border-color: rgb(0, 0, 0);</string>
    </property>
    <widget class="QMenu" name="menu_Blue_Line_Controller_1">
     <property name="title">
-     <string>Blue Line Controller #1</string>
+     <string/>
     </property>
    </widget>
    <addaction name="menu_Blue_Line_Controller_1"/>

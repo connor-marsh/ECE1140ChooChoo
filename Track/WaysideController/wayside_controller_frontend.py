@@ -19,6 +19,7 @@ class WaysideControllerFrontend(QMainWindow):
     A class that contains several wayside controllers and handles interfacing with the other modules such as the Track Model and The CTC.
     The front end that will display information about the currently selected wayside controller is also contained in this class. Inherits from teh QMainWindow because ?
     """
+    open_testbench = pyqtSignal(str) # signal that opens a testbench with the name of the window
 
     def __init__(self, collection_reference: WaysideControllerCollection):
         """
@@ -29,8 +30,8 @@ class WaysideControllerFrontend(QMainWindow):
         self.current_controller_index = 0 # Tells the ui which backend controller from the collection to reference
         self.ui = WaysideUi() # create a ui from the exported file
         self.ui.setupUi(self) 
-        
-        
+        self.setWindowTitle("Wayside Controller Module")
+       
 
         # Initialize any Ui elements that are dynamic
         self.init_tables_lists()
@@ -176,6 +177,8 @@ class WaysideControllerFrontend(QMainWindow):
                     return # exit early to avoid opening the manual input window
             
             # SOMEHOW SWITCH TO READING THE VALUES FROM THE TESTBENCH
+            testbench_window_name = self.ui.menu_bar.title() + " Testbench"
+            self.open_testbench.emit(testbench_window_name)
              # Set the exit blocks to be occupied and open the test bench window 
              # Open the test bench window probably other stuff todo as well but whale i cant think of it
             active_controller.maintenance_mode = True # No occupied blocks detected can safely set the active mode to maintenance
@@ -204,14 +207,21 @@ class WaysideControllerFrontend(QMainWindow):
 class WaysideControllerTestbench(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.ui = TestbenchUi() # create a ui from the exported file
-        self.ui.setupUi(self) 
+        self.test_ui = TestbenchUi() # create a ui from the exported file
+        self.test_ui.setupUi(self) 
+    
+    @pyqtSlot(str)
+    def open_window(self, window_name: str):
+        self.setWindowTitle("Wayside Testbench Module")
+        self.test_ui.menu_bar.setTitle(window_name)
+        self.show_window()
+
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     collection = WaysideControllerCollection("GREEN")
+    
     wayside_window = collection.frontend
-    wayside_window.setWindowTitle("Wayside Controller Module")
     wayside_window.show()
     sys.exit(app.exec_())
