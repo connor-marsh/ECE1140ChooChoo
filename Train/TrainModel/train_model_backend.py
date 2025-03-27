@@ -2,7 +2,10 @@
 
 import math
 
-class TrainModel:
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
+from PyQt5.QtCore import QTimer, QTime, QDateTime
+
+class TrainModel(QMainWindow):
     # Conversion factors and constants
     MPS_TO_MPH  = 2.23694
     KG_TO_LBS   = 2.20462
@@ -15,6 +18,8 @@ class TrainModel:
     MIN_SPEED_NO_BRAKE= 0.1       # (m/s)
 
     def __init__(self):
+        super().__init__()
+        
         # internal values
         self.controller = None
         self.position = 0.0
@@ -53,12 +58,18 @@ class TrainModel:
         # # For UI data and simulation state storage:
         # self.ui_data = {}
         # self.sim_state = {}
+        
+        # Set up timer for callback/update function
+        self.prev_time = None
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update)
+        self.timer.start(100)
 
         # Minimal fix: Ensure a backend attribute exists.
         self.backend = self
 
     # This method uses self.ui_data to do physics.
-    def update(self, dt):
+    def update(self):
         # do physics, ur storing all the data anyways
         # commanded_speed = self.ui_data.get("commanded_speed", 0.0)
         # commanded_power = self.ui_data.get("commanded_power", 0.0)
@@ -69,6 +80,14 @@ class TrainModel:
         # heat_signal = self.ui_data.get("heat_signal", False)
         # ac_signal = self.ui_data.get("ac_signal", False)
         # emergency_active = self.ui_data.get("emergency_brake", False)
+        
+        # if self.current_train:
+        current_time = QDateTime.currentMSecsSinceEpoch()
+        if self.prev_time is None:
+            self.prev_time = current_time
+            return
+        dt = (current_time - self.prev_time) / 1000.0
+        self.prev_time = current_time
 
         try:
             v_eff = self.actual_velocity if self.actual_velocity > 0.001 else 0.001
@@ -163,8 +182,8 @@ class TrainModel:
         if selected == "testbench" or selected == "train_controller":
             # clamo the commanded power to 120kW
             commanded_power = selected_data.get("commanded_power", self.commanded_power)
-            if commanded_power > 1200:
-                commanded_power = 1200.0
+            if commanded_power > 120000:
+                commanded_power = 120000.0
             elif commanded_power < 0:
                 commanded_power = 0.0
             self.commanded_power = commanded_power

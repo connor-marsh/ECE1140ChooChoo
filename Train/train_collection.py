@@ -40,12 +40,11 @@ class TrainCollection:
             for _ in range(num_trains):
                 self.train_list.append(TrainController())
         else:
-            self.current_train = None
-        # Lazy import to avoid circular dependency:
-        from train_model_frontend import TrainModelFrontEnd
-        self.train_model_ui = TrainModelFrontEnd(self)  # Pass self to front-end
-        from train_controller_frontend import TrainControllerFrontend
-        self.train_controller_ui = TrainControllerFrontend(self)
+            # Lazy import to avoid circular dependency:
+            from train_model_frontend import TrainModelFrontEnd
+            self.train_model_ui = TrainModelFrontEnd(self)  # Pass self to front-end
+            from train_controller_frontend import TrainControllerFrontend
+            self.train_controller_ui = TrainControllerFrontend(self)
 
         if not controller:
             self.train_list = []

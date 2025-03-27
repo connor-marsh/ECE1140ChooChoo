@@ -14,33 +14,35 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QComboBox, QWidgetAction,
 from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
 from train_model_ui_iteration_1 import Ui_MainWindow as TrainModelUI
 from train_model_backend import TrainModel
+from train_model_testbench import TestBenchApp
 
 class TrainModelFrontEnd(QMainWindow):
     def __init__(self, collection):
         super().__init__()
-        self.train_ui = TrainModelUI()
-        self.train_ui.setupUi(self)
 
         # Create TrainCollection and let it populate with trains.
         self.train_collection = collection
 
         # Use the current_train from the collection.
-        #self.current_train = None
-        self.current_train = self.train_collection.current_train
+        self.current_train = None
+        # self.current_train = self.train_collection.current_train
 
+        self.train_ui = TrainModelUI()
+        self.train_ui.setupUi(self)
+        
         # Setup dropdown for selecting a train model.
         self.setup_train_dropdown()
 
         # Create the testbench window.
-        from train_model_testbench import TestBenchApp  # Lazy import to avoid circular dependency
-        self.testbench = TestBenchApp(self)
+        # from train_model_testbench import TestBenchApp  # Lazy import to avoid circular dependency
+        # self.testbench = TestBenchApp(self)
         
         # # Load the initial train's data and simulation state.
         # self.load_train_data()
         # self.load_sim_state()
 
         # Initialize physics and clock timers.
-        self.prev_time = None
+        # self.prev_time = None
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
         self.timer.start(100)  # 10 Hz update
@@ -56,15 +58,16 @@ class TrainModelFrontEnd(QMainWindow):
         self.train_ui.button_emergency.toggled.connect(self.handle_emergency_button)
 
     def setup_train_dropdown(self):
-        """Embeds a small dropdown in the menuTrain_ID_1 menu."""
-        self.train_dropdown = QComboBox()
-        self.train_dropdown.setFixedSize(120, 25)
-        for idx, train in enumerate(self.train_collection.train_list):
-            self.train_dropdown.addItem(getattr(train, "name", f"Train ID {idx+1}"))
-        self.train_dropdown.currentIndexChanged.connect(self.on_train_selection_changed)
-        widget_action = QWidgetAction(self)
-        widget_action.setDefaultWidget(self.train_dropdown)
-        self.train_ui.menuTrain_ID_1.addAction(widget_action)
+        if self.train_collection:
+            """Embeds a small dropdown in the menuTrain_ID_1 menu."""
+            self.train_dropdown = QComboBox()
+            self.train_dropdown.setFixedSize(120, 25)
+            for idx, train in enumerate(self.train_collection.train_list):
+                self.train_dropdown.addItem(getattr(train, "name", f"Train ID {idx+1}"))
+            self.train_dropdown.currentIndexChanged.connect(self.on_train_selection_changed)
+            widget_action = QWidgetAction(self)
+            widget_action.setDefaultWidget(self.train_dropdown)
+            self.train_ui.menuTrain_ID_1.addAction(widget_action)
         
     # def save_current_train_data(self):
     #     """Save every numeric value, announcement, and auxiliary function state from the TestBench UI (and emergency brake state) into the current train’s ui_data."""
@@ -224,123 +227,118 @@ class TrainModelFrontEnd(QMainWindow):
     #         "temperature": temperature
     #     }
 
-    def update(self):
-        current_time = QDateTime.currentMSecsSinceEpoch()
-        if self.prev_time is None:
-            self.prev_time = current_time
-            return
-        dt = (current_time - self.prev_time) / 1000.0
-        self.prev_time = current_time
-
-        # Merge testbench input into the backend.
-        self.testbench.update_train_model()
-        
-        # Now update the physics.
-        self.current_train.update(dt)
-
-        # Extract sub-values from the merged ui_data
-        #    (Because the testbench + update_from_testbench merged them)
-        # ui_data = self.current_train.backend.ui_data
-        # wayside_data = {
-        #     "commanded_speed": self.current_train.backend.commanded_speed,
-        #     "commanded_power": ui_data.get("commanded_power", 0.0),
-        #     "speed_limit": ui_data.get("speed_limit", 0.0),
-        #     "beacon_data": ui_data.get("beacon_data", ""),
-        # }
-        # lights_data = {
-        #     "announcements": ui_data.get("announcements", ""),
-        #     "service_brakes": ui_data.get("service_brakes", False),
-        #     "ext_lights": ui_data.get("ext_lights", False),
-        #     "int_lights": ui_data.get("int_lights", False),
-        #     "left_doors": ui_data.get("left_doors", False),
-        #     "right_doors": ui_data.get("right_doors", False),
-        # }
-        # train_data = {
-        #     "mass_kg": ui_data.get("mass_kg", 0.0),
-        #     "grade": ui_data.get("grade", 0.0),
-        #     "passenger_count": ui_data.get("passenger_count", 0.0),
-        #     "crew_count": ui_data.get("crew_count", 0.0),
-        #     "length_m": ui_data.get("length_m", 0.0),
-        #     "height_m": ui_data.get("height_m", 0.0),
-        #     "width_m": ui_data.get("width_m", 0.0),
-        # }
-
-        # Directly use attributes:
-        velocity_mph = self.current_train.actual_velocity * self.current_train.MPS_TO_MPH
-        cmd_speed_mph = self.current_train.wayside_speed * self.current_train.MPS_TO_MPH
-        try:
-            speed_limit = self.current_train.speed_limit
-        except AttributeError:
-            speed_limit = 0.0
-        speed_limit_mph = speed_limit * self.current_train.MPS_TO_MPH
-        
-        acceleration_fts2 = self.current_train.current_acceleration * 3.281
-        commanded_power = self.current_train.commanded_power
-        
-        self.train_ui.AccValue.display(acceleration_fts2)
-        self.train_ui.SpeedValue.display(velocity_mph)
-        self.train_ui.CommandedSpeedValue.display(cmd_speed_mph)
-        self.train_ui.SpeedLimitValue.display(speed_limit_mph)
-        self.train_ui.PowerValue.display(commanded_power / 1000.0)
-
-        # For physical properties, assume they are now stored in the (or use defaults)
-        try:
-            mass_kg = self.current_train.mass_kg
-            grade = self.current_train.grade
-            passenger_count = self.current_train.passenger_count
-            crew_count = self.current_train.crew_count
-            length_m = self.current_train.length_m
-            height_m = self.current_train.height_m
-            width_m = self.current_train.width_m
-        except AttributeError:
-            mass_kg = 37103.86
-            grade = 0.0
-            passenger_count = 0.0
-            crew_count = 2.0
-            length_m = 32.2
-            height_m = 3.42
-            width_m = 2.65
-
-        mass_lbs = mass_kg * self.current_train.KG_TO_LBS
-        self.train_ui.MassVehicleValue.display(mass_lbs)
-        self.train_ui.PassengerCountValue.display(passenger_count)
-        self.train_ui.CrewCountValue.display(crew_count)
-        self.train_ui.LengthVehicleValue.display(length_m * self.current_train.M_TO_FT)
-        self.train_ui.HeightValue.display(height_m * self.current_train.M_TO_FT)
-        self.train_ui.WidthValue.display(width_m * self.current_train.M_TO_FT)
-
-        # Announcements from:
-        announcements = self.current_train.announcement
-        if hasattr(self.train_ui, "Announcement_2"):
-            self.train_ui.Announcement_2.setText(announcements)
-            self.train_ui.Announcement_2.setStyleSheet("font-size: 20px; font-weight: bold;")
-
-        if hasattr(self.train_ui, "Temperature"):
-            display_temp = self.current_train.cabin_temp * 9 / 5 + 32
-            self.train_ui.Temperature.setText(f"{display_temp:.2f} °F")
-            self.train_ui.Temperature.setAlignment(Qt.AlignCenter)
-
-        if hasattr(self.train_ui, "GradePercentage"):
-            self.train_ui.GradePercentageValue.display(grade)
+    def update(self): 
+        if self.current_train is not None:
             
-        # Color features for auxiliary functions still rely on TestBench UI state.
-        self.update_color(self.current_train.service_brakes,
-                          self.train_ui.ServiceBrakesOn,
-                          self.train_ui.ServiceBrakesOff)
-        self.update_color(self.current_train.headlights,
-                          self.train_ui.ExteriorLightsOn,
-                          self.train_ui.ExteriorLightsOff)
-        self.update_color(self.current_train.cabin_lights,
-                          self.train_ui.InteriorLightsOn,
-                          self.train_ui.InteriorLightsOff)
-        self.update_color(self.current_train.left_doors,
-                          self.train_ui.LeftDoorOpen,
-                          self.train_ui.LeftDoorClosed)
-        self.update_color(self.current_train.right_doors,
-                          self.train_ui.RightDoorOpen,
-                          self.train_ui.RightDoorClosed)
+            # Merge testbench input into the backend.
+            # self.testbench.update_train_model()
+            
+            # Now update the physics.
+            # self.current_train.update()
 
-        self.testbench.update_status()
+            # Extract sub-values from the merged ui_data
+            #    (Because the testbench + update_from_testbench merged them)
+            # ui_data = self.current_train.backend.ui_data
+            # wayside_data = {
+            #     "commanded_speed": self.current_train.backend.commanded_speed,
+            #     "commanded_power": ui_data.get("commanded_power", 0.0),
+            #     "speed_limit": ui_data.get("speed_limit", 0.0),
+            #     "beacon_data": ui_data.get("beacon_data", ""),
+            # }
+            # lights_data = {
+            #     "announcements": ui_data.get("announcements", ""),
+            #     "service_brakes": ui_data.get("service_brakes", False),
+            #     "ext_lights": ui_data.get("ext_lights", False),
+            #     "int_lights": ui_data.get("int_lights", False),
+            #     "left_doors": ui_data.get("left_doors", False),
+            #     "right_doors": ui_data.get("right_doors", False),
+            # }
+            # train_data = {
+            #     "mass_kg": ui_data.get("mass_kg", 0.0),
+            #     "grade": ui_data.get("grade", 0.0),
+            #     "passenger_count": ui_data.get("passenger_count", 0.0),
+            #     "crew_count": ui_data.get("crew_count", 0.0),
+            #     "length_m": ui_data.get("length_m", 0.0),
+            #     "height_m": ui_data.get("height_m", 0.0),
+            #     "width_m": ui_data.get("width_m", 0.0),
+            # }
+
+            # Directly use attributes:
+            velocity_mph = self.current_train.actual_velocity * self.current_train.MPS_TO_MPH
+            cmd_speed_mph = self.current_train.wayside_speed * self.current_train.MPS_TO_MPH
+            try:
+                speed_limit = self.current_train.speed_limit
+            except AttributeError:
+                speed_limit = 0.0
+            speed_limit_mph = speed_limit * self.current_train.MPS_TO_MPH
+            
+            acceleration_fts2 = self.current_train.current_acceleration * 3.281
+            commanded_power = self.current_train.commanded_power
+            
+            self.train_ui.AccValue.display(acceleration_fts2)
+            self.train_ui.SpeedValue.display(velocity_mph)
+            self.train_ui.CommandedSpeedValue.display(cmd_speed_mph)
+            self.train_ui.SpeedLimitValue.display(speed_limit_mph)
+            self.train_ui.PowerValue.display(commanded_power / 1000.0)
+
+            # For physical properties, assume they are now stored in the (or use defaults)
+            try:
+                mass_kg = self.current_train.mass_kg
+                grade = self.current_train.grade
+                passenger_count = self.current_train.passenger_count
+                crew_count = self.current_train.crew_count
+                length_m = self.current_train.length_m
+                height_m = self.current_train.height_m
+                width_m = self.current_train.width_m
+            except AttributeError:
+                mass_kg = 37103.86
+                grade = 0.0
+                passenger_count = 0.0
+                crew_count = 2.0
+                length_m = 32.2
+                height_m = 3.42
+                width_m = 2.65
+
+            mass_lbs = mass_kg * self.current_train.KG_TO_LBS
+            self.train_ui.MassVehicleValue.display(mass_lbs)
+            self.train_ui.PassengerCountValue.display(passenger_count)
+            self.train_ui.CrewCountValue.display(crew_count)
+            self.train_ui.LengthVehicleValue.display(length_m * self.current_train.M_TO_FT)
+            self.train_ui.HeightValue.display(height_m * self.current_train.M_TO_FT)
+            self.train_ui.WidthValue.display(width_m * self.current_train.M_TO_FT)
+
+            # Announcements from:
+            announcements = self.current_train.announcement
+            if hasattr(self.train_ui, "Announcement_2"):
+                self.train_ui.Announcement_2.setText(announcements)
+                self.train_ui.Announcement_2.setStyleSheet("font-size: 20px; font-weight: bold;")
+
+            if hasattr(self.train_ui, "Temperature"):
+                display_temp = self.current_train.cabin_temp * 9 / 5 + 32
+                self.train_ui.Temperature.setText(f"{display_temp:.2f} °F")
+                self.train_ui.Temperature.setAlignment(Qt.AlignCenter)
+
+            if hasattr(self.train_ui, "GradePercentage"):
+                self.train_ui.GradePercentageValue.display(grade)
+                
+            # Color features for auxiliary functions still rely on TestBench UI state.
+            self.update_color(self.current_train.service_brakes,
+                            self.train_ui.ServiceBrakesOn,
+                            self.train_ui.ServiceBrakesOff)
+            self.update_color(self.current_train.headlights,
+                            self.train_ui.ExteriorLightsOn,
+                            self.train_ui.ExteriorLightsOff)
+            self.update_color(self.current_train.cabin_lights,
+                            self.train_ui.InteriorLightsOn,
+                            self.train_ui.InteriorLightsOff)
+            self.update_color(self.current_train.left_doors,
+                            self.train_ui.LeftDoorOpen,
+                            self.train_ui.LeftDoorClosed)
+            self.update_color(self.current_train.right_doors,
+                            self.train_ui.RightDoorOpen,
+                            self.train_ui.RightDoorClosed)
+
+            # self.testbench.update_status()
 
     @staticmethod
     def update_color(checked, widget_on, widget_off):
@@ -383,18 +381,19 @@ class TrainModelFrontEnd(QMainWindow):
         self.train_ui.Disabled2.setChecked(True)
         self.train_ui.Disabled3.setChecked(True)
 
-        self.failure_group1.buttonClicked.connect(lambda btn: self.on_failure_group_toggled("BrakeFailure", btn))
-        self.failure_group2.buttonClicked.connect(lambda btn: self.on_failure_group_toggled("SignalFailure", btn))
-        self.failure_group3.buttonClicked.connect(lambda btn: self.on_failure_group_toggled("EngineFailure", btn))
+        # se the testbench's on_failure_group_toggled method.
+        self.failure_group1.buttonClicked.connect(lambda btn: self.testbench.on_failure_group_toggled("BrakeFailure", btn))
+        self.failure_group2.buttonClicked.connect(lambda btn: self.testbench.on_failure_group_toggled("SignalFailure", btn))
+        self.failure_group3.buttonClicked.connect(lambda btn: self.testbench.on_failure_group_toggled("EngineFailure", btn))
 
-    def on_failure_group_toggled(self, failure_type, button):
-        new_status = button.text()
-        if failure_type == "BrakeFailure":
-            self.testbench.ui.BrakeFailure.setText(new_status)
-        elif failure_type == "SignalFailure":
-            self.testbench.ui.SignalFailure.setText(new_status)
-        elif failure_type == "EngineFailure":
-            self.testbench.ui.EngineFailure.setText(new_status)
+    # def on_failure_group_toggled(self, failure_type, button):
+    #     new_status = button.text()
+    #     if failure_type == "BrakeFailure":
+    #         self.testbench.ui.BrakeFailure.setText(new_status)
+    #     elif failure_type == "SignalFailure":
+    #         self.testbench.ui.SignalFailure.setText(new_status)
+    #     elif failure_type == "EngineFailure":
+    #         self.testbench.ui.EngineFailure.setText(new_status)
 
     def handle_emergency_button(self, pressed: bool):
         if not self.train_ui.button_emergency.isEnabled():
@@ -432,9 +431,19 @@ class TrainModelFrontEnd(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     from train_collection import TrainCollection
-    window=TrainModelFrontEnd(TrainCollection())
-    window.show()
-    window.testbench.show()
+    
+    train_model_frontend = TrainModelFrontEnd(None)
+    collection = TrainCollection(num_trains=3, model=train_model_frontend)
+    train_model_frontend.collection = collection
+    train_model_frontend.current_train = collection.train_list[0]
+    train_model_frontend.show()
+    
+    train_model_testbench = TestBenchApp(collection)    
+    train_model_testbench.show()
+    
+    # link testbench to frontend for communication of values and button presses
+    train_model_frontend.testbench = train_model_testbench
+    
     sys.exit(app.exec_())
 
 if __name__ == "__main__":

@@ -5,11 +5,11 @@ from train_model_ui_testbench_iteration_1 import Ui_TestMainWindow as TestBenchU
 from train_model_backend import TrainModel
 
 class TestBenchApp(QMainWindow):
-    def __init__(self, train_app):
+    def __init__(self, train_collection):
         super().__init__()
         self.ui = TestBenchUI()
         self.ui.setupUi(self)
-        self.train_app = train_app
+        self.train_collection = train_collection
 
         self.ui.PEmergencyStop.setText("Disabled")
         self.ui.BrakeFailure.setText("Disabled")
@@ -21,55 +21,83 @@ class TestBenchApp(QMainWindow):
         self.ui.EmergencyStop.setChecked(False)
         self.ui.EmergencyStop.toggled.connect(self.handle_emergency_release)
         self.ui.TrainDriver.toggled.connect(self.handle_train_driver)
+        
+        # Initialize timer for periodic update.
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_train_model)
+        self.timer.start(100)  # 10 Hz update rate
 
     def update_train_model(self):
-        """
-        Reads all the relevant UI fields from the testbench UI,
-        merges them into a single dictionary, and passes that dictionary
-        to the backend via set_input_data().
-        """
-        # Step 1: Read the three sub-dictionaries from the testbench UI.
-        wayside_data, lights_data, physical_data = self.read_inputs()
+        # Get the currently selected train from the front end.
+        self.current_train = self.train_collection.train_model_ui.current_train
+        if self.current_train:
+            # Read inputs from the testbench UI.
+            wayside_data, lights_data, physical_data = self.read_inputs()
+            
+            # Merge dictionaries.
+            merged_data = {}
+            merged_data.update(wayside_data)
+            merged_data.update(lights_data)
+            merged_data.update(physical_data)
+            
+            # Include the emergency flag.
+            merged_data["emergency_active"] = self.ui.EmergencyStop.isChecked()
+            
+            # Update the backend with the merged data.
+            self.train_collection.train_model_ui.current_train.backend.set_input_data(testbench_data=merged_data)
         
-        # Merge dictionaries into one.
-        merged_data = {}
-        merged_data.update(wayside_data)
-        merged_data.update(lights_data)
-        merged_data.update(physical_data)
-        
-        # Include the current emergency flag from the testbench UI.
-        merged_data["emergency_active"] = self.ui.EmergencyStop.isChecked()
-        
-        # Update the backend using set_input_data.
-        self.train_app.current_train.backend.set_input_data(testbench_data=merged_data)
+        # Update the testbench display status.
+        self.update_status()
 
     def handle_train_driver(self, checked: bool):
         if checked:
-            self.train_app.train_ui.button_emergency.setChecked(True)
-            self.train_app.train_ui.button_emergency.setEnabled(False)
+            self.train_collection.train_model_ui.train_ui.button_emergency.setChecked(True)
+            self.train_collection.train_model_ui.train_ui.button_emergency.setEnabled(False)
             self.ui.PEmergencyStop.setText("Enabled")
             self.ui.EmergencyStop.setEnabled(True)
             self.ui.EmergencyStop.setChecked(True)
             self.ui.TrainDriver.setEnabled(False)
         else:
-            self.train_app.train_ui.button_emergency.setEnabled(True)
-            self.train_app.train_ui.button_emergency.setChecked(False)
+            self.train_collection.train_model_ui.train_ui.button_emergency.setEnabled(True)
+            self.train_collection.train_model_ui.train_ui.button_emergency.setChecked(False)
             self.ui.PEmergencyStop.setText("Disabled")
             self.ui.EmergencyStop.setEnabled(False)
             self.ui.EmergencyStop.setChecked(False)
 
     def handle_emergency_release(self, checked: bool):
         if not checked:
-            self.train_app.train_ui.button_emergency.setEnabled(True)
-            self.train_app.train_ui.button_emergency.setChecked(False)
+            self.train_collection.train_model_ui.train_ui.button_emergency.setEnabled(True)
+            self.train_collection.train_model_ui.train_ui.button_emergency.setChecked(False)
             self.ui.PEmergencyStop.setText("Disabled")
             self.ui.EmergencyStop.setEnabled(False)
             self.ui.EmergencyStop.setChecked(False)
             self.ui.TrainDriver.setEnabled(True)
             self.ui.TrainDriver.setChecked(False)
+            
+    def on_failure_group_toggled(self, failure_type, button):
+        new_status = button.text()
+        if failure_type == "BrakeFailure":
+            self.ui.BrakeFailure.setText(new_status)
+        elif failure_type == "SignalFailure":
+            self.ui.SignalFailure.setText(new_status)
+        elif failure_type == "EngineFailure":
+            self.ui.EngineFailure.setText(new_status)
+
+    # def handle_emergency_button(self, pressed: bool):
+    #     if pressed:
+    #         self.ui.PEmergencyStop.setText("Enabled")
+    #         self.ui.ServiceBrakes.setChecked(False)
+    #         self.ui.ServiceBrakes.setEnabled(False)
+    #         self.ui.EmergencyStop.setEnabled(True)
+    #         self.ui.EmergencyStop.setChecked(True)
+    #         self.ui.TrainDriver.setChecked(True)
+    #         self.ui.TrainDriver.setEnabled(False)
+    #     else:
+    #         self.ui.PEmergencyStop.setText("Disabled")
+    #         self.ui.ServiceBrakes.setEnabled(True)
 
     def read_inputs(self):
-        # Reading values directly from the testbench UI elements.
+        # Helper to convert text to float.
         def to_float(val_str, default=0.0):
             try:
                 return float(val_str)
@@ -92,7 +120,6 @@ class TestBenchApp(QMainWindow):
             "announcements": self.ui.Announcements.text() if hasattr(self.ui, "Announcements") else ""
         }
 
-        # read physical parameters from UI.
         physical = {
             "commanded_power": to_float(self.ui.CommandedPower.text(), 0.0),
             "service_brakes": self.ui.ServiceBrakes.isChecked(),
@@ -110,13 +137,12 @@ class TestBenchApp(QMainWindow):
         return wayside, lights, physical
 
     def update_status(self):
-        # This method just checks that the backend’s displayed speeds/authority
-        # match the testbench’s stored backend values, etc.
-        backend = self.train_app.current_train.backend
+        # Update labels in the testbench to reflect the backend values.
+        backend = self.train_collection.train_model_ui.current_train
 
         cmd_val = backend.wayside_speed
         cmd_val_mph = cmd_val * backend.MPS_TO_MPH
-        model_val = self.train_app.train_ui.CommandedSpeedValue.value()
+        model_val = self.train_collection.train_model_ui.train_ui.CommandedSpeedValue.value()
         if abs(cmd_val_mph - model_val) < 0.0001:
             self.ui.WaysideSpeed_2.setText(f"{cmd_val_mph:.2f}")
         else:
@@ -134,17 +160,17 @@ class TestBenchApp(QMainWindow):
         except ValueError:
             speed_val = 0.0
         speed_val_mph = speed_val * backend.MPS_TO_MPH
-        model_speed_limit = self.train_app.train_ui.SpeedLimitValue.value()
+        model_speed_limit = self.train_collection.train_model_ui.train_ui.SpeedLimitValue.value()
         if abs(speed_val_mph - model_speed_limit) < 0.0001:
             self.ui.SpeedLimit_2.setText(f"{speed_val_mph:.2f}")
         else:
             self.ui.SpeedLimit_2.setText("Not Displayed")
 
         internal_mph = backend.actual_velocity * backend.MPS_TO_MPH
-        speed_ui = self.train_app.train_ui.SpeedValue.value()
+        speed_ui = self.train_collection.train_model_ui.train_ui.SpeedValue.value()
         if abs(internal_mph - speed_ui) < 0.0001:
             self.ui.ActualVelocity.setText(f"{internal_mph:.2f}")
         else:
             self.ui.ActualVelocity.setText("Not Displayed")
 
-        self.ui.Temperature.setText(self.train_app.train_ui.Temperature.text())
+        self.ui.Temperature.setText(self.train_collection.train_model_ui.train_ui.Temperature.text())
