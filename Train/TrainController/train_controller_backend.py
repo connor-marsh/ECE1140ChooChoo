@@ -39,8 +39,8 @@ class TrainController(QMainWindow):
 
         # Default for power calculation
         self.integral_error = 0.0
-        self.Kp = 1.0
-        self.Ki = 1.0
+        self.Kp = 500000.0
+        self.Ki = 100.0
 
         # Set up timer for callback/update function
         self.timer = QTimer(self)
@@ -140,11 +140,11 @@ class TrainController(QMainWindow):
         data["commanded_power"] = self.commanded_power
         data["service_brake"] = self.service_brake
         data["emergency_brake"] = self.emergency_brake
-        data["door_left"] = self.door_left
-        data["door_right"] = self.door_right
+        data["left_doors"] = self.door_left
+        data["right_doors"] = self.door_right
         data["interior_lights"] = self.interior_lights
         data["headlights"] = self.headlights
         data["heating_signal"] = self.heating_signal
         data["air_conditioning_signal"] = self.air_conditioning_signal
-        data["announcement"] = self.announcement
+        data["announcements"] = self.next_station
         return data

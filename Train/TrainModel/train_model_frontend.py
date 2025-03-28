@@ -76,7 +76,7 @@ class TrainModelFrontEnd(QMainWindow):
         if self.current_train is not None:
             
             # Directly use attributes:
-            velocity_mph = self.current_train.actual_velocity * self.current_train.MPS_TO_MPH
+            velocity_mph = self.current_train.actual_speed * self.current_train.MPS_TO_MPH
             cmd_speed_mph = self.current_train.wayside_speed * self.current_train.MPS_TO_MPH
             try:
                 speed_limit = self.current_train.speed_limit
@@ -126,7 +126,7 @@ class TrainModelFrontEnd(QMainWindow):
                 self.train_ui.Announcement_2.setStyleSheet("font-size: 20px; font-weight: bold;")
 
             if hasattr(self.train_ui, "Temperature"):
-                display_temp = self.current_train.cabin_temp * 9 / 5 + 32
+                display_temp = self.current_train.actual_temperature * 9 / 5 + 32
                 self.train_ui.Temperature.setText(f"{display_temp:.2f} °F")
                 self.train_ui.Temperature.setAlignment(Qt.AlignCenter)
 
@@ -134,7 +134,7 @@ class TrainModelFrontEnd(QMainWindow):
                 self.train_ui.GradePercentageValue.display(grade)
                 
             # Color features for auxiliary functions still rely on TestBench UI state.
-            self.update_color(self.current_train.service_brakes,
+            self.update_color(self.current_train.service_brake,
                             self.train_ui.ServiceBrakesOn,
                             self.train_ui.ServiceBrakesOff)
             self.update_color(self.current_train.headlights,
