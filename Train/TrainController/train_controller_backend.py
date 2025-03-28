@@ -18,7 +18,7 @@ class TrainController(QMainWindow):
         self.commanded_power = 0.0
         self.passenger_emergency_stop = False
         self.beacon_data = ""
-        self.temperature_status = 77.0 # Farenheight
+        self.actual_temperature = 77.0 # Farenheight
         self.desired_temperature = 77.0 # Farenheight
         self.signal_failure = False
         self.brake_failure = False
@@ -85,8 +85,8 @@ class TrainController(QMainWindow):
             self.commanded_power = 0.0 # Kill engine if emergency brake is activated
 
         # Set the HVAC Signals
-        self.air_conditioning_signal = self.temperature_status > self.desired_temperature
-        self.heating_signal = self.temperature_status < self.desired_temperature
+        self.air_conditioning_signal = self.actual_temperature > self.desired_temperature
+        self.heating_signal = self.actual_temperature < self.desired_temperature
 
         # Check time for lights
         if (not self.manual_mode):

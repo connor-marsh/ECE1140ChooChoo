@@ -39,6 +39,7 @@ class TrainCollection:
             self.train_list = []
             for _ in range(num_trains):
                 self.train_list.append(TrainController())
+            self.train_controller_ui.update_train_dropdown()
         else:
             # Lazy import to avoid circular dependency:
             from train_model_frontend import TrainModelFrontEnd
@@ -54,3 +55,4 @@ class TrainCollection:
     def createTrain(self):
         # Create a new TrainModel and append it to the list.
         self.train_list.append(TrainModel())
+        self.train_controller_ui.update_train_dropdown()

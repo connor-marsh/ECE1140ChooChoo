@@ -64,16 +64,14 @@ class TrainControllerFrontend(QMainWindow):
         self.clock_timer.start(1000)
 
     def update(self):
-        # Set up drop down menu
-        self.update_train_dropdown(self.train_list)
-        
         # Set the display values
         if not self.current_train:
             return
+        self.current_train = self.collection.train_list[int(self.ui.train_id_dropdown.currentText())-1]
         self.display_actual_speed(str(self.current_train.actual_speed))
         self.display_speed_limit(str(self.current_train.speed_limit))
         self.display_authority(str(self.current_train.wayside_authority))
-        self.display_cabin_temperature(str(self.current_train.temperature_status))
+        self.display_cabin_temperature(str(self.current_train.actual_temperature))
         self.display_commanded_power(self.current_train.commanded_power)
 
         # Check if auto or manual mode
@@ -109,9 +107,10 @@ class TrainControllerFrontend(QMainWindow):
         # Set next station and on air light
         self.display_next_station()
 
-    def update_train_dropdown(self, train_ids):
-        self.ui.train_id_dropdown.clear()  # Clear existing items
-        self.ui.train_id_dropdown.addItems(train_ids)  # Add updated list
+    def update_train_dropdown(self):
+        if self.collection:
+            self.ui.train_id_dropdown.clear()  # Clear existing items
+            self.ui.train_id_dropdown.addItems([str(i+1) for i in range(len(self.collection.train_list))])  # Add updated list
 
     def display_next_station(self):
         self.ui.next_station_label.setText(self.current_train.next_station)
@@ -161,49 +160,49 @@ class TrainControllerFrontend(QMainWindow):
 
     def handle_emergency_button(self, checked):
         if checked:
-            self.emergency_brake = True
+            self.current_train.emergency_brake = True
         else:
-            self.emergency_brake = False
-            self.passenger_emergency_stop = False
+            self.current_train.emergency_brake = False
+            self.current_train.passenger_emergency_stop = False
     
     def activate_emergency_brake(self):
         self.ui.emergency_button.setChecked(True)
 
     def handle_right_door(self, checked):
         if checked:
-            self.door_right = True
+            self.current_train.door_right = True
         else:
-            self.door_right = False
+            self.current_train.door_right = False
 
     def handle_left_door(self, checked):
         if checked:
-            self.door_left = True
+            self.current_train.door_left = True
         else:
-            self.door_left = False
+            self.current_train.door_left = False
 
     def activate_headlights(self):
-        self.headlights = True
+        self.current_train.headlights = True
 
     def deactivate_headlights(self):
-        self.headlights = False
+        self.current_train.headlights = False
 
     def activate_interior_lights(self):
-        self.interior_lights = True
+        self.current_train.interior_lights = True
 
     def deactivate_interior_lights(self):
-        self.interior_lights = False
+        self.current_train.interior_lights = False
 
     def activate_heating(self):
-        self.heating_signal = True
+        self.current_train.heating_signal = True
 
     def deactivate_heating(self):
-        self.heating_signal = False
+        self.current_train.heating_signal = False
 
     def activate_air_conditioning(self):
-        self.air_conditioning_signal = True
+        self.current_train.air_conditioning_signal = True
     
     def deactivate_air_conditioning(self):
-        self.air_conditioning_signal = False
+        self.current_train.air_conditioning_signal = False
 
     def set_k_constants(self):
         self.Kp = self.to_float(self.ui.kp_line_edit.text(), 1.0)
@@ -266,6 +265,7 @@ def main():
     train_controller_frontend = TrainControllerFrontend(None)
     collection = TrainCollection(num_trains=3, controller=train_controller_frontend)
     train_controller_frontend.collection = collection
+    train_controller_frontend.update_train_dropdown()
     train_controller_frontend.current_train = collection.train_list[0]
     train_controller_frontend.show()
 

@@ -52,6 +52,10 @@ class TrainControllerTestbench(QMainWindow):
             self.display_emergency_brakes()
             self.display_service_brakes()
             self.display_announcement()
+            self.display_commanded_power()
+
+    def display_commanded_power(self):
+        self.ui.tb_power_lcd.display(self.current_train.commanded_power)
 
     def display_announcement(self):
         if (self.current_train.announcement):
