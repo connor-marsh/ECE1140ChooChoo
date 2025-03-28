@@ -40,9 +40,12 @@ class TestBenchApp(QMainWindow):
             merged_data.update(lights_data)
             merged_data.update(physical_data)
             
-            # Include the emergency flag.
-            merged_data["emergency_active"] = self.ui.EmergencyStop.isChecked()
-            
+            # Force the emergency flag to True if the backend is already in emergency state.
+            if self.train_collection.train_model_ui.current_train.driver_emergency_brake:
+                merged_data["emergency_active"] = True
+            else:
+                merged_data["emergency_active"] = self.ui.EmergencyStop.isChecked()
+
             # Update the backend with the merged data.
             self.train_collection.train_model_ui.current_train.backend.set_input_data(testbench_data=merged_data)
         
@@ -66,52 +69,18 @@ class TestBenchApp(QMainWindow):
 
     def handle_emergency_release(self, checked: bool):
         if not checked:
+            # Clear the backend emergency flag.
+            self.train_collection.train_model_ui.current_train.driver_emergency_brake = False
+            # Re-enable the frontend emergency button.
             self.train_collection.train_model_ui.train_ui.button_emergency.setEnabled(True)
             self.train_collection.train_model_ui.train_ui.button_emergency.setChecked(False)
+            
+            # Update testbench UI.
             self.ui.PEmergencyStop.setText("Disabled")
             self.ui.EmergencyStop.setEnabled(False)
             self.ui.EmergencyStop.setChecked(False)
             self.ui.TrainDriver.setEnabled(True)
             self.ui.TrainDriver.setChecked(False)
-            
-    def on_failure_group_toggled(self, failure_type, button):
-        new_status = button.text()
-        if failure_type == "BrakeFailure":
-            self.ui.BrakeFailure.setText(new_status)
-        elif failure_type == "SignalFailure":
-            self.ui.SignalFailure.setText(new_status)
-        elif failure_type == "EngineFailure":
-            self.ui.EngineFailure.setText(new_status)
-
-    # def handle_emergency_button(self, pressed: bool):
-    #     if not self.train_ui.button_emergency.isEnabled():
-    #         return
-    #     if pressed:
-    #         self.train_ui.button_emergency.setEnabled(False)
-    #         self.ui.PEmergencyStop.setText("Enabled")
-    #         self.ui.ServiceBrakes.setChecked(False)
-    #         self.ui.ServiceBrakes.setEnabled(False)
-    #         self.ui.EmergencyStop.setEnabled(True)
-    #         self.ui.EmergencyStop.setChecked(True)
-    #         self.ui.TrainDriver.setChecked(True)
-    #         self.ui.TrainDriver.setEnabled(False)
-    #     else:
-    #         self.ui.PEmergencyStop.setText("Disabled")
-    #         self.ui.ServiceBrakes.setEnabled(True)
-    
-    def handle_emergency_button(self, pressed: bool):
-        if pressed:
-            self.ui.PEmergencyStop.setText("Enabled")
-            self.ui.ServiceBrakes.setChecked(False)
-            self.ui.ServiceBrakes.setEnabled(False)
-            self.ui.EmergencyStop.setEnabled(True)
-            self.ui.EmergencyStop.setChecked(True)
-            self.ui.TrainDriver.setChecked(True)
-            self.ui.TrainDriver.setEnabled(False)
-        else:
-            self.ui.PEmergencyStop.setText("Disabled")
-            self.ui.ServiceBrakes.setEnabled(True)
-
 
     def read_inputs(self):
         # Helper to convert text to float.
@@ -154,9 +123,28 @@ class TestBenchApp(QMainWindow):
         return wayside, lights, physical
 
     def update_status(self):
-        # Update labels in the testbench to reflect the backend values.
+        # Retrieve the backend TrainModel from the frontend.
         backend = self.train_collection.train_model_ui.current_train
 
+        # Update failure status labels based on the backend flags.
+        self.ui.BrakeFailure.setText("Enabled" if backend.brake_failure else "Disabled")
+        self.ui.SignalFailure.setText("Enabled" if backend.signal_failure else "Disabled")
+        self.ui.EngineFailure.setText("Enabled" if backend.engine_failure else "Disabled")
+
+        # Update the emergency brake UI elements based on the backend flag.
+        if backend.driver_emergency_brake:
+            self.ui.PEmergencyStop.setText("Enabled")
+            self.ui.ServiceBrakes.setChecked(False)
+            self.ui.ServiceBrakes.setEnabled(False)
+            self.ui.EmergencyStop.setEnabled(True)
+            self.ui.EmergencyStop.setChecked(True)
+            self.ui.TrainDriver.setChecked(True)
+            self.ui.TrainDriver.setEnabled(False)
+        else:
+            self.ui.PEmergencyStop.setText("Disabled")
+            self.ui.ServiceBrakes.setEnabled(True)
+
+        # Update additional UI elements (existing logic from your code):
         cmd_val = backend.wayside_speed
         cmd_val_mph = cmd_val * backend.MPS_TO_MPH
         model_val = self.train_collection.train_model_ui.train_ui.CommandedSpeedValue.value()

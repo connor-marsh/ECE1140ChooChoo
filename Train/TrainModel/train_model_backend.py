@@ -55,9 +55,10 @@ class TrainModel(QMainWindow):
         self.passenger_count = 0 
         self.speed_limit = 0.0 # m/s
 
-        # # For UI data and simulation state storage:
-        # self.ui_data = {}
-        # self.sim_state = {}
+        # Failure flags
+        self.brake_failure = False
+        self.signal_failure = False
+        self.engine_failure = False
         
         # Set up timer for callback/update function
         self.prev_time = None
@@ -68,18 +69,7 @@ class TrainModel(QMainWindow):
         # Minimal fix: Ensure a backend attribute exists.
         self.backend = self
 
-    # This method uses self.ui_data to do physics.
     def update(self):
-        # do physics, ur storing all the data anyways
-        # commanded_speed = self.ui_data.get("commanded_speed", 0.0)
-        # commanded_power = self.ui_data.get("commanded_power", 0.0)
-        # speed_limit = self.ui_data.get("speed_limit", 0.0)
-        # grade = self.ui_data.get("grade", 0.0)
-        # mass_kg = self.ui_data.get("mass_kg", 0.0)
-        # service_brakes = self.ui_data.get("service_brakes", False)
-        # heat_signal = self.ui_data.get("heat_signal", False)
-        # ac_signal = self.ui_data.get("ac_signal", False)
-        # emergency_active = self.ui_data.get("emergency_brake", False)
         
         # if self.current_train:
         current_time = QDateTime.currentMSecsSinceEpoch()
