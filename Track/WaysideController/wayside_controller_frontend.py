@@ -19,8 +19,9 @@ class WaysideControllerFrontend(QMainWindow):
     A class that contains several wayside controllers and handles interfacing with the other modules such as the Track Model and The CTC.
     The front end that will display information about the currently selected wayside controller is also contained in this class. Inherits from teh QMainWindow because ?
     """
-    open_testbench = pyqtSignal(str, int) # signal that opens a testbench with the name of the window
-    close_testbench = pyqtSignal(int) # signal that closes a testbench
+    # signals below, if used should move to external file that all modules can reference?
+    #open_testbench = pyqtSignal(str, int) # signal that opens a testbench with the name of the window
+    #close_testbench = pyqtSignal(int) # signal that closes a testbench
 
     def __init__(self, collection_reference: WaysideControllerCollection):
         """
@@ -38,10 +39,9 @@ class WaysideControllerFrontend(QMainWindow):
         self.init_tables_lists()
         self.init_combo_box()
         
-        # Create a timer
+         # Create a timer
         self.timer = QTimer(self)
         self.timer.setInterval(10)
-        self.timer.start()
         
         # Connect Signals to Slots
         self.ui.import_plc_button.clicked.connect(self.handle_input_program)
@@ -52,6 +52,7 @@ class WaysideControllerFrontend(QMainWindow):
         # read data from the collection to populate the combo box with num of controllers etc.
         # read data from the collection to generate rows in the table for blocks etc
         # read data from the currently indexed backend to show in the table
+        self.timer.start()
     
     def init_combo_box(self):
         """
@@ -62,7 +63,7 @@ class WaysideControllerFrontend(QMainWindow):
             controller_name = self.collection.line_name + " Line Controller #" + str(i + 1)
             combo_box.addItem(controller_name)
 
-        self.ui.menu_bar.setTitle(combo_box.currentText())
+       
     
     def init_tables_lists(self):
         """
@@ -135,27 +136,31 @@ class WaysideControllerFrontend(QMainWindow):
         Timer based update to read values from the backend and display them in the frontend
         """
         active_controller = self.collection.controllers[self.current_controller_index] # Figure out the current controller
+        self.ui.mode_select_combo_box.setCurrentIndex(1 if active_controller.maintenance_mode else 0)
+        self.ui.menu_bar.setTitle(self.ui.controller_select_combo_box.currentText())
+        self.set_row_count(self.ui.block_table)
         self.populate_table(self.ui.block_table)
        
         # make several lists, Switch pos. | Lights | Crossings
         # then update functions for those
 
     @pyqtSlot(int)
-    def handle_controller_selection(self, index):
+    def handle_controller_selection(self, controller_index):
         """
         Called to updates the UI when the combo box specifying the current wayside controller changes.
 
         :param index: The index sent from the controller select combo box
         """
-        if index != self.current_controller_index: # i guess check to see if it changes
-            self.current_controller_index = index
+        if controller_index != self.current_controller_index: # i guess check to see if it changes
+            self.current_controller_index = controller_index
+            
             
         # make sure to update the menu label
         # make sure to update the row count of the tables
         # make sure to set the mode combo box to be the correct mode?
 
     @pyqtSlot(int)
-    def handle_mode_selection(self, index): # maybe do not allow the user to change the active controller when in manual mode?
+    def handle_mode_selection(self, mode_index): # maybe do not allow the user to change the active controller when in manual mode?
         """
         Called to open a window to allow the programmer to input test values when the mode changes from auto -> maintenance
 
@@ -164,8 +169,8 @@ class WaysideControllerFrontend(QMainWindow):
         # Make some temporary variables in this scope to help with reading
         active_controller = self.collection.controllers[self.current_controller_index]
 
-        # Check if the mode was changed, otherwise do nothing
-        if index == 1 and not active_controller.maintenance_mode: # changing mode from auto to maintenance
+        # Check if the mode was changed to maintenance mode
+        if mode_index == 1 and not active_controller.maintenance_mode: # changing mode from auto to maintenance
             # Perform a check to see if there exists a block in the territory that is occupied
             for block in active_controller.block_occupancies:
                 if block == True:
@@ -180,13 +185,13 @@ class WaysideControllerFrontend(QMainWindow):
              # Set the exit blocks to be occupied and open the test bench window 
              # Open the test bench window probably other stuff todo as well but whale i cant think of it
           
-
-        elif index == 0 and active_controller.maintenance_mode: # changing mode from maintenance to auto
+        # Check if the mode was changed to automatic mode
+        elif mode_index == 0 and active_controller.maintenance_mode: # changing mode from maintenance to auto
             #self.close_testbench.emit() # close the window
             active_testbench = self.collection.testbenches[self.current_controller_index]
             active_testbench.close_window()
             active_controller.maintenance_mode = False
-            # SWITCH BACK TO READING THE VALUES FROM THE 
+            # SWITCH BACK TO READING THE VALUES from other modules?
             # close the testbench window
 
     @pyqtSlot()
@@ -194,12 +199,12 @@ class WaysideControllerFrontend(QMainWindow):
         """
         Called when the programmer clicks the input program button. 
         """
-        active_controller = self.collection.controllers[self.current_controller_index]
+        active_controller = self.collection.controllers[self.current_controller_index] # get the actively showing controller
 
         while True:
-            program_file_path, _ = QFileDialog.getOpenFileName(self, "Select PLC Program", "", "Python File (*.py);;All Files (*)")
+            program_file_path, _ = QFileDialog.getOpenFileName(self, "Select PLC Program", "", "Python File (*.py);;All Files (*)") # something i don't fully understand
             if program_file_path:
-                if active_controller.load_program(program_file_path): # should validate if it is accepted
+                if active_controller.load_program(program_file_path): # returns true if valid plc program
                     active_controller.plc_filename = Path(program_file_path).name # store the filename in the backend
                     break
             else:
@@ -210,6 +215,7 @@ class WaysideControllerTestbench(QMainWindow):
         super().__init__()
         self.test_ui = TestbenchUi() # create a ui from the exported file
         self.test_ui.setupUi(self) 
+        # populate the ui with the backend stuff somehow?
     
     
     def open_window(self, window_name: str):
@@ -225,6 +231,7 @@ class WaysideControllerTestbench(QMainWindow):
     def close_window(self):
         # probably need to do cleanup here?
         # or just leave the previous values?
+        # FIGURE OUT WHAT HAPPENS TO THE TESTBENCH OBJECT WHEN CLOSED USING THE RED X 
         self.hide()
 
 

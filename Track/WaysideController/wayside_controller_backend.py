@@ -30,10 +30,10 @@ class WaysideController():
         self.crossing_signals = [False] * crossing_count # List of crossings [ACTIVE == True, INACTIVE == False]
         self.previous_occupancies = [False] * block_count # List of previous block occupancies [OCCUPIED == True, UNOCCUPIED == False]
         self.exit_blocks = [False] * exit_block_count # List of exit blocks [1 hot vector, SELECTED/CURRENT == True, NOT SELECTED == False ]
-        self.suggested_authorities = [1] * block_count # List of the suggested authority to each block
-        self.suggested_speeds = [2] * block_count # List of the suggested speed to each block
-        self.commanded_authorities = [3] * block_count # List of the commanded authority to each block
-        self.commanded_speeds = [4] * block_count # List of the commanded speed to each block
+        self.suggested_authorities = [None] * block_count # List of the suggested authority to each block
+        self.suggested_speeds = [None] * block_count # List of the suggested speed to each block
+        self.commanded_authorities = [None] * block_count # List of the commanded authority to each block
+        self.commanded_speeds = [None] * block_count # List of the commanded speed to each block
         
         
 

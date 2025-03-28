@@ -24,14 +24,15 @@ class WaysideControllerCollection():
         self.line_name = line_name # Keep the line name as a member variable
 
         # Create a list of backends which will handle different territory, devices, etc.
-        self.controllers = [None] * CONTROLLER_COUNT[line_name]
+        self.controllers = [WaysideController(BLOCK_COUNT[line_name][i], SWITCH_COUNT[line_name][i], 
+                                                          LIGHT_COUNT[line_name][i], CROSSING_COUNT[line_name][i], EXIT_BLOCK_COUNT[line_name][i], 0.5)
+                                                          for i in range(CONTROLLER_COUNT[line_name])]
 
         from wayside_controller_frontend import WaysideControllerTestbench # lazy import
-        self.testbenches = [WaysideControllerTestbench()] * CONTROLLER_COUNT[line_name]
+        self.testbenches = [WaysideControllerTestbench() for _ in range(CONTROLLER_COUNT[line_name])]
 
-        for i in range(CONTROLLER_COUNT[line_name]):
-            self.controllers[i] = WaysideController(BLOCK_COUNT[line_name][i], SWITCH_COUNT[line_name][i], 
-                                                          LIGHT_COUNT[line_name][i], CROSSING_COUNT[line_name][i], EXIT_BLOCK_COUNT[line_name][i], 0.5)
+        #for i in range(CONTROLLER_COUNT[line_name]):
+         #   self.controllers[i] = 
        
         # Initialize the frontend with access to the collection so that it may modify itself or the backend using the data from the backend
         from wayside_controller_frontend import WaysideControllerFrontend # lazy import to avoid circular import (do NOT tell me about design patterns)
@@ -61,7 +62,7 @@ class WaysideControllerCollection():
         :return commanded_values: Tuple containing 2 lists of booleans for each of the corresponding outputs of the select controller's plc
         """
 
-    #def connect_signals(self):
+    #def connect_signals(self): # may still need this when using signals later
     #    """
     #    Connects any necessary signals for communication using the pyqt framework
     #    """
