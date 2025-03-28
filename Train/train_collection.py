@@ -1,3 +1,4 @@
+# train_collection.py
 # import sys
 # sys.path.append("./Train/TrainModel")
 # from train_model_backend import TrainModel
@@ -26,6 +27,8 @@ from train_controller_backend import TrainController
 
 class TrainCollection:
     def __init__(self, num_trains=0, model=None, controller=None):
+        self.train_list = []
+
         # If model or controller != None, then we are running a single module with a testbench
         if model:
             self.train_model_ui = model
@@ -40,8 +43,8 @@ class TrainCollection:
             # Lazy import to avoid circular dependency:
             from train_model_frontend import TrainModelFrontEnd
             self.train_model_ui = TrainModelFrontEnd(self)  # Pass self to front-end
-            from train_controller_frontend import TrainControllerFrontEnd
-            self.train_controller_ui = TrainControllerFrontEnd(self)
+            from train_controller_frontend import TrainControllerFrontend
+            self.train_controller_ui = TrainControllerFrontend(self)
 
         if not controller:
             self.train_list = []
