@@ -31,8 +31,7 @@ class TrainModelFrontEnd(QMainWindow):
         self.train_ui.setupUi(self)
         
         # Setup dropdown for selecting a train model.
-        if self.train_collection:
-            self.setup_train_dropdown()
+        self.setup_train_dropdown()
         
         # # Load the initial train's data and simulation state.
         # self.load_train_data()
@@ -57,12 +56,20 @@ class TrainModelFrontEnd(QMainWindow):
         """Embeds a small dropdown in the menuTrain_ID_1 menu."""
         self.train_dropdown = QComboBox()
         self.train_dropdown.setFixedSize(120, 25)
-        for idx, train in enumerate(self.train_collection.train_list):
-            self.train_dropdown.addItem(getattr(train, "name", f"Train ID {idx+1}"))
         self.train_dropdown.currentIndexChanged.connect(self.on_train_selection_changed)
         widget_action = QWidgetAction(self)
         widget_action.setDefaultWidget(self.train_dropdown)
         self.train_ui.menuTrain_ID_1.addAction(widget_action)
+
+    def update_train_dropdown(self):
+        if self.train_collection:
+            self.train_dropdown.clear()
+            for idx, train in enumerate(self.train_collection.train_list):
+                self.train_dropdown.addItem(getattr(train, "name", f"Train ID {idx+1}"))
+            # If we initialize a connection with 0 trains, this makes it so that the first train created automatically gets selected
+            # As opposed to needing to select it manually after its created, which would be gross
+            if self.current_train==None:
+                self.current_train=self.train_collection.train_list[0]
         
     # def save_current_train_data(self):
     #     """Save every numeric value, announcement, and auxiliary function state from the TestBench UI (and emergency brake state) into the current train’s ui_data."""
@@ -165,6 +172,7 @@ class TrainModelFrontEnd(QMainWindow):
             #     self.testbench.ui.EmergencyStop.setChecked(False)
             #     self.testbench.ui.EmergencyStop.setEnabled(False)
             #     self.testbench.ui.PEmergencyStop.setText("Disabled")
+        
 
     def update(self): 
         if self.current_train is not None:
@@ -349,7 +357,7 @@ def main():
     train_model_frontend = TrainModelFrontEnd(None)
     collection = TrainCollection(num_trains=3, model=train_model_frontend)
     train_model_frontend.train_collection = collection
-    train_model_frontend.setup_train_dropdown()
+    train_model_frontend.update_train_dropdown()
     train_model_frontend.current_train = collection.train_list[0]
     train_model_frontend.show()
     

@@ -55,4 +55,7 @@ class TrainCollection:
     def createTrain(self):
         # Create a new TrainModel and append it to the list.
         self.train_list.append(TrainModel())
-        self.train_controller_ui.update_train_dropdown()
+        if self.train_model_ui:
+            self.train_model_ui.update_train_dropdown()
+        if self.train_controller_ui:
+            self.train_controller_ui.update_train_dropdown()
