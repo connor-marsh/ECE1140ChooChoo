@@ -9,10 +9,11 @@ import globals.global_clock as global_clock
 from Train.train_collection import TrainCollection
 from Train.TrainModel.train_model_frontend import TrainModelFrontEnd
 from Train.TrainModel.train_model_testbench import TrainModelTestbench
+from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
 
 if __name__=="__main__":
 
-    running_module = "Train" # all, CTC, WaysideController, TrackModel, Train, Train Model, Train Controller
+    running_module = "WaysideController" # all, CTC, WaysideController, TrackModel, Train, Train Model, Train Controller
     
     # Create App
     app = QApplication(sys.argv)
@@ -26,7 +27,9 @@ if __name__=="__main__":
     elif running_module == "CTC":
         pass
     elif running_module == "WaysideController":
-        pass
+        collection = WaysideControllerCollection("GREEN")
+        collection.frontend.show()
+        sys.exit(app.exec_())
     elif running_module == "TrackModel":
         pass
     elif running_module == "Train":

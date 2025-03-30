@@ -5,8 +5,8 @@ Description:
     A Class that contains several WaysideControllers and a Frontend. Responsible for interfacing with the Track Model and CTC
 """
 import sys
-from track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT, TRACK_NAMES
-from wayside_controller_backend import WaysideController
+from Track.WaysideController.track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT, TRACK_NAMES
+from Track.WaysideController.wayside_controller_backend import WaysideController
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 
@@ -33,12 +33,12 @@ class WaysideControllerCollection():
 
         
         # Create a list of testbenches for maintenance mode corresponding to each one of the wayside controllers
-        from wayside_controller_frontend import WaysideControllerTestbench # Avoiding circular imports?
+        from Track.WaysideController.wayside_controller_frontend import WaysideControllerTestbench # Avoiding circular imports?
         self.testbenches = [WaysideControllerTestbench(self, i) for i in range(CONTROLLER_COUNT[line_name])]
 
        
         # Initialize the frontend with access to the collection so that it may modify itself or the backend using the data from the backend
-        from wayside_controller_frontend import WaysideControllerFrontend # lazy import to avoid circular import (do NOT tell me about design patterns)
+        from Track.WaysideController.wayside_controller_frontend import WaysideControllerFrontend # lazy import to avoid circular import (do NOT tell me about design patterns)
         self.frontend = WaysideControllerFrontend(self)
 
         #self.connect_signals()
