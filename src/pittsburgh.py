@@ -6,6 +6,8 @@ from PyQt5.QtCore import QTimer, QTime, QDateTime, QObject
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
 import globals.global_clock as global_clock
+import globals.track_data_class as track_data
+import globals.signals as signals
 from Train.train_collection import TrainCollection
 from Train.TrainModel.train_model_frontend import TrainModelFrontEnd
 from Train.TrainModel.train_model_testbench import TrainModelTestbench
@@ -29,7 +31,6 @@ if __name__=="__main__":
     elif running_module == "WaysideController":
         collection = WaysideControllerCollection("GREEN")
         collection.frontend.show()
-        sys.exit(app.exec_())
     elif running_module == "TrackModel":
         pass
     elif running_module == "Train":
