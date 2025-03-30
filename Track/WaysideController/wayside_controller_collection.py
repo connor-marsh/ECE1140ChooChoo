@@ -56,7 +56,7 @@ class WaysideControllerCollection():
             switches = self.controller.switch_positions
             lights = self.controller.light_signals
             crossings = self.controller.crossing_signals
-            return (switches,lights,crossings)
+            return (switches,lights,crossings) # TRIPLE REDUNDANCY?
         else:
             raise IndexError(f"The input index to the Wayside Controller is not in range")
 
@@ -73,7 +73,7 @@ class WaysideControllerCollection():
             controller = self.controllers[controller_index]
             authorities = self.controller.commanded_authorities
             speeds = self.controller.commanded_speeds
-            return (authorities, speeds)
+            return (authorities, speeds) # TRIPLE REDUNDANCY?
         else:
             raise IndexError(f"The input index to the Wayside Controller is not in range")
 
