@@ -5,7 +5,7 @@ Description:
     A Class that contains several WaysideControllers and a Frontend. Responsible for interfacing with the Track Model and CTC
 """
 import sys
-from track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT
+from track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT, TRACK_NAMES
 from wayside_controller_backend import WaysideController
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
@@ -20,6 +20,9 @@ class WaysideControllerCollection():
         """
         :param line_name: Selects controller count etc. depending on the line. Either "RED" or "GREEN"
         """
+        
+        if line_name not in TRACK_NAMES:
+            raise ValueError(f"Invalid input. Please enter exactly the line name of an existing track.")
         
         self.line_name = line_name # Keep the line name as a member variable
 
@@ -40,27 +43,39 @@ class WaysideControllerCollection():
 
         #self.connect_signals()
 
-    def get_plc_outputs(self, line_name : str, controller_index : int) -> tuple[list[bool], list[bool], list[bool]]:
+    def get_plc_outputs(self, controller_index : int) -> tuple[list[bool], list[bool], list[bool]]:
         """
         This function returns a tuple containing 3 lists of booleans containing the switch postions, light signals, crossing signals
-        
-        :param line_name: The name of the line to select
 
         :param controller_index: The index to the controller 
 
         :return plc_outputs: tuple containing 3 lists of booleans containing each of the corresponding outputs of the select controller's plc
         """
+        if controller_index < len(self.controllers) and controller_index >= 0: # check to see that the controller exists
+            controller = self.controllers[controller_index]
+            switches = self.controller.switch_positions
+            lights = self.controller.light_signals
+            crossings = self.controller.crossing_signals
+            return (switches,lights,crossings)
+        else:
+            raise IndexError(f"The input index to the Wayside Controller is not in range")
 
-    def get_wayside_commanded(self, line_name : str, controller_index : int) -> tuple[list[float], list[float]]:
+
+    def get_wayside_commanded(self, controller_index : int) -> tuple[list[float], list[float]]:
         """
         This function returns a tuple containing 2 lists of floats, Commanded Authority and Commanded Speed
-        
-        :param line_name: The name of the line to select
 
         :param controller_index: The index to the controller 
 
         :return commanded_values: Tuple containing 2 lists of booleans for each of the corresponding outputs of the select controller's plc
         """
+        if controller_index < len(self.controllers) and controller_index >= 0: # check to see that the controller exists
+            controller = self.controllers[controller_index]
+            authorities = self.controller.commanded_authorities
+            speeds = self.controller.commanded_speeds
+            return (authorities, speeds)
+        else:
+            raise IndexError(f"The input index to the Wayside Controller is not in range")
 
     #def connect_signals(self): # may still need this when using signals later
     #    """

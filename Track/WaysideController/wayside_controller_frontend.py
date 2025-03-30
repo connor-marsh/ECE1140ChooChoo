@@ -36,7 +36,7 @@ class WaysideControllerFrontend(QMainWindow):
        
 
         # Initialize any Ui elements that are dynamic
-        self.init_tables_lists()
+        self.init_table()
         self.init_combo_box()
         
          # Create a timer
@@ -65,12 +65,11 @@ class WaysideControllerFrontend(QMainWindow):
 
        
     
-    def init_tables_lists(self):
+    def init_table(self):
         """
         Makes it so that the tables fit the screen appropriately. Also sets the number of rows to be in accordance with the current number of blocks
         """
         self.setup_table_dimensions(self.ui.block_table)
-        self.set_row_count(self.ui.block_table)
 
 
     def setup_table_dimensions(self, table):
@@ -86,19 +85,24 @@ class WaysideControllerFrontend(QMainWindow):
         for col in range(table.columnCount()):
             col_header.setSectionResizeMode(col, QHeaderView.Stretch)
     
-    def set_row_count(self, table):
+    def set_row_count(self, table) -> bool:
         """
         Makes it so that the table row count matches the number of blocks in the corresponding wayside controller's territory
 
         :param table: A QTableWidget
+
+        :return changed: If the row count has changed then this value will be True
         """
 
         if table.rowCount() < BLOCK_COUNT[self.collection.line_name][self.current_controller_index]: # if the current row count is less
             for row in range(table.rowCount(), BLOCK_COUNT[self.collection.line_name][self.current_controller_index]):
                 table.insertRow(row) # insert until row count is equivalent
+                return True
         elif table.rowCount() > BLOCK_COUNT[self.collection.line_name][self.current_controller_index]:
             for row in range(BLOCK_COUNT[self.collection.line_name][self.current_controller_index], table.rowCount()):
                 table.removeRow(row) # remove until row count is equivalent
+                return True
+        return False
     
     def populate_table(self, table):
         """
@@ -128,6 +132,11 @@ class WaysideControllerFrontend(QMainWindow):
                         text = "Occupied" if data[col][row] else "Unoccupied"
                     item.setText(text) # set the items text attribute
                     table.setItem(row, col, item) # put the item in the table
+    
+    def populate_list(self, list):
+        """
+        Adds entries to the input list. Runs every ui update that the controller has switched.
+        """
 
     def closeEvent(self, event):
         """
@@ -147,8 +156,15 @@ class WaysideControllerFrontend(QMainWindow):
         active_controller = self.collection.controllers[self.current_controller_index] # Figure out the current controller
         self.ui.mode_select_combo_box.setCurrentIndex(1 if active_controller.maintenance_mode else 0)
         self.ui.menu_bar.setTitle(self.ui.controller_select_combo_box.currentText())
-        self.set_row_count(self.ui.block_table)
-        self.populate_table(self.ui.block_table)
+        
+        controller_changed = self.set_row_count(self.ui.block_table)
+        
+        self.populate_table(self.ui.block_table) # populate the table with values from the backend regardless
+        
+        if controller_changed: # The lists should be updated to match the devices the current wayside controller has access to control
+            self.populate_list(self.ui.switch_list)
+            self.populate_list(self.ui.light_list)
+            self.populate_list(self.ui.crossing_list)
        
         # make several lists, Switch pos. | Lights | Crossings
         # then update functions for those

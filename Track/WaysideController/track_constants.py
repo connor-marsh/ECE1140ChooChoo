@@ -13,6 +13,9 @@ Date: 3/20/2025
 Description: 
     Lists the necessary Constant Values for the Wayside Controller
 """
+# A list containing the names of each track
+TRACK_NAMES = ["GREEN", "RED"]
+
 # A dictionary containing the number of wayside controllers per line
 CONTROLLER_COUNT = {
     "RED"   : 3,
