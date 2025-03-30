@@ -4,15 +4,11 @@ import os
 
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = "1"
 
-# Add the parent directory (if needed)
-current_dir = os.path.dirname(__file__)
-parent_dir = os.path.abspath(os.path.join(current_dir, ".."))
-sys.path.insert(0, parent_dir)
-
 from PyQt5.QtWidgets import QMainWindow, QApplication, QComboBox, QWidgetAction, QButtonGroup
 from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
-from train_model_ui_iteration_1 import Ui_MainWindow as TrainModelUI
-from train_model_testbench import TestBenchApp
+from Train.TrainModel.train_model_ui_iteration_1 import Ui_MainWindow as TrainModelUI
+from Train.TrainModel.train_model_testbench import TrainModelTestbench
+import globals.global_clock as global_clock
 
 class TrainModelFrontEnd(QMainWindow):
     def __init__(self, collection):
@@ -37,10 +33,8 @@ class TrainModelFrontEnd(QMainWindow):
         self.timer.timeout.connect(self.update)
         self.timer.start(100)  # 10 Hz update
 
-        self.simulated_time = QTime(11, 59, 0)
-        self.clock_timer = QTimer(self)
-        self.clock_timer.timeout.connect(self.update_clock)
-        self.clock_timer.start(1000)
+        # Jot down a reference to the global clock
+        self.global_clock = global_clock.clock
 
         # Configure emergency brake button.
         self.init_failure_buttons()
@@ -73,10 +67,14 @@ class TrainModelFrontEnd(QMainWindow):
                 self.train_ui.currentTrainLabel.setText(f"Selected: {self.train_dropdown.currentText()}")        
 
     def update(self): 
+
+        self.train_ui.Clock_12.display(self.global_clock.text)
+        self.train_ui.AM_PM.setText(self.global_clock.am_pm)
+
         if self.current_train is not None:
             
             # Directly use attributes:
-            velocity_mph = self.current_train.actual_velocity * self.current_train.MPS_TO_MPH
+            velocity_mph = self.current_train.actual_speed * self.current_train.MPS_TO_MPH
             cmd_speed_mph = self.current_train.wayside_speed * self.current_train.MPS_TO_MPH
             try:
                 speed_limit = self.current_train.speed_limit
@@ -126,7 +124,7 @@ class TrainModelFrontEnd(QMainWindow):
                 self.train_ui.Announcement_2.setStyleSheet("font-size: 20px; font-weight: bold;")
 
             if hasattr(self.train_ui, "Temperature"):
-                display_temp = self.current_train.cabin_temp * 9 / 5 + 32
+                display_temp = self.current_train.actual_temperature * 9 / 5 + 32
                 self.train_ui.Temperature.setText(f"{display_temp:.2f} °F")
                 self.train_ui.Temperature.setAlignment(Qt.AlignCenter)
 
@@ -134,7 +132,7 @@ class TrainModelFrontEnd(QMainWindow):
                 self.train_ui.GradePercentageValue.display(grade)
                 
             # Color features for auxiliary functions still rely on TestBench UI state.
-            self.update_color(self.current_train.service_brakes,
+            self.update_color(self.current_train.service_brake,
                             self.train_ui.ServiceBrakesOn,
                             self.train_ui.ServiceBrakesOff)
             self.update_color(self.current_train.headlights,
@@ -216,16 +214,6 @@ class TrainModelFrontEnd(QMainWindow):
             # Disable the frontend emergency button so it stays pressed.
             self.train_ui.button_emergency.setEnabled(False)
 
-    def update_clock(self):
-        self.simulated_time = self.simulated_time.addSecs(1)
-        hour = self.simulated_time.hour()
-        minute = self.simulated_time.minute()
-        am_pm = "AM" if hour < 12 else "PM"
-        hour_12 = hour % 12 or 12
-        time_text = f"{hour_12:02d}:{minute:02d}"
-        self.train_ui.Clock_12.display(time_text)
-        self.train_ui.AM_PM.setText(am_pm)
-
     @staticmethod
     def to_float(val_str, default=0.0):
         try:
@@ -233,6 +221,7 @@ class TrainModelFrontEnd(QMainWindow):
         except ValueError:
             return default
 
+############### Deprecated
 def main():
     app = QApplication(sys.argv)
     from train_collection import TrainCollection
@@ -244,7 +233,7 @@ def main():
     train_model_frontend.current_train = collection.train_list[0]
     train_model_frontend.show()
     
-    train_model_testbench = TestBenchApp(collection)    
+    train_model_testbench = TrainModelTestbench(collection)    
     train_model_testbench.show()    
     sys.exit(app.exec_())
 
