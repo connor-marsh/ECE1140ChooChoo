@@ -6,96 +6,174 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>826</width>
-    <height>600</height>
+    <width>830</width>
+    <height>609</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Wayside Controller Module</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QComboBox" name="mode_select_combo_box">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>10</y>
-      <width>401</width>
-      <height>30</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-     </font>
-    </property>
-    <property name="layoutDirection">
-     <enum>Qt::LeftToRight</enum>
-    </property>
-    <item>
-     <property name="text">
-      <string>Automatic Mode</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>Manual Mode</string>
-     </property>
-    </item>
-   </widget>
-   <widget class="QTableWidget" name="junction_table">
+   <widget class="QWidget" name="horizontalLayoutWidget">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>330</y>
-      <width>801</width>
-      <height>192</height>
+      <y>340</y>
+      <width>451</width>
+      <height>211</height>
      </rect>
     </property>
-    <property name="editTriggers">
-     <set>QAbstractItemView::NoEditTriggers</set>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QListWidget" name="switch_list"/>
+     </item>
+     <item>
+      <widget class="QListWidget" name="light_list"/>
+     </item>
+     <item>
+      <widget class="QListWidget" name="crossing_list"/>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="gridLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>811</width>
+      <height>80</height>
+     </rect>
     </property>
-    <row>
-     <property name="text">
-      <string>1</string>
-     </property>
-    </row>
-    <column>
-     <property name="text">
-      <string>Junction</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Light Signals</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Switch Position</string>
-     </property>
-    </column>
-    <item row="0" column="0">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="0" column="1">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="0" column="2">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="1" column="1">
+      <widget class="QComboBox" name="controller_select_combo_box">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="maxVisibleItems">
+        <number>10</number>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QPushButton" name="import_plc_button">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(110, 255, 102);</string>
+       </property>
+       <property name="text">
+        <string>Import PLC File</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="current_filename_label">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(255, 255, 255);</string>
+       </property>
+       <property name="text">
+        <string>Current Filename:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="mode_select_combo_box">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <item>
+        <property name="text">
+         <string>Automatic Mode</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Maintenance Mode</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>480</x>
+      <y>340</y>
+      <width>331</width>
+      <height>211</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QLabel" name="switch_label">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(255, 255, 255);</string>
+       </property>
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Switch ():&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="light_label">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(255, 255, 255);</string>
+       </property>
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Light ():&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="crossing_label">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(255, 255, 255);</string>
+       </property>
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Crossing ():&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
    <widget class="QTableWidget" name="block_table">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>100</y>
-      <width>801</width>
+      <width>811</width>
       <height>221</height>
      </rect>
     </property>
@@ -107,81 +185,6 @@
     <property name="editTriggers">
      <set>QAbstractItemView::NoEditTriggers</set>
     </property>
-    <row>
-     <property name="text">
-      <string>A1</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>A2</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>A3</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>A4</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>A5</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>B6</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>B7</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>B8</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>B9</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>B10</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>C11</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>C12</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>C13</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>C14</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>C15</string>
-     </property>
-    </row>
     <column>
      <property name="text">
       <string>Occupancy</string>
@@ -207,192 +210,6 @@
       <string>Commanded Authority</string>
      </property>
     </column>
-    <item row="0" column="0">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="0" column="1">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="0" column="2">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="0" column="4">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="1" column="0">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="1" column="1">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="1" column="2">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="1" column="4">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="2" column="0">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="2" column="1">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="2" column="2">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="2" column="4">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="3" column="0">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="3" column="1">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="3" column="2">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="3" column="4">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="4" column="0">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="4" column="1">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="4" column="2">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-    <item row="4" column="4">
-     <property name="text">
-      <string/>
-     </property>
-    </item>
-   </widget>
-   <widget class="QPushButton" name="import_plc_button">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>47</y>
-      <width>381</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(110, 255, 102);</string>
-    </property>
-    <property name="text">
-     <string>Import PLC File</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="current_filename_label">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>381</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
-    </property>
-    <property name="text">
-     <string>Current Filename:</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="section_select_combo_box">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>50</y>
-      <width>231</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="maxVisibleItems">
-     <number>10</number>
-    </property>
-    <item>
-     <property name="text">
-      <string>Blue Line #1</string>
-     </property>
-    </item>
-   </widget>
-   <widget class="QPushButton" name="confirm_button">
-    <property name="geometry">
-     <rect>
-      <x>650</x>
-      <y>50</y>
-      <width>161</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(157, 157, 157);</string>
-    </property>
-    <property name="text">
-     <string>Confirm</string>
-    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -400,16 +217,16 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>826</width>
+     <width>830</width>
      <height>26</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuWayside_Controller_Blue_Line_1">
+   <widget class="QMenu" name="menu_bar">
     <property name="title">
-     <string>Wayside Controller Blue Line #1</string>
+     <string/>
     </property>
    </widget>
-   <addaction name="menuWayside_Controller_Blue_Line_1"/>
+   <addaction name="menu_bar"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
