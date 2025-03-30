@@ -40,7 +40,7 @@ class TrainController(QMainWindow):
         # Default for power calculation
         self.integral_error = 0.0
         self.Kp = 500000.0
-        self.Ki = 100.0
+        self.Ki = 300.0
 
         # Set up timer for callback/update function
         self.timer = QTimer(self)
@@ -76,6 +76,7 @@ class TrainController(QMainWindow):
         if (self.commanded_power < 0):
             self.commanded_power = 0.0
             self.service_brake = True
+            self.integral_error=0
         elif (self.commanded_power > 120000):
             self.commanded_power = 120000.0
         else:
@@ -83,6 +84,7 @@ class TrainController(QMainWindow):
 
         if (self.emergency_brake):
             self.commanded_power = 0.0 # Kill engine if emergency brake is activated
+            self.integral_error=0
 
         # Set the HVAC Signals
         self.air_conditioning_signal = self.actual_temperature > self.desired_temperature

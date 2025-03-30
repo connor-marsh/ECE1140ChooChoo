@@ -49,9 +49,6 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.door_left_button.toggled.connect(self.handle_left_door)
         self.ui.emergency_button.toggled.connect(self.handle_emergency_button)
 
-        # TODO: This is temporary - remove once fully integrated
-        self.train_list = ["Train 1", "Train 2", "Train 3"]
-
         # Set up timer for callback/update function
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
@@ -129,8 +126,8 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.service_brake_off_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
 
     def set_driver_target_speed(self):
-        self.driver_target_speed = self.ui.target_speed_spin_box.value() # TODO: needs to be converted to m/s
-        self.ui.target_speed_lcd.display(self.driver_target_speed)
+        self.current_train.driver_target_speed = self.ui.target_speed_spin_box.value() # TODO: needs to be converted to m/s
+        self.ui.target_speed_lcd.display(self.current_train.driver_target_speed)
 
     def display_commanded_power(self, power):
         self.ui.commanded_power_lcd.display(power)
