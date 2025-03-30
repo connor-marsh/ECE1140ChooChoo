@@ -91,7 +91,7 @@ class TrainController(QMainWindow):
         # Check time for lights
         if (not self.manual_mode):
             if not self.deletethistimething:
-                print("FIX TIME THING IN BACKEND END UPDATE AND DELETE VARIABLE")
+                # print("FIX TIME THING IN BACKEND END UPDATE AND DELETE VARIABLE")
                 self.deletethistimething = True
             hour = 0#self.simulated_time.hour()
             if (hour >= 19 and hour <= 24) or (hour >= 0 and hour < 7):

@@ -27,6 +27,16 @@ from train_model_backend import TrainModel
 from train_controller_backend import TrainController
 from train_model_testbench import TestBenchApp as TrainModelTestbench
 from PyQt5.QtWidgets import QApplication#, QMainWindow, QWidget
+from PyQt5.QtCore import qInstallMessageHandler
+
+def customMessageHandler(msg_type, context, message):
+    # Filter out warnings about unknown properties.
+    if "Unknown property" in message:
+        return
+    sys.stderr.write(message + "\n")
+
+qInstallMessageHandler(customMessageHandler)
+
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
 class TrainCollection:

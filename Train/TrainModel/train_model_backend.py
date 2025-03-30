@@ -147,7 +147,7 @@ class TrainModel(QMainWindow):
             new_velocity = self.MIN_SPEED_NO_BRAKE
 
         # Temperature control logic
-        degrees_per_second = 0.05
+        degrees_per_second = 0.005
         if self.heating and not self.air_conditioning:
             dtemp = degrees_per_second * dt
         elif self.air_conditioning and not self.heating:
