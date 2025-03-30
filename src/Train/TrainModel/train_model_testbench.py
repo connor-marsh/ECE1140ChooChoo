@@ -1,10 +1,10 @@
 # testbench.py
 from PyQt5.QtWidgets import QMainWindow, QApplication, QComboBox, QWidgetAction, QButtonGroup
 from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
-from train_model_ui_testbench_iteration_1 import Ui_TestMainWindow as TestBenchUI
-from train_model_backend import TrainModel
+from Train.TrainModel.train_model_ui_testbench_iteration_1 import Ui_TestMainWindow as TestBenchUI
+from Train.TrainModel.train_model_backend import TrainModel
 
-class TestBenchApp(QMainWindow):
+class TrainModelTestbench(QMainWindow):
     def __init__(self, train_collection, train_integrated=False):
         super().__init__()
         self.ui = TestBenchUI()

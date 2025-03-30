@@ -4,16 +4,11 @@ import os
 
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = "1"
 
-# Add the parent directory (if needed)
-current_dir = os.path.dirname(__file__)
-parent_dir = os.path.abspath(os.path.join(current_dir, ".."))
-sys.path.insert(0, parent_dir)
-
 from PyQt5.QtWidgets import QMainWindow, QApplication, QComboBox, QWidgetAction, QButtonGroup
 from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
-from train_model_ui_iteration_1 import Ui_MainWindow as TrainModelUI
-from train_model_testbench import TestBenchApp
-import src.global_clock as global_clock
+from Train.TrainModel.train_model_ui_iteration_1 import Ui_MainWindow as TrainModelUI
+from Train.TrainModel.train_model_testbench import TrainModelTestbench
+import globals.global_clock as global_clock
 
 class TrainModelFrontEnd(QMainWindow):
     def __init__(self, collection):
@@ -226,6 +221,7 @@ class TrainModelFrontEnd(QMainWindow):
         except ValueError:
             return default
 
+############### Deprecated
 def main():
     app = QApplication(sys.argv)
     from train_collection import TrainCollection
@@ -237,7 +233,7 @@ def main():
     train_model_frontend.current_train = collection.train_list[0]
     train_model_frontend.show()
     
-    train_model_testbench = TestBenchApp(collection)    
+    train_model_testbench = TrainModelTestbench(collection)    
     train_model_testbench.show()    
     sys.exit(app.exec_())
 

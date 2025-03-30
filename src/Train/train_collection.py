@@ -1,30 +1,9 @@
-# train_collection.py
-# import sys
-# sys.path.append("./Train/TrainModel")
-# from train_model_backend import TrainModel
-# from train_model_frontend import TrainModelFrontEnd
-
-# # train_collection.py
-
-# class TrainCollection:
-#     def __init__(self, num_trains=3):
-#         self.train_list = []
-#         self.train_model_ui = TrainModelFrontEnd()
-#         for _ in range(num_trains):
-#             self.createTrain()
-#         if self.train_list:
-#             self.current_train = self.train_list[0]  # Set the first train as the default.
-
-#     def createTrain(self):
-#         # Create a new TrainModel and append it to the list.
-#         self.train_list.append(TrainModel())
-
 import sys
 import os
 
-from TrainModel.train_model_backend import TrainModel
-from TrainModel.train_model_testbench import TestBenchApp as TrainModelTestbench
-from TrainController.train_controller_backend import TrainController
+from Train.TrainModel.train_model_backend import TrainModel
+from Train.TrainModel.train_model_testbench import TrainModelTestbench
+from Train.TrainController.train_controller_backend import TrainController
 
 from PyQt5.QtWidgets import QApplication#, QMainWindow, QWidget
 from PyQt5.QtCore import qInstallMessageHandler
@@ -47,6 +26,9 @@ class TrainCollection:
         if model:
             self.train_model_ui = model
             self.train_controller_ui = None
+            self.train_list = []
+            for _ in range(num_trains):
+                self.train_list.append(TrainModel(train_integrated=False))
         elif controller:
             self.train_controller_ui = controller
             self.train_model_ui = None
@@ -56,14 +38,12 @@ class TrainCollection:
             self.train_controller_ui.update_train_dropdown()
         else:
             # Lazy import to avoid circular dependency:
-            from TrainModel.train_model_frontend import TrainModelFrontEnd
+            from Train.TrainModel.train_model_frontend import TrainModelFrontEnd
             self.train_model_ui = TrainModelFrontEnd(self)  # Pass self to front-end
-            from TrainController.train_controller_frontend import TrainControllerFrontend
+            from Train.TrainController.train_controller_frontend import TrainControllerFrontend
             self.train_controller_ui = TrainControllerFrontend(self)
             self.train_model_ui.show()
             self.train_controller_ui.show()
-
-        if not controller:
             self.train_list = []
             for _ in range(num_trains):
                 self.createTrain()
@@ -71,10 +51,8 @@ class TrainCollection:
     def createTrain(self):
         # Create a new TrainModel and append it to the list.
         self.train_list.append(TrainModel())
-        if self.train_model_ui:
-            self.train_model_ui.update_train_dropdown()
-        if self.train_controller_ui:
-            self.train_controller_ui.update_train_dropdown()
+        self.train_model_ui.update_train_dropdown()
+        self.train_controller_ui.update_train_dropdown()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

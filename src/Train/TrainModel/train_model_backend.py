@@ -23,15 +23,15 @@ class TrainModel(QMainWindow):
     SERVICE_DECEL     = -1.2      # (m/s²)
     MIN_SPEED_NO_BRAKE= 0.1       # (m/s)
 
-    def __init__(self):
+    def __init__(self, train_integrated=True):
         super().__init__()
         
         # internal values
-        if __name__ == "__main__":
-            self.controller = None
-        else:
-            from train_controller_backend import TrainController
+        if train_integrated:
+            from Train.TrainController.train_controller_backend import TrainController
             self.controller = TrainController()
+        else:
+            self.controller = None
         self.position = 0.0
         self.actual_speed = 0.0
         self.current_acceleration = 0.0
@@ -81,7 +81,7 @@ class TrainModel(QMainWindow):
 
     def update(self):
 
-        if __name__ != "__main__":
+        if self.controller:
             self.controller.set_input_data(train_model_data=self.get_output_data())
             self.controller.update()
             self.set_input_data(train_controller_data=self.controller.get_output_data())
