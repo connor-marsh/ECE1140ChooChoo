@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QComboBox, QWidgetAction,
 from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
 from train_model_ui_iteration_1 import Ui_MainWindow as TrainModelUI
 from train_model_testbench import TestBenchApp
+import global_clock
 
 class TrainModelFrontEnd(QMainWindow):
     def __init__(self, collection):
@@ -37,10 +38,8 @@ class TrainModelFrontEnd(QMainWindow):
         self.timer.timeout.connect(self.update)
         self.timer.start(100)  # 10 Hz update
 
-        self.simulated_time = QTime(11, 59, 0)
-        self.clock_timer = QTimer(self)
-        self.clock_timer.timeout.connect(self.update_clock)
-        self.clock_timer.start(1000)
+        # Jot down a reference to the global clock
+        self.global_clock = global_clock.clock
 
         # Configure emergency brake button.
         self.init_failure_buttons()
@@ -73,6 +72,10 @@ class TrainModelFrontEnd(QMainWindow):
                 self.train_ui.currentTrainLabel.setText(f"Selected: {self.train_dropdown.currentText()}")        
 
     def update(self): 
+
+        self.train_ui.Clock_12.display(self.global_clock.text)
+        self.train_ui.AM_PM.setText(self.global_clock.am_pm)
+
         if self.current_train is not None:
             
             # Directly use attributes:
@@ -215,16 +218,6 @@ class TrainModelFrontEnd(QMainWindow):
             self.current_train.driver_emergency_brake = True
             # Disable the frontend emergency button so it stays pressed.
             self.train_ui.button_emergency.setEnabled(False)
-
-    def update_clock(self):
-        self.simulated_time = self.simulated_time.addSecs(1)
-        hour = self.simulated_time.hour()
-        minute = self.simulated_time.minute()
-        am_pm = "AM" if hour < 12 else "PM"
-        hour_12 = hour % 12 or 12
-        time_text = f"{hour_12:02d}:{minute:02d}"
-        self.train_ui.Clock_12.display(time_text)
-        self.train_ui.AM_PM.setText(am_pm)
 
     @staticmethod
     def to_float(val_str, default=0.0):
