@@ -49,9 +49,6 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.door_left_button.toggled.connect(self.handle_left_door)
         self.ui.emergency_button.toggled.connect(self.handle_emergency_button)
 
-        # TODO: This is temporary - remove once fully integrated
-        self.train_list = ["Train 1", "Train 2", "Train 3"]
-
         # Set up timer for callback/update function
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
@@ -68,6 +65,8 @@ class TrainControllerFrontend(QMainWindow):
         if not self.current_train:
             return
         self.current_train = self.collection.train_list[int(self.ui.train_id_dropdown.currentText())-1]
+        if __name__ != "__main__":
+            self.current_train = self.current_train.controller
         self.display_actual_speed(str(self.current_train.actual_speed))
         self.display_speed_limit(str(self.current_train.speed_limit))
         self.display_authority(str(self.current_train.wayside_authority))
@@ -111,6 +110,9 @@ class TrainControllerFrontend(QMainWindow):
         if self.collection:
             self.ui.train_id_dropdown.clear()  # Clear existing items
             self.ui.train_id_dropdown.addItems([str(i+1) for i in range(len(self.collection.train_list))])  # Add updated list
+            if self.current_train==None:
+                self.current_train=self.collection.train_list[0]
+                
 
     def display_next_station(self):
         self.ui.next_station_label.setText(self.current_train.next_station)
@@ -124,8 +126,8 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.service_brake_off_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
 
     def set_driver_target_speed(self):
-        self.driver_target_speed = self.ui.target_speed_spin_box.value() # TODO: needs to be converted to m/s
-        self.ui.target_speed_lcd.display(self.driver_target_speed)
+        self.current_train.driver_target_speed = self.ui.target_speed_spin_box.value() # TODO: needs to be converted to m/s
+        self.ui.target_speed_lcd.display(self.current_train.driver_target_speed)
 
     def display_commanded_power(self, power):
         self.ui.commanded_power_lcd.display(power)

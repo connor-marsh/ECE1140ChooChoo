@@ -1,15 +1,16 @@
 # testbench.py
 from PyQt5.QtWidgets import QMainWindow, QApplication, QComboBox, QWidgetAction, QButtonGroup
 from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
-from train_model_ui_testbench_iteration_1 import Ui_TestMainWindow as TestBenchUI
-from train_model_backend import TrainModel
+from Train.TrainModel.train_model_ui_testbench_iteration_1 import Ui_TestMainWindow as TestBenchUI
+from Train.TrainModel.train_model_backend import TrainModel
 
-class TestBenchApp(QMainWindow):
-    def __init__(self, train_collection):
+class TrainModelTestbench(QMainWindow):
+    def __init__(self, train_collection, train_integrated=False):
         super().__init__()
         self.ui = TestBenchUI()
         self.ui.setupUi(self)
         self.train_collection = train_collection
+        self.train_integrated = train_integrated
 
         self.ui.PEmergencyStop.setText("Disabled")
         self.ui.BrakeFailure.setText("Disabled")
@@ -37,16 +38,20 @@ class TestBenchApp(QMainWindow):
             # Merge dictionaries.
             merged_data = {}
             merged_data.update(wayside_data)
-            merged_data.update(lights_data)
-            merged_data.update(physical_data)
+            if not self.train_integrated:
+                merged_data.update(lights_data)
+                merged_data.update(physical_data)
             
             # Force the emergency flag to True if the backend is already in emergency state.
             if self.train_collection.train_model_ui.current_train.driver_emergency_brake:
-                merged_data["emergency_active"] = True
+                merged_data["emergency_brake"] = True
             else:
-                merged_data["emergency_active"] = self.ui.EmergencyStop.isChecked()
+                merged_data["emergency_brake"] = self.ui.EmergencyStop.isChecked()
 
             # Update the backend with the merged data.
+            # if self.train_integrated:
+            #     self.train_collection.train_model_ui.current_train.backend.set_input_data(wayside_data=merged_data)
+            # else:
             self.train_collection.train_model_ui.current_train.backend.set_input_data(testbench_data=merged_data)
         
         # Update the testbench display status.
@@ -93,32 +98,32 @@ class TestBenchApp(QMainWindow):
         wayside = {
             "commanded_speed": to_float(self.ui.WaysideSpeed.text(), 0.0),
             "authority": to_float(self.ui.WaysideAuthority.text(), 0.0),
-            "beacon_data": self.ui.BeaconData.text()
+            "beacon_data": self.ui.BeaconData.text(),
+            "speed_limit": to_float(self.ui.SpeedLimit.text(), 0.0)
         }
         
         lights = {
-            "int_lights": self.ui.IntLights.isChecked(),
-            "ext_lights": self.ui.ExtLights.isChecked(),
+            "interior_lights": self.ui.IntLights.isChecked(),
+            "headlights": self.ui.ExtLights.isChecked(),
             "left_doors": self.ui.LeftDoors.isChecked(),
             "right_doors": self.ui.RightDoors.isChecked(),
-            "heat_signal": self.ui.HeatingSignal.isChecked(),
-            "ac_signal": self.ui.ACSignal.isChecked(),
+            "heating_signal": self.ui.HeatingSignal.isChecked(),
+            "air_conditioning_signal": self.ui.ACSignal.isChecked(),
             "announcements": self.ui.Announcements.text() if hasattr(self.ui, "Announcements") else ""
         }
 
         physical = {
             "commanded_power": to_float(self.ui.CommandedPower.text(), 0.0),
-            "service_brakes": self.ui.ServiceBrakes.isChecked(),
-            "emergency_active": self.ui.EmergencyStop.isChecked(),
-            "actual_velocity": to_float(self.ui.ActualVelocity.text(), 0.0),
+            "service_brake": self.ui.ServiceBrakes.isChecked(),
+            "emergency_brake": self.ui.EmergencyStop.isChecked(),
+            "actual_speed": to_float(self.ui.ActualVelocity.text(), 0.0),
             "grade": to_float(self.ui.GradePercent.text(), 0.0),
             "passenger_count": to_float(self.ui.PassengerCount.text(), 0.0),
             "crew_count": to_float(self.ui.CrewCount.text(), 2.0),
             "mass_kg": to_float(self.ui.MassVehicle.text(), 37103.86),
             "length_m": to_float(self.ui.LengthVehicle.text(), 32.2),
             "height_m": to_float(self.ui.HeightVehicle.text(), 3.42),
-            "width_m": to_float(self.ui.WidthVehicle.text(), 2.65),
-            "speed_limit": to_float(self.ui.SpeedLimit.text(), 0.0)
+            "width_m": to_float(self.ui.WidthVehicle.text(), 2.65)
         }
         return wayside, lights, physical
 
@@ -171,7 +176,7 @@ class TestBenchApp(QMainWindow):
         else:
             self.ui.SpeedLimit_2.setText("Not Displayed")
 
-        internal_mph = backend.actual_velocity * backend.MPS_TO_MPH
+        internal_mph = backend.actual_speed * backend.MPS_TO_MPH
         speed_ui = self.train_collection.train_model_ui.train_ui.SpeedValue.value()
         if abs(internal_mph - speed_ui) < 0.0001:
             self.ui.ActualVelocity.setText(f"{internal_mph:.2f}")
