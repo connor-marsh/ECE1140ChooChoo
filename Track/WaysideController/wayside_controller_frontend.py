@@ -43,7 +43,7 @@ class WaysideControllerFrontend(QMainWindow):
         
          # Create a timer
         self.timer = QTimer(self)
-        self.timer.setInterval(50)
+        self.timer.setInterval(50) # Below 50ms and weird stuff happens since i prob wrote my update weird
         
         # Connect Signals to Slots
         self.ui.import_plc_button.clicked.connect(self.handle_input_program)

@@ -25,7 +25,7 @@ CONTROLLER_COUNT = {
 # A dictionary that contains the range of each controller
 BLOCK_COUNT = {
     "RED"   : [3,2,1],
-    "GREEN" : [3,2,1]
+    "GREEN" : [70,50,25]
 }
 
 # A dictionary that contains the number of switches of each controller
