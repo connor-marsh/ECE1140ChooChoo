@@ -8,7 +8,7 @@ import sys
 import os
 from pathlib import Path
 from wayside_controller_collection import WaysideControllerCollection
-from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem, QFileDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem, QFileDialog, QListWidget, QListWidgetItem, QLabel
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer
 from track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT
 from wayside_controller_ui import Ui_MainWindow as WaysideUi
@@ -41,7 +41,7 @@ class WaysideControllerFrontend(QMainWindow):
         
          # Create a timer
         self.timer = QTimer(self)
-        self.timer.setInterval(10)
+        self.timer.setInterval(100)
         
         # Connect Signals to Slots
         self.ui.import_plc_button.clicked.connect(self.handle_input_program)
@@ -72,7 +72,7 @@ class WaysideControllerFrontend(QMainWindow):
         self.setup_table_dimensions(self.ui.block_table)
 
 
-    def setup_table_dimensions(self, table):
+    def setup_table_dimensions(self, table: QTableWidget):
         """
         Used in table initialization, resizes the table to fit the desired space
         
@@ -85,7 +85,7 @@ class WaysideControllerFrontend(QMainWindow):
         for col in range(table.columnCount()):
             col_header.setSectionResizeMode(col, QHeaderView.Stretch)
     
-    def set_row_count(self, table) -> bool:
+    def set_row_count(self, table: QTableWidget) -> bool:
         """
         Makes it so that the table row count matches the number of blocks in the corresponding wayside controller's territory
 
@@ -96,15 +96,19 @@ class WaysideControllerFrontend(QMainWindow):
 
         if table.rowCount() < BLOCK_COUNT[self.collection.line_name][self.current_controller_index]: # if the current row count is less
             for row in range(table.rowCount(), BLOCK_COUNT[self.collection.line_name][self.current_controller_index]):
+                # NEED TO INSET THE NAME OF THE ROW AS THE NAME OF THE BLOCK, HOW?? Talk to aaron and pj and pray they have a way already
+                # THIS WAY OF DOING IT COULD BE BAD SINCE ROW NAMES NEED TO CHANGE REGARDLESS
                 table.insertRow(row) # insert until row count is equivalent
-                return True
+            
+            return True
         elif table.rowCount() > BLOCK_COUNT[self.collection.line_name][self.current_controller_index]:
             for row in range(BLOCK_COUNT[self.collection.line_name][self.current_controller_index], table.rowCount()):
                 table.removeRow(row) # remove until row count is equivalent
-                return True
+            
+            return True
         return False
     
-    def populate_table(self, table):
+    def populate_table(self, table: QTableWidget):
         """
         Writes the latest values from the currently selected backend to the table
 
@@ -133,10 +137,89 @@ class WaysideControllerFrontend(QMainWindow):
                     item.setText(text) # set the items text attribute
                     table.setItem(row, col, item) # put the item in the table
     
-    def populate_list(self, list):
+    def populate_list(self, q_list: QListWidget):
         """
         Adds entries to the input list. Runs every ui update that the controller has switched.
+
+        :param list: A pyqt QListWidget
         """
+        q_list.clear()
+        list_name = q_list.objectName()
+        active_controller = self.collection.controllers[self.current_controller_index]
+
+        if list_name == "switch_list":
+            row_count = SWITCH_COUNT[self.collection.line_name][self.current_controller_index]
+            for i in range(row_count):
+                if active_controller.switch_positions[i] != None:
+                    item = QListWidgetItem()
+                    text = "Switch " + str(i + 1) # FOR NOW, WILL NEED TO FIGURE OUT HOW TO GET THE SPECIFIC LABEL
+                    item.setText(text)
+                    q_list.addItem(item)
+        elif list_name == "light_list":
+            row_count = LIGHT_COUNT[self.collection.line_name][self.current_controller_index]
+            for i in range(row_count):
+                if active_controller.light_signals[i] != None:
+                    item = QListWidgetItem()
+                    text = "Light " + str(i + 1) # FOR NOW, WILL NEED TO FIGURE OUT HOW TO GET THE SPECIFIC LABEL
+                    item.setText(text)
+                    q_list.addItem(item)
+        elif list_name == "crossing_list":
+            row_count = CROSSING_COUNT[self.collection.line_name][self.current_controller_index]
+            for i in range(row_count):
+                if active_controller.crossing_signals[i] != None:
+                    item = QListWidgetItem()
+                    text = "Crossing " + str(i + 1) # FOR NOW, WILL NEED TO FIGURE OUT HOW TO GET THE SPECIFIC LABEL
+                    item.setText(text)
+                    q_list.addItem(item)
+        else:
+            raise ValueError(f"Invalid Input. QListWidget Does not match any in the UI.")
+    
+    def show_current_selected_output(self, q_list: QListWidget, label: QLabel):
+        """
+        Updates the corresponding label on the ui with the output of the list item that is selected
+
+        :param q_list: A QListWidget, the currently selected item's value will be output on the screen
+
+        :param label: A QLabel corresponding to the list, will update to have the output of the selected item
+        """
+        active_controller = self.collection.controllers[self.current_controller_index]
+
+        list_name = q_list.objectName()
+        label_name = label.objectName()
+    
+        index = q_list.currentRow()
+        current_item = q_list.currentItem()
+
+        if index >= 0 and current_item != None:
+            if list_name == "switch_list" and label_name == "switch_label":
+                item_name = current_item.text() 
+                value = "Up" if active_controller.switch_positions[index] else "Down"
+                label.setText(item_name + ": " + value)
+            elif list_name == "light_list" and label_name == "light_label":
+                item_name = current_item.text()
+                value = "Green" if active_controller.light_signals[index] else "Red"
+                label.setText(item_name + ": " + value)
+            elif list_name == "crossing_list" and label_name == "crossing_label":
+                item_name = current_item.text()
+                value = "Active" if active_controller.crossing_signals[index] else "Inactive"
+                label.setText(item_name + ": " + value)
+            else:
+                raise ValueError(f"Invalid Input: Make sure the input list and label correspond.")
+        else:
+            if list_name == "switch_list" and label_name == "switch_label":
+                text = "Switch: Not Selected"
+                label.setText(text)
+            elif list_name == "light_list" and label_name == "light_label":
+                text = "Light: Not Selected"
+                label.setText(text)
+            elif list_name == "crossing_list" and label_name == "crossing_label":
+                text = "Crossing: Not Selected"
+                value = "Active" if active_controller.crossing_signals[index] else "Inactive"
+                label.setText(text)
+            else:
+                raise ValueError(f"Invalid Input: Make sure the input list and label correspond.")
+
+
 
     def closeEvent(self, event):
         """
@@ -154,20 +237,30 @@ class WaysideControllerFrontend(QMainWindow):
         Timer based update to read values from the backend and display them in the frontend
         """
         active_controller = self.collection.controllers[self.current_controller_index] # Figure out the current controller
-        self.ui.mode_select_combo_box.setCurrentIndex(1 if active_controller.maintenance_mode else 0)
-        self.ui.menu_bar.setTitle(self.ui.controller_select_combo_box.currentText())
         
-        controller_changed = self.set_row_count(self.ui.block_table)
+        self.ui.current_filename_label.setText("Current Filename: " + active_controller.plc_filename)  # update the ui to show the file imported for the plc
+        self.ui.mode_select_combo_box.setCurrentIndex(1 if active_controller.maintenance_mode else 0) # Check to make sure the correct mode is displayed
         
-        self.populate_table(self.ui.block_table) # populate the table with values from the backend regardless
         
-        if controller_changed: # The lists should be updated to match the devices the current wayside controller has access to control
+        controller_changed = self.set_row_count(self.ui.block_table) # performs a check to see if the rows changed in the table ie the controller changed
+
+        if controller_changed: # Perform any ui updates that only happen when the controller changes
+            self.ui.menu_bar.setTitle(self.ui.controller_select_combo_box.currentText())
             self.populate_list(self.ui.switch_list)
             self.populate_list(self.ui.light_list)
             self.populate_list(self.ui.crossing_list)
-       
-        # make several lists, Switch pos. | Lights | Crossings
-        # then update functions for those
+        
+        self.populate_table(self.ui.block_table) # populate the table with values from the backend regardless, but only after the rows have been updated
+        
+        self.show_current_selected_output(self.ui.switch_list, self.ui.switch_label)
+        self.show_current_selected_output(self.ui.light_list, self.ui.light_label)
+        self.show_current_selected_output(self.ui.crossing_list, self.ui.crossing_label)
+
+
+
+        # SHOULD PROB HANDLE SOME OF THOSE EXCEPTIONS HUH
+  
+
 
     @pyqtSlot(int)
     def handle_controller_selection(self, controller_index):
@@ -176,16 +269,13 @@ class WaysideControllerFrontend(QMainWindow):
 
         :param index: The index sent from the controller select combo box
         """
-        if controller_index != self.current_controller_index: # i guess check to see if it changes
+        if controller_index != self.current_controller_index: # only change it if it changes? not really sure this line is needed alas safety first
             self.current_controller_index = controller_index
             
             
-        # make sure to update the menu label
-        # make sure to update the row count of the tables
-        # make sure to set the mode combo box to be the correct mode?
 
     @pyqtSlot(int)
-    def handle_mode_selection(self, mode_index): # maybe do not allow the user to change the active controller when in manual mode?
+    def handle_mode_selection(self, mode_index): 
         """
         Called to open a window to allow the programmer to input test values when the mode changes from auto -> maintenance
 
@@ -264,6 +354,7 @@ class WaysideControllerTestbench(QMainWindow):
         My defined function for hiding the testbench window when the user exits maintenance mode via the combo box on the ui
         """
         # just gonna leave the window in the previous state it was in if it ever is reopened
+        # can add more here if there needs to be any handling of exiting the testbench since its called in both teh closeEvent and from the frontend main window
        
         self.hide()
     

@@ -23,7 +23,7 @@ class WaysideController():
         :param exit_block_count: Nonnegative integer number of exit blocks that the territory of the wayside has
         """
         self.scan_time = scan_time  # PLC scan time
-        self.plc_filename = "" # The name of the plc file
+        self.plc_filename = "" # The name of the plc file, used by the ui to display the name properly, otherwise not really necessary
         self.block_occupancies = [False] * block_count  # List of block occupancies [OCCUPIED == True, UNOCCUPIED == False]
         self.switch_positions = [False] * switch_count  # List of switch positions
         self.light_signals = [False] * light_count # List of light signals [GREEN == True, RED == False]
