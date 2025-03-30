@@ -14,6 +14,8 @@ from track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COU
 from wayside_controller_ui import Ui_MainWindow as WaysideUi
 from wayside_controller_testbench_ui import Ui_MainWindow as TestbenchUi
 
+os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
+
 class WaysideControllerFrontend(QMainWindow):
     """
     A class that contains several wayside controllers and handles interfacing with the other modules such as the Track Model and The CTC.
@@ -69,6 +71,7 @@ class WaysideControllerFrontend(QMainWindow):
         """
         Makes it so that the tables fit the screen appropriately. Also sets the number of rows to be in accordance with the current number of blocks
         """
+        self.ui.block_table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.setup_table_dimensions(self.ui.block_table)
 
 
@@ -225,8 +228,8 @@ class WaysideControllerFrontend(QMainWindow):
         """
         Overridden Mainwindow function that handles when the user clicks the exit button in the corner of the window
         """
-        for testbench in self.collection.testbenches: # Close every testbench as well
-            testbench.destroy() # using destroy instead of close or hide, but I think as long as all windows are off the screen python handles it and just exits the program
+        for testbench in self.collection.testbenches: # Close every testbench that is active as well
+            testbench.close() 
         event.accept()
 
 
