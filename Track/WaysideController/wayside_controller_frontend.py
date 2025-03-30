@@ -247,9 +247,8 @@ class WaysideControllerTestbench(QMainWindow):
         """
         My defined function for hiding the testbench window when the user exits maintenance mode via the combo box on the ui
         """
-        # probably need to do cleanup here?
-        # or just leave the previous values?
-        # FIGURE OUT WHAT HAPPENS TO THE TESTBENCH OBJECT WHEN CLOSED USING THE RED X 
+        # just gonna leave the window in the previous state it was in if it ever is reopened
+       
         self.hide()
     
     def closeEvent(self, event):
