@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QComboBox, QWidgetAction,
 from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
 from train_model_ui_iteration_1 import Ui_MainWindow as TrainModelUI
 from train_model_testbench import TestBenchApp
-import global_clock
+import src.global_clock as global_clock
 
 class TrainModelFrontEnd(QMainWindow):
     def __init__(self, collection):

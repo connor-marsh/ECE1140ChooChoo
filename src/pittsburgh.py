@@ -4,15 +4,13 @@ import os
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtCore import QTimer, QTime, QDateTime, QObject
 
-# from global_clock import clock
-import global_clock
-
-sys.path.append("./Train")
-from train_collection import TrainCollection
+import src.global_clock as global_clock
+from src.Train.train_collection import TrainCollection
 
 
 
 if __name__=="__main__":
+    os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
     app = QApplication(sys.argv)
     global_clock.init()
     

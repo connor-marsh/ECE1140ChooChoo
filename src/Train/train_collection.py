@@ -21,11 +21,11 @@
 
 import sys
 import os
-sys.path.append("./Train/TrainModel")
-sys.path.append("./Train/TrainController")
-from train_model_backend import TrainModel
-from train_controller_backend import TrainController
-from train_model_testbench import TestBenchApp as TrainModelTestbench
+
+from TrainModel.train_model_backend import TrainModel
+from TrainModel.train_model_testbench import TestBenchApp as TrainModelTestbench
+from TrainController.train_controller_backend import TrainController
+
 from PyQt5.QtWidgets import QApplication#, QMainWindow, QWidget
 from PyQt5.QtCore import qInstallMessageHandler
 
@@ -56,9 +56,9 @@ class TrainCollection:
             self.train_controller_ui.update_train_dropdown()
         else:
             # Lazy import to avoid circular dependency:
-            from train_model_frontend import TrainModelFrontEnd
+            from TrainModel.train_model_frontend import TrainModelFrontEnd
             self.train_model_ui = TrainModelFrontEnd(self)  # Pass self to front-end
-            from train_controller_frontend import TrainControllerFrontend
+            from TrainController.train_controller_frontend import TrainControllerFrontend
             self.train_controller_ui = TrainControllerFrontend(self)
             self.train_model_ui.show()
             self.train_controller_ui.show()
