@@ -8,4 +8,4 @@ class TrackDataClass():
 
         :param filepath: The filepath to an excel containing information about the track
         """
-        self.file_data = pd.read_excel(filepath)
+        
