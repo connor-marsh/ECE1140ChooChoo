@@ -43,7 +43,7 @@ class WaysideControllerFrontend(QMainWindow):
         
          # Create a timer
         self.timer = QTimer(self)
-        self.timer.setInterval(100)
+        self.timer.setInterval(50)
         
         # Connect Signals to Slots
         self.ui.import_plc_button.clicked.connect(self.handle_input_program)
@@ -129,16 +129,18 @@ class WaysideControllerFrontend(QMainWindow):
                 active_controller.commanded_authorities]
         
         for col in range(table.columnCount()): # Each Column in the table is one of the lists in the matrix above
-            for row in range(table.rowCount()): # Each row is an item in the lists
-                if data[col][row] != None: # Skip rows that don't need to be written
+            row = 0
+            for value in data[col]: 
+                if value != None: # Skip items that don't need to be written
                     item = QTableWidgetItem() # Create an item to go in the table
                     unit = " yards" if col % 2 == 0 else " mph" # Figure out what the unit should be depending on the position in the table
-                    if type(data[col][row]) is float or type(data[col][row]) is int: # If the column has a numeric value it should have a unit attatched
-                        text = str(data[col][row]) + unit
-                    elif type(data[col][row]) is bool: # For bools the text should say occupied/unoccupied since only bool in table is occupancy
-                        text = "Occupied" if data[col][row] else "Unoccupied"
+                    if type(value) is float or type(value) is int: # If the column has a numeric value it should have a unit attatched
+                        text = str(value) + unit
+                    elif type(value) is bool: # For bools the text should say occupied/unoccupied since only bool in table is occupancy
+                        text = "Occupied" if value else "Unoccupied"
                     item.setText(text) # set the items text attribute
                     table.setItem(row, col, item) # put the item in the table
+                row += 1
     
     def populate_list(self, q_list: QListWidget):
         """
