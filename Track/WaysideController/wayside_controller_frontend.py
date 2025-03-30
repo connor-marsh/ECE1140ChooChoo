@@ -129,6 +129,15 @@ class WaysideControllerFrontend(QMainWindow):
                     item.setText(text) # set the items text attribute
                     table.setItem(row, col, item) # put the item in the table
 
+    def closeEvent(self, event):
+        """
+        Overridden Mainwindow function that handles when the user clicks the exit button in the corner of the window
+        """
+        for testbench in self.collection.testbenches: # Close every testbench as well
+            testbench.destroy() # using destroy instead of close or hide, but I think as long as all windows are off the screen python handles it and just exits the program
+        event.accept()
+
+
 
     @pyqtSlot()
     def update_ui(self):
@@ -189,7 +198,7 @@ class WaysideControllerFrontend(QMainWindow):
         elif mode_index == 0 and active_controller.maintenance_mode: # changing mode from maintenance to auto
             #self.close_testbench.emit() # close the window
             active_testbench = self.collection.testbenches[self.current_controller_index]
-            active_testbench.close_window()
+            active_testbench.hide_window()
             active_controller.maintenance_mode = False
             # SWITCH BACK TO READING THE VALUES from other modules?
             # close the testbench window
@@ -211,10 +220,16 @@ class WaysideControllerFrontend(QMainWindow):
                 break
                 
 class WaysideControllerTestbench(QMainWindow):
-    def __init__(self):
+    def __init__(self, collection_reference: WaysideControllerCollection, idx: int):
+        """
+        :param collection_reference: A reference to the wayside controller collection that the testbench is a part of
+        :param idx: The index that matches the testbench to the backend controller
+        """
         super().__init__()
         self.test_ui = TestbenchUi() # create a ui from the exported file
         self.test_ui.setupUi(self) 
+        self.collection = collection_reference
+        self.index = idx
         # populate the ui with the backend stuff somehow?
     
     
@@ -228,11 +243,23 @@ class WaysideControllerTestbench(QMainWindow):
         self.test_ui.menu_Blue_Line_Controller_1.setTitle(window_name)
         self.show()
     
-    def close_window(self):
+    def hide_window(self): 
+        """
+        My defined function for hiding the testbench window when the user exits maintenance mode via the combo box on the ui
+        """
         # probably need to do cleanup here?
         # or just leave the previous values?
         # FIGURE OUT WHAT HAPPENS TO THE TESTBENCH OBJECT WHEN CLOSED USING THE RED X 
         self.hide()
+    
+    def closeEvent(self, event):
+        """
+        Overridden Mainwindow function that handles when the user clicks the exit button in the corner of the window
+        """
+        self.collection.controllers[self.index].maintenance_mode = False # User has closed the window so maintenance mode should no longer be active
+        self.hide_window()
+        event.ignore() # do not let the user actually destroy the window
+
 
 
 if __name__ == "__main__":

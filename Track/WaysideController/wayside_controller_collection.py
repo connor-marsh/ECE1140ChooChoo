@@ -29,7 +29,7 @@ class WaysideControllerCollection():
                                                           for i in range(CONTROLLER_COUNT[line_name])]
 
         from wayside_controller_frontend import WaysideControllerTestbench # lazy import
-        self.testbenches = [WaysideControllerTestbench() for _ in range(CONTROLLER_COUNT[line_name])]
+        self.testbenches = [WaysideControllerTestbench(self, i) for i in range(CONTROLLER_COUNT[line_name])]
 
         #for i in range(CONTROLLER_COUNT[line_name]):
          #   self.controllers[i] = 
