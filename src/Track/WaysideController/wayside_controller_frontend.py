@@ -7,12 +7,12 @@ Description:
 import sys
 import os
 from pathlib import Path
-from wayside_controller_collection import WaysideControllerCollection
+from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem, QFileDialog, QListWidget, QListWidgetItem, QLabel
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer
-from track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT
-from wayside_controller_ui import Ui_MainWindow as WaysideUi
-from wayside_controller_testbench_ui import Ui_MainWindow as TestbenchUi
+from Track.WaysideController.track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT
+from Track.WaysideController.wayside_controller_ui import Ui_MainWindow as WaysideUi
+from Track.WaysideController.wayside_controller_testbench_ui import Ui_MainWindow as TestbenchUi
 
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
@@ -43,7 +43,7 @@ class WaysideControllerFrontend(QMainWindow):
         
          # Create a timer
         self.timer = QTimer(self)
-        self.timer.setInterval(50) # Below 50ms and weird stuff happens since i prob wrote my update weird
+        self.timer.setInterval(250) # Below 50ms and weird stuff happens since i prob wrote my update weird
         
         # Connect Signals to Slots
         self.ui.import_plc_button.clicked.connect(self.handle_input_program)
