@@ -296,7 +296,7 @@ class Ui_MainWindow(object):
         self.Disabled3.setFlat(False)
         self.Advertisements = QLabel(self.Main) # type: ignore
         self.Advertisements.setObjectName(u"Advertisements")
-        self.Advertisements.setPixmap(QPixmap(r"Train\TrainModel\Assets\pizza_hut_ad_1.jpg")) # type: ignore
+        self.Advertisements.setPixmap(QPixmap(r"src\Train\TrainModel\Assets\pizza_hut_ad_1.jpg")) # type: ignore
         self.Advertisements.setScaledContents(True)
         self.Advertisements.setGeometry(QRect(10, 5, 228, 83)) # type: ignore
         self.Advertisements.setMinimumSize(QSize(0, 0)) # type: ignore
@@ -731,7 +731,7 @@ class Ui_MainWindow(object):
         self.Announcement_1.setFrameShape(QFrame.WinPanel)
         self.Advertisements_2 = QLabel(self.Main)
         self.Advertisements_2.setObjectName(u"Advertisements_2")
-        self.Advertisements_2.setPixmap(QPixmap(r"Train\TrainModel\Assets\McD.jpg"))
+        self.Advertisements_2.setPixmap(QPixmap(r"src\Train\TrainModel\Assets\McD.jpg"))
         self.Advertisements_2.setScaledContents(True)
         self.Advertisements_2.setGeometry(QRect(240, 5, 228, 83))
         self.Advertisements_2.setMinimumSize(QSize(0, 0))
@@ -743,7 +743,7 @@ class Ui_MainWindow(object):
         self.Advertisements_2.setScaledContents(False)
         self.Advertisements_3 = QLabel(self.Main)
         self.Advertisements_3.setObjectName(u"Advertisements_3")
-        self.Advertisements_3.setPixmap(QPixmap(r"Train\TrainModel\Assets\whopper.jpg"))
+        self.Advertisements_3.setPixmap(QPixmap(r"src\Train\TrainModel\Assets\whopper.jpg"))
         self.Advertisements_3.setScaledContents(True)
         self.Advertisements_3.setGeometry(QRect(470, 5, 224, 83))
         self.Advertisements_3.setMinimumSize(QSize(0, 0))
