@@ -10,16 +10,16 @@ from PyQt5.QtCore import pyqtSignal
 
 
 
-ctc_switch_states = pyqtSignal(list[bool])
-ctc_exit_blocks = pyqtSignal(list[bool],list[bool],list[bool])
+ctc_switch_states = pyqtSignal(list)
+ctc_exit_blocks = pyqtSignal(list,list,list)
 ctc_dispatch = pyqtSignal()
 ctc_maintenance = pyqtSignal(int, bool)
-ctc_suggested = pyqtSignal(list[float],list[float])
+ctc_suggested = pyqtSignal(list,list)
 
 
-wayside_block_occupancies = pyqtSignal(list[bool])
-wayside_switches = pyqtSignal(list[bool])
-wayside_lights = pyqtSignal(list[bool])
-wayside_crossings = pyqtSignal(list[bool])
+wayside_block_occupancies = pyqtSignal(list)
+wayside_switches = pyqtSignal(list)
+wayside_lights = pyqtSignal(list)
+wayside_crossings = pyqtSignal(list)
 
 track_tickets = pyqtSignal(int)
