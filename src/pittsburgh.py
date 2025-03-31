@@ -9,10 +9,12 @@ import globals.global_clock as global_clock
 from Train.train_collection import TrainCollection
 from Train.TrainModel.train_model_frontend import TrainModelFrontEnd
 from Train.TrainModel.train_model_testbench import TrainModelTestbench
+from Train.TrainController.train_controller_frontend import TrainControllerFrontend
+from Train.TrainController.train_controller_testbench import TrainControllerTestbench
 
 if __name__=="__main__":
 
-    running_module = "TrainModel" # all, CTC, WaysideController, TrackModel, Train, Train Model, Train Controller
+    running_module = "Train" # all, CTC, WaysideController, TrackModel, Train, Train Model, Train Controller
     
     # Create App
     app = QApplication(sys.argv)
@@ -44,5 +46,13 @@ if __name__=="__main__":
         train_model_testbench = TrainModelTestbench(collection)    
         train_model_testbench.show()    
     elif running_module == "TrainController":
-        pass
+        train_controller_frontend = TrainControllerFrontend(None, train_integrated=False)
+        collection = TrainCollection(num_trains=3, controller=train_controller_frontend)
+        train_controller_frontend.collection = collection
+        train_controller_frontend.update_train_dropdown()
+        train_controller_frontend.current_train = collection.train_list[0]
+        train_controller_frontend.show()
+
+        train_controller_testbench = TrainControllerTestbench(collection)
+        train_controller_testbench.show()
     sys.exit(app.exec_())

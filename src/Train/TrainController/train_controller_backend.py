@@ -6,10 +6,12 @@ Description:
 """
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt5.QtCore import QTimer, QTime
+import globals.global_clock as global_clock
 
 class TrainController(QMainWindow):
-    def __init__(self):
+    def __init__(self, train_integrated=False):
         super().__init__()
+
         # Set up defaults
         self.actual_speed = 0.0
         self.speed_limit = 0.0
@@ -43,12 +45,13 @@ class TrainController(QMainWindow):
         self.Ki = 300.0
 
         # Set up timer for callback/update function
-        self.timer = QTimer(self)
-        if __name__ == "__main__":
+        if not train_integrated:
+            self.timer = QTimer(self)
             self.timer.timeout.connect(self.update)
-        self.timer.start(100)
+            self.timer.start(100)
 
-        self.deletethistimething = False
+        self.global_clock = global_clock.clock
+
 
     def update(self):
         # Check for failures
@@ -96,11 +99,7 @@ class TrainController(QMainWindow):
 
         # Check time for lights
         if (not self.manual_mode):
-            if not self.deletethistimething:
-                print("FIX TIME THING IN BACKEND END UPDATE AND DELETE VARIABLE")
-                self.deletethistimething = True
-            hour = 0#self.simulated_time.hour()
-            if (hour >= 19 and hour <= 24) or (hour >= 0 and hour < 7):
+            if (self.global_clock.hour >= 19 and self.global_clock.hour <= 24) or (self.global_clock.hour >= 0 and self.global_clock.hour < 7):
                 self.interior_lights = True
                 self.headlights = True
             else:

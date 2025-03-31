@@ -16,8 +16,9 @@ from Train.TrainController.train_controller_testbench import TrainControllerTest
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
 class TrainControllerFrontend(QMainWindow):
-    def __init__(self, collection):
+    def __init__(self, collection, train_integrated=True):
         super().__init__()
+        self.train_integrated = train_integrated
 
         self.collection = collection
         self.current_train = None
@@ -49,19 +50,19 @@ class TrainControllerFrontend(QMainWindow):
         self.timer.timeout.connect(self.update)
         self.timer.start(100)
 
-        # Set up timer for updating the clock every second
-        self.simulated_time = QTime(6, 59, 0)
-        self.clock_timer = QTimer(self)
-        self.clock_timer.timeout.connect(self.update_clock)
-        self.clock_timer.start(1000)
-
     def update(self):
+
         # Set the display values
         if not self.current_train:
             return
         self.current_train = self.collection.train_list[int(self.ui.train_id_dropdown.currentText())-1]
-        if __name__ != "__main__":
+        if self.train_integrated:
             self.current_train = self.current_train.controller
+
+        # Update the clock LCD and the AM/PM label
+        self.ui.global_clock_lcd.display(self.current_train.global_clock.text)
+        self.ui.am_pm_label.setText(self.current_train.global_clock.am_pm)
+
         self.display_actual_speed(str(round(self.current_train.actual_speed, 8)))
         self.display_speed_limit(str(self.current_train.speed_limit))
         self.display_authority(str(self.current_train.wayside_authority))
@@ -213,28 +214,6 @@ class TrainControllerFrontend(QMainWindow):
 
     def deactivate_engine_failure(self):
         self.ui.engine_failure_light.setStyleSheet("background-color: rgb(255, 170, 170); font-weight: bold; font-size: 16px;")
-
-    def update_clock(self):
-        # Add one second to the simulated time
-        self.simulated_time = self.simulated_time.addSecs(1)
-
-        # Extract hour, minute, second from the simulated time
-        hour = self.simulated_time.hour()
-        minute = self.simulated_time.minute()
-        second = self.simulated_time.second()
-
-        # Convert to 12-hour format and set AM/PM
-        am_pm = "AM" if hour < 12 else "PM"
-        hour_12 = hour % 12
-        if hour_12 == 0:
-            hour_12 = 12
-
-        # Format the time as HH:MM:SS
-        time_text = f"{hour_12:02d}:{minute:02d}:{second:02d}"
-
-        # Update the clock LCD and the AM/PM label
-        self.ui.global_clock_lcd.display(time_text)
-        self.ui.am_pm_label.setText(am_pm)
     
     def to_float(self, val_str, default=0.0):
         # Helper for string->float conversion

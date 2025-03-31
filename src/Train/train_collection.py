@@ -34,7 +34,7 @@ class TrainCollection:
             self.train_model_ui = None
             self.train_list = []
             for _ in range(num_trains):
-                self.train_list.append(TrainController())
+                self.train_list.append(TrainController(train_integrated=False))
             self.train_controller_ui.update_train_dropdown()
         else:
             # Lazy import to avoid circular dependency:

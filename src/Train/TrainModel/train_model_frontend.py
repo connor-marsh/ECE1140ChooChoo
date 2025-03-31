@@ -125,7 +125,6 @@ class TrainModelFrontEnd(QMainWindow):
             
             self.train_ui.button_emergency.setEnabled(not self.current_train.emergency_brake)
             self.train_ui.button_emergency.setChecked(self.current_train.emergency_brake)
-            print(self.train_ui.button_emergency.isEnabled())
 
             # Announcements from:
             announcements = self.current_train.announcement
