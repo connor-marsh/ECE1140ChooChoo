@@ -142,7 +142,7 @@ class TrainModel(QMainWindow):
         if brake_off and new_velocity < self.MIN_SPEED_NO_BRAKE:
             new_velocity = self.MIN_SPEED_NO_BRAKE
 
-        degrees_per_second = 0.005
+        degrees_per_second = 0.01
         if self.heating and not self.air_conditioning:
             dtemp = degrees_per_second * dt
         elif self.air_conditioning and not self.heating:
@@ -207,15 +207,15 @@ class TrainModel(QMainWindow):
 
     def get_output_data(self):
         data = {}
-        data["actual_speed"] = self.actual_speed
-        data["wayside_speed"] = self.wayside_speed
-        data["wayside_authority"] = self.wayside_authority
+        data["actual_speed"] = self.actual_speed * self.MPS_TO_MPH
+        data["wayside_speed"] = self.wayside_speed * self.MPS_TO_MPH
+        data["wayside_authority"] = self.wayside_authority * self.M_TO_FT
         data["beacon_data"] = self.beacon_data
-        data["actual_temperature"] = self.actual_temperature
+        data["actual_temperature"] = (self.actual_temperature * 1.8) + 32
         data["signal_failure"] = self.signal_failure
         data["brake_failure"] = self.brake_failure
         data["engine_failure"] = self.engine_failure
-        data["speed_limit"] = self.speed_limit
+        data["speed_limit"] = self.speed_limit * self.MPS_TO_MPH
         if self.send_emergency_brake_signal:
             data["emergency_brake"] = self.emergency_brake
             self.send_emergency_brake_signal = False

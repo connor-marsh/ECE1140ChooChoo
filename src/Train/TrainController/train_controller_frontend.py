@@ -64,9 +64,9 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.am_pm_label.setText(self.current_train.global_clock.am_pm)
 
         self.display_actual_speed(str(round(self.current_train.actual_speed, 8)))
-        self.display_speed_limit(str(self.current_train.speed_limit))
+        self.display_speed_limit(str(round(self.current_train.speed_limit, 8)))
         self.display_authority(str(self.current_train.wayside_authority))
-        self.display_cabin_temperature(str(int(self.current_train.actual_temperature)))
+        self.display_cabin_temperature(str(int(round(self.current_train.actual_temperature, 2))))
         self.display_commanded_power(self.current_train.commanded_power)
 
         # Check if auto or manual mode
