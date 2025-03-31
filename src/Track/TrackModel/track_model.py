@@ -3,6 +3,7 @@ import os
 import random
 import pandas as pd
 from track_model_enums import Occupancy, Failures
+from globals.track_data_class import TrackDataClass
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QFileDialog, QMainWindow, QTableWidgetItem
 
@@ -68,27 +69,17 @@ class TrackBackend:
         self.block_data = {}
 
     # Parsing data sent from main track file
-    def parse_track_layout_data(self, df): # Needs to change
-        for _, row in df.iterrows():
-            line = row["Line"].strip()
-            section = row["Section"].strip()
-            block_number = int(row["Block Number"])
-            block_id_str = f"{line}{section}{block_number}"
-
-            infrastructure = row["Infrastructure"] if pd.notna(row["Infrastructure"]) else ""
-            station_side = row["Station Side"] if "Station Side" in row and pd.notna(row["Station Side"]) else "None"
-
-            self.block_data[block_id_str] = Block(
-                block_id=block_id_str,
-                length=row["Block Length"],
-                grade=row.get("Grade", 0.0),
-                speed_limit=row["Speed Limit"],
-                elevation=row["Elevation"],
-                cumulative_elevation=row["Cumulative Elevation"],
-                infrastructure=infrastructure,
-                station_side=station_side
-            )
-        print(f"Loaded track layout data for {self.name} line. Total blocks: {len(self.block_data)}")
+        def parse_track_layout_data(self, filepath):
+            """
+            Loads and parses track layout using the TrackDataClass.
+            """
+            self.track_data = TrackDataClass(filepath)
+            print(f"[{self.name}] Loaded layout for {self.track_data.line_name} line.")
+            print(f"  Total Blocks: {len(self.track_data.blocks)}")
+            for territory, blocks in self.track_data.territory_counts.items():
+                devices = self.track_data.device_counts[territory]
+                print(f"  Territory {territory}: {blocks} blocks, {devices['switches']} switches, "
+                    f"{devices['lights']} lights, {devices['crossings']} crossings")
 
     # Updating switch position , should display the proper next block
     # XOR with current position list and compare to see if update
