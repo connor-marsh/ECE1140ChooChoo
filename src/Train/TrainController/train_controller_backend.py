@@ -6,10 +6,12 @@ Description:
 """
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt5.QtCore import QTimer, QTime
+import globals.global_clock as global_clock
 
 class TrainController(QMainWindow):
-    def __init__(self):
+    def __init__(self, train_integrated=False):
         super().__init__()
+
         # Set up defaults
         self.actual_speed = 0.0
         self.speed_limit = 0.0
@@ -43,48 +45,53 @@ class TrainController(QMainWindow):
         self.Ki = 300.0
 
         # Set up timer for callback/update function
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update)
-        self.timer.start(100)
+        if not train_integrated:
+            self.timer = QTimer(self)
+            self.timer.timeout.connect(self.update)
+            self.timer.start(100)
 
-        self.deletethistimething = False
+        self.global_clock = global_clock.clock
+
 
     def update(self):
+        # Check for failures
+        if (self.signal_failure or self.brake_failure or self.engine_failure):
+            self.emergency_brake = True
+        
         # Check if auto or manual mode and calculate power
-        if (self.manual_mode):
-            if (self.driver_target_speed > self.speed_limit):
-                # Unsafe
-                self.error = self.speed_limit - self.actual_speed
-            else:
-                # Safe
-                self.error = self.driver_target_speed - self.actual_speed
+        if self.manual_mode:
+            target_speed = min(self.driver_target_speed, self.speed_limit)
         else:
-            # Auto Mode
-            if (self.wayside_speed > self.speed_limit):
-                # Unsafe
-                self.error = self.speed_limit - self.actual_speed
-            else:
-                # Safe
-                self.error = self.wayside_speed - self.actual_speed
-            
+            target_speed = min(self.wayside_speed, self.speed_limit)
+
+        if (target_speed == self.speed_limit):
+            target_speed = 0.9 * self.speed_limit
+
+        self.error = target_speed - self.actual_speed
         self.integral_error += self.error * (0.001) # TODO: THIS SHOULD BE A DT CONSTANT THAT CHANGES THE RATE AT WHICH UPDATE FUNCTION ALSO RUNS
-        self.commanded_power = (self.Kp * self.error) + (self.Ki * self.integral_error) # TODO: need something for integral wind up
-        # Check authority and stopping distance and override speed calcs
-        # TODO
+        commanded_power_1 = (self.Kp * self.error) + (self.Ki * self.integral_error)
+        commanded_power_2 = (self.Kp * self.error) + (self.Ki * self.integral_error)
+        commanded_power_3 = (self.Kp * self.error) + (self.Ki * self.integral_error) # TODO: need something for integral wind up
+        if (commanded_power_1 == commanded_power_2 and commanded_power_1 == commanded_power_3 and commanded_power_2 == commanded_power_3):
+            self.commanded_power = commanded_power_1
+        else:
+            self.commanded_power = 0
+        # TODO: Check authority and stopping distance and override speed calcs
 
         # Check for invalid power commands
         if (self.commanded_power < 0):
             self.commanded_power = 0.0
             self.service_brake = True
-            self.integral_error=0
+            self.integral_error = 0
         elif (self.commanded_power > 120000):
             self.commanded_power = 120000.0
+            self.service_brake = False
         else:
             self.service_brake = False
 
         if (self.emergency_brake):
             self.commanded_power = 0.0 # Kill engine if emergency brake is activated
-            self.integral_error=0
+            self.integral_error = 0
 
         # Set the HVAC Signals
         self.air_conditioning_signal = self.actual_temperature > self.desired_temperature
@@ -92,11 +99,7 @@ class TrainController(QMainWindow):
 
         # Check time for lights
         if (not self.manual_mode):
-            if not self.deletethistimething:
-                print("FIX TIME THING IN BACKEND END UPDATE AND DELETE VARIABLE")
-                self.deletethistimething = True
-            hour = 0#self.simulated_time.hour()
-            if (hour >= 19 and hour <= 24) or (hour >= 0 and hour < 7):
+            if (self.global_clock.hour >= 19 and self.global_clock.hour <= 24) or (self.global_clock.hour >= 0 and self.global_clock.hour < 7):
                 self.interior_lights = True
                 self.headlights = True
             else:
@@ -128,9 +131,7 @@ class TrainController(QMainWindow):
             self.beacon_data = selected_data["beacon_data"]
 
             # Passengers can turn on the ebrake but not turn it off
-            passengerEbrake = selected_data["emergency_brake"]
-            if not self.emergency_brake and passengerEbrake:
-                self.emergency_brake = True
+            self.emergency_brake = selected_data.get("emergency_brake", self.emergency_brake)
 
             self.actual_temperature = selected_data["actual_temperature"]
             self.signal_failure = selected_data["signal_failure"]

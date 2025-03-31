@@ -1,3 +1,10 @@
+"""
+Author: Iyan Nekib
+Date: 03-20-2025
+Description:
+
+"""
+
 # testbench.py
 from PyQt5.QtWidgets import QMainWindow, QApplication, QComboBox, QWidgetAction, QButtonGroup
 from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
@@ -35,6 +42,12 @@ class TrainModelTestbench(QMainWindow):
             # Read inputs from the testbench UI.
             wayside_data, lights_data, physical_data = self.read_inputs()
             
+            # Force the emergency flag to True if the backend is already in emergency state.
+            if self.train_collection.train_model_ui.current_train.emergency_brake:
+                physical_data["emergency_brake"] = True
+            else:
+                physical_data["emergency_brake"] = self.ui.EmergencyStop.isChecked()
+            
             # Merge dictionaries.
             merged_data = {}
             merged_data.update(wayside_data)
@@ -42,12 +55,6 @@ class TrainModelTestbench(QMainWindow):
                 merged_data.update(lights_data)
                 merged_data.update(physical_data)
             
-            # Force the emergency flag to True if the backend is already in emergency state.
-            if self.train_collection.train_model_ui.current_train.driver_emergency_brake:
-                merged_data["emergency_brake"] = True
-            else:
-                merged_data["emergency_brake"] = self.ui.EmergencyStop.isChecked()
-
             # Update the backend with the merged data.
             # if self.train_integrated:
             #     self.train_collection.train_model_ui.current_train.backend.set_input_data(wayside_data=merged_data)
@@ -75,7 +82,7 @@ class TrainModelTestbench(QMainWindow):
     def handle_emergency_release(self, checked: bool):
         if not checked:
             # Clear the backend emergency flag.
-            self.train_collection.train_model_ui.current_train.driver_emergency_brake = False
+            self.train_collection.train_model_ui.current_train.emergency_brake = False
             # Re-enable the frontend emergency button.
             self.train_collection.train_model_ui.train_ui.button_emergency.setEnabled(True)
             self.train_collection.train_model_ui.train_ui.button_emergency.setChecked(False)
@@ -137,7 +144,7 @@ class TrainModelTestbench(QMainWindow):
         self.ui.EngineFailure.setText("Enabled" if backend.engine_failure else "Disabled")
 
         # Update the emergency brake UI elements based on the backend flag.
-        if backend.driver_emergency_brake:
+        if backend.emergency_brake:
             self.ui.PEmergencyStop.setText("Enabled")
             self.ui.ServiceBrakes.setChecked(False)
             self.ui.ServiceBrakes.setEnabled(False)
