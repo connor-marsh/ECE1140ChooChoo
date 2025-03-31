@@ -169,5 +169,7 @@ class TrackDataClass():
         self.device_counts = {k: dict(v) for k, v in temp_device_counts.items()} 
         
         
-if __name__=="__main__":
-    track = TrackDataClass("src\Track\TrackModel\GreenLine_Layout.xlsx")    
+def init():
+    lines = defaultdict(TrackDataClass)
+    line = TrackDataClass("src\Track\TrackModel\GreenLine_Layout.xlsx")
+    lines[line.line_name] = line

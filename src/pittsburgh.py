@@ -22,7 +22,7 @@ if __name__=="__main__":
 
     # Setup global objects
     global_clock.init()
-
+    track_data.init()
     # Instatiate Modules
     if running_module == "all":
         pass
