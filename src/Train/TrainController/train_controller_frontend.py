@@ -7,16 +7,11 @@ Description:
 import sys
 import os
 
-# Add the parent directory (if needed)
-current_dir = os.path.dirname(__file__)
-parent_dir = os.path.abspath(os.path.join(current_dir, ".."))
-sys.path.insert(0, parent_dir)
-
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt5.QtCore import QTimer, QTime
 
-from train_controller_ui import Ui_MainWindow as TrainControllerUI
-from train_controller_testbench import TrainControllerTestbench
+from Train.TrainController.train_controller_ui import Ui_MainWindow as TrainControllerUI
+from Train.TrainController.train_controller_testbench import TrainControllerTestbench
 
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
@@ -67,10 +62,10 @@ class TrainControllerFrontend(QMainWindow):
         self.current_train = self.collection.train_list[int(self.ui.train_id_dropdown.currentText())-1]
         if __name__ != "__main__":
             self.current_train = self.current_train.controller
-        self.display_actual_speed(str(self.current_train.actual_speed))
+        self.display_actual_speed(str(round(self.current_train.actual_speed, 8)))
         self.display_speed_limit(str(self.current_train.speed_limit))
         self.display_authority(str(self.current_train.wayside_authority))
-        self.display_cabin_temperature(str(self.current_train.actual_temperature))
+        self.display_cabin_temperature(str(int(self.current_train.actual_temperature)))
         self.display_commanded_power(self.current_train.commanded_power)
 
         # Check if auto or manual mode
@@ -113,7 +108,6 @@ class TrainControllerFrontend(QMainWindow):
             if self.current_train==None:
                 self.current_train=self.collection.train_list[0]
                 
-
     def display_next_station(self):
         self.ui.next_station_label.setText(self.current_train.next_station)
 
@@ -161,14 +155,15 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.headlights_off_button.setEnabled(True)
 
     def handle_emergency_button(self, checked):
-        if checked:
-            self.current_train.emergency_brake = True
-        else:
-            self.current_train.emergency_brake = False
-            self.current_train.passenger_emergency_stop = False
+        self.current_train.emergency_brake = checked
+        if not checked:
+            self.deactivate_emergency_brake()
     
     def activate_emergency_brake(self):
         self.ui.emergency_button.setChecked(True)
+        
+    def deactivate_emergency_brake(self):
+        self.ui.emergency_button.setChecked(False)
 
     def handle_right_door(self, checked):
         if checked:
@@ -193,18 +188,6 @@ class TrainControllerFrontend(QMainWindow):
 
     def deactivate_interior_lights(self):
         self.current_train.interior_lights = False
-
-    def activate_heating(self):
-        self.current_train.heating_signal = True
-
-    def deactivate_heating(self):
-        self.current_train.heating_signal = False
-
-    def activate_air_conditioning(self):
-        self.current_train.air_conditioning_signal = True
-    
-    def deactivate_air_conditioning(self):
-        self.current_train.air_conditioning_signal = False
 
     def set_k_constants(self):
         self.Kp = self.to_float(self.ui.kp_line_edit.text(), 1.0)

@@ -12,7 +12,7 @@ from Train.TrainModel.train_model_testbench import TrainModelTestbench
 
 if __name__=="__main__":
 
-    running_module = "Train" # all, CTC, WaysideController, TrackModel, Train, Train Model, Train Controller
+    running_module = "TrainModel" # all, CTC, WaysideController, TrackModel, Train, Train Model, Train Controller
     
     # Create App
     app = QApplication(sys.argv)

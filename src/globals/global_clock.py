@@ -8,7 +8,7 @@ class GlobalClock(QMainWindow):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
         self.timer.start(1000)
-        self.time_multiplier = 30
+        self.time_multiplier = 1
         self.am_pm = "AM"
         self.text = "06:59"
         self.hour = 6

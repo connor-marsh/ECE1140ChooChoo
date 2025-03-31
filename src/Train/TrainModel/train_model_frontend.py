@@ -1,3 +1,10 @@
+"""
+Author: Iyan Nekib
+Date: 03-20-2025
+Description:
+
+"""
+
 # frontend.py
 import sys
 import os
@@ -33,7 +40,6 @@ class TrainModelFrontEnd(QMainWindow):
         self.timer.timeout.connect(self.update)
         self.timer.start(100)  # 10 Hz update
 
-        # Jot down a reference to the global clock
         self.global_clock = global_clock.clock
 
         # Configure emergency brake button.
@@ -67,10 +73,10 @@ class TrainModelFrontEnd(QMainWindow):
                 self.train_ui.currentTrainLabel.setText(f"Selected: {self.train_dropdown.currentText()}")        
 
     def update(self): 
-
+        
         self.train_ui.Clock_12.display(self.global_clock.text)
         self.train_ui.AM_PM.setText(self.global_clock.am_pm)
-
+        
         if self.current_train is not None:
             
             # Directly use attributes:
@@ -116,6 +122,10 @@ class TrainModelFrontEnd(QMainWindow):
             self.train_ui.LengthVehicleValue.display(length_m * self.current_train.M_TO_FT)
             self.train_ui.HeightValue.display(height_m * self.current_train.M_TO_FT)
             self.train_ui.WidthValue.display(width_m * self.current_train.M_TO_FT)
+            
+            self.train_ui.button_emergency.setEnabled(not self.current_train.emergency_brake)
+            self.train_ui.button_emergency.setChecked(self.current_train.emergency_brake)
+            print(self.train_ui.button_emergency.isEnabled())
 
             # Announcements from:
             announcements = self.current_train.announcement
@@ -196,7 +206,8 @@ class TrainModelFrontEnd(QMainWindow):
 
     def init_emergency_button(self):
         self.train_ui.button_emergency.setCheckable(True)
-        self.train_ui.button_emergency.toggled.connect(self.handle_emergency_button)
+        self.train_ui.button_emergency.clicked.connect(self.handle_emergency_button)
+        # self.train_ui.button_emergency.isChecked()
 
     def on_failure_group_toggled(self, failure_type, button):
         new_status = button.text() 
@@ -208,11 +219,9 @@ class TrainModelFrontEnd(QMainWindow):
             self.current_train.engine_failure = (new_status == "Enabled")
 
     def handle_emergency_button(self, pressed: bool):
-        # Only act on the rising edge (when pressed becomes True).
-        if pressed:
-            self.current_train.driver_emergency_brake = True
-            # Disable the frontend emergency button so it stays pressed.
-            self.train_ui.button_emergency.setEnabled(False)
+        # Only act on the rising edge.
+        self.current_train.emergency_brake = True
+        self.current_train.send_emergency_brake_signal = True
 
     @staticmethod
     def to_float(val_str, default=0.0):
@@ -221,7 +230,6 @@ class TrainModelFrontEnd(QMainWindow):
         except ValueError:
             return default
 
-############### Deprecated
 def main():
     app = QApplication(sys.argv)
     from train_collection import TrainCollection
