@@ -1,4 +1,10 @@
-
+"""
+Author: Connor Murray
+Date: 3/20/2025
+Description: 
+    Defines a data structure that can extract a track layout from an excel and turn it into a usable form of lists and dictionaries
+    of the blocks and infrastructure on the track
+"""
 import pandas as pd
 from dataclasses import dataclass
 from collections import defaultdict
@@ -49,12 +55,13 @@ class TrackDataClass():
 
         :param filepath: The filepath to an excel containing information about the track
         """
-        dataframe = pd.read_excel(filepath, engine="openpyxl") 
-        dictionary = {key: list(dataframe[key]) for key in dataframe.columns}
-        self.line_name = dictionary["Line"][0]
+        if filepath != None:
+            dataframe = pd.read_excel(filepath, engine="openpyxl") 
+            dictionary = {key: list(dataframe[key]) for key in dataframe.columns}
+            self.line_name = dictionary["Line"][0]
 
-        self.populate_blocks(dictionary)
-        self.count_territory()  
+            self.populate_blocks(dictionary)
+            self.count_territory()  
         
 
     def populate_blocks(self, dictionary):
@@ -170,6 +177,7 @@ class TrackDataClass():
         
         
 def init():
+    global lines 
     lines = defaultdict(TrackDataClass)
     line = TrackDataClass("src\Track\TrackModel\GreenLine_Layout.xlsx")
     lines[line.line_name] = line

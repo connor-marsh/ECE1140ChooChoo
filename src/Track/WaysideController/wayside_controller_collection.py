@@ -15,12 +15,13 @@ class WaysideControllerCollection():
     A class that contains several wayside controllers and handles interfacing with the other modules such as the Track Model and The CTC.
     The front end that will display information about the currently selected wayside controller is also contained in this class.
     """
-
+        
     def __init__(self, line_name="GREEN"):
         """
         :param line_name: Selects controller count etc. depending on the line. Either "RED" or "GREEN"
         """
-        
+        from pittsburgh import track_data
+        print(track_data.lines['Green'].blocks[0].light)
         if line_name not in TRACK_NAMES:
             raise ValueError(f"Invalid input. Please enter exactly the line name of an existing track.")
         
