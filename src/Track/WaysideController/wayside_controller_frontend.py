@@ -10,7 +10,6 @@ from pathlib import Path
 from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem, QFileDialog, QListWidget, QListWidgetItem, QLabel
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer
-from Track.WaysideController.track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT
 from Track.WaysideController.wayside_controller_ui import Ui_MainWindow as WaysideUi
 from Track.WaysideController.wayside_controller_testbench_ui import Ui_MainWindow as TestbenchUi
 
@@ -61,8 +60,8 @@ class WaysideControllerFrontend(QMainWindow):
         Responsible for populating the combo box for selecting wayside controllers with the appropriate text
         """
         combo_box = self.ui.controller_select_combo_box
-        for i in range(CONTROLLER_COUNT[self.collection.line_name]):
-            controller_name = self.collection.line_name + " Line Controller #" + str(i + 1)
+        for i in range(self.collection.CONTROLLER_COUNT):
+            controller_name = self.collection.LINE_NAME + " Line Controller #" + str(i + 1)
             combo_box.addItem(controller_name)
 
        
@@ -97,15 +96,15 @@ class WaysideControllerFrontend(QMainWindow):
         :return changed: If the row count has changed then this value will be True
         """
 
-        if table.rowCount() < BLOCK_COUNT[self.collection.line_name][self.current_controller_index]: # if the current row count is less
-            for row in range(table.rowCount(), BLOCK_COUNT[self.collection.line_name][self.current_controller_index]):
+        if table.rowCount() < self.collection.BLOCK_COUNTS[self.current_controller_index]: # if the current row count is less
+            for row in range(table.rowCount(), self.collection.BLOCK_COUNTS[self.current_controller_index]):
                 # NEED TO INSET THE NAME OF THE ROW AS THE NAME OF THE BLOCK, HOW?? Talk to aaron and pj and pray they have a way already
                 # THIS WAY OF DOING IT COULD BE BAD SINCE ROW NAMES NEED TO CHANGE REGARDLESS
                 table.insertRow(row) # insert until row count is equivalent
             
             return True
-        elif table.rowCount() > BLOCK_COUNT[self.collection.line_name][self.current_controller_index]:
-            for row in range(BLOCK_COUNT[self.collection.line_name][self.current_controller_index], table.rowCount()):
+        elif table.rowCount() > self.collection.BLOCK_COUNTS[self.current_controller_index]:
+            for row in range(self.collection.BLOCK_COUNTS[self.current_controller_index], table.rowCount()):
                 table.removeRow(row) # remove until row count is equivalent
             
             return True
@@ -153,7 +152,7 @@ class WaysideControllerFrontend(QMainWindow):
         active_controller = self.collection.controllers[self.current_controller_index]
 
         if list_name == "switch_list":
-            row_count = SWITCH_COUNT[self.collection.line_name][self.current_controller_index]
+            row_count = self.collection.SWITCH_COUNTS[self.current_controller_index]
             for i in range(row_count):
                 if active_controller.switch_positions[i] != None:
                     item = QListWidgetItem()
@@ -161,7 +160,7 @@ class WaysideControllerFrontend(QMainWindow):
                     item.setText(text)
                     q_list.addItem(item)
         elif list_name == "light_list":
-            row_count = LIGHT_COUNT[self.collection.line_name][self.current_controller_index]
+            row_count = self.collection.LIGHT_COUNTS[self.current_controller_index]
             for i in range(row_count):
                 if active_controller.light_signals[i] != None:
                     item = QListWidgetItem()
@@ -169,7 +168,7 @@ class WaysideControllerFrontend(QMainWindow):
                     item.setText(text)
                     q_list.addItem(item)
         elif list_name == "crossing_list":
-            row_count = CROSSING_COUNT[self.collection.line_name][self.current_controller_index]
+            row_count = self.collection.CROSSING_COUNTS[self.current_controller_index]
             for i in range(row_count):
                 if active_controller.crossing_signals[i] != None:
                     item = QListWidgetItem()
@@ -371,10 +370,3 @@ class WaysideControllerTestbench(QMainWindow):
         self.hide_window()
         event.ignore() # do not let the user actually destroy the window
 
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    collection = WaysideControllerCollection("GREEN")
-    collection.frontend.show()
-    sys.exit(app.exec_())

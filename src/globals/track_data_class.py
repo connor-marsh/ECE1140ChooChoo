@@ -62,7 +62,8 @@ class TrackDataClass():
 
             self.populate_blocks(dictionary)
             self.count_territory()  
-        
+        else:
+            self = None
 
     def populate_blocks(self, dictionary):
         """
@@ -174,10 +175,14 @@ class TrackDataClass():
         # convert back to regular dictionaries
         self.territory_counts = dict(temp_territory_counts)
         self.device_counts = {k: dict(v) for k, v in temp_device_counts.items()} 
-        
+
         
 def init():
-    global lines 
-    lines = defaultdict(TrackDataClass)
-    line = TrackDataClass("src\Track\TrackModel\GreenLine_Layout.xlsx")
-    lines[line.line_name] = line
+        global lines 
+        lines = {}
+        line = TrackDataClass("src\Track\TrackModel\GreenLine_Layout.xlsx")
+        lines[line.line_name] = line
+
+if __name__=="__main__":
+    init()
+    

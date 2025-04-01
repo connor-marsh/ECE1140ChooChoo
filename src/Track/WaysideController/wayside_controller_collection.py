@@ -5,7 +5,7 @@ Description:
     A Class that contains several WaysideControllers and a Frontend. Responsible for interfacing with the Track Model and CTC
 """
 import sys
-from Track.WaysideController.track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT, TRACK_NAMES
+import globals.track_data_class as track_data
 from Track.WaysideController.wayside_controller_backend import WaysideController
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
@@ -15,27 +15,38 @@ class WaysideControllerCollection():
     A class that contains several wayside controllers and handles interfacing with the other modules such as the Track Model and The CTC.
     The front end that will display information about the currently selected wayside controller is also contained in this class.
     """
-        
-    def __init__(self, line_name="GREEN"):
+    def __init__(self, track_data=track_data.TrackDataClass):
         """
-        :param line_name: Selects controller count etc. depending on the line. Either "RED" or "GREEN"
+        :param track_data: A class that contains the unchanging data imported from the track builder
         """
-        from pittsburgh import track_data
-        print(track_data.lines['Green'].blocks[0].light)
-        if line_name not in TRACK_NAMES:
-            raise ValueError(f"Invalid input. Please enter exactly the line name of an existing track.")
+    
         
-        self.line_name = line_name # Keep the line name as a member variable
+        self.LINE_NAME = track_data.line_name
+        self.controllers = [] # A collection of wayside has controllers
+        self.CONTROLLER_COUNT = len(track_data.territory_counts) # get the number of controllers (CONSTANTS)
+        print(self.CONTROLLER_COUNT)
+        # Will get the number of each below (CONSTANTS)
+        self.BLOCK_COUNTS = [] 
+        self.SWITCH_COUNTS = []
+        self.LIGHT_COUNTS = []
+        self.CROSSING_COUNTS = []
 
-        # Create a list of backends which will handle different territory, devices, etc.
-        self.controllers = [WaysideController(BLOCK_COUNT[line_name][i], SWITCH_COUNT[line_name][i], 
-                                                          LIGHT_COUNT[line_name][i], CROSSING_COUNT[line_name][i], EXIT_BLOCK_COUNT[line_name][i], 0.5)
-                                                          for i in range(CONTROLLER_COUNT[line_name])]
+        for i in range(self.CONTROLLER_COUNT): # for each controller they will have a specific number of blocks, switches, lights, and crossings associated with it
+            block_count = track_data.territory_counts[i + 1]
+            switch_count = track_data.device_counts[i + 1]['switches']
+            light_count = track_data.device_counts[i + 1]['lights']
+            crossing_count = track_data.device_counts[i + 1]['crossings']
+            self.BLOCK_COUNTS.append(block_count)
+            self.SWITCH_COUNTS.append(switch_count)
+            self.LIGHT_COUNTS.append(light_count)
+            self.CROSSING_COUNTS.append(crossing_count)
+            self.controllers.append(WaysideController(block_count=block_count,switch_count=switch_count,
+                                                      light_count=light_count,crossing_count=crossing_count,exit_block_count=0,scan_time=0.5))
 
-        
+        print(self.BLOCKS_COUNTS)
         # Create a list of testbenches for maintenance mode corresponding to each one of the wayside controllers
         from Track.WaysideController.wayside_controller_frontend import WaysideControllerTestbench # Avoiding circular imports?
-        self.testbenches = [WaysideControllerTestbench(self, i) for i in range(CONTROLLER_COUNT[line_name])]
+        self.testbenches = [WaysideControllerTestbench(self, i) for i in range(self.CONTROLLER_COUNT)]
 
        
         # Initialize the frontend with access to the collection so that it may modify itself or the backend using the data from the backend
@@ -94,9 +105,3 @@ class WaysideControllerCollection():
 
         #self.frontend.open_testbench.connect(self.testbench.open_window)
         #self.frontend.close_testbench.connect(self.testbench.close_window)
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    collection = WaysideControllerCollection("GREEN")
-    collection.frontend.show()
-    sys.exit(app.exec_())

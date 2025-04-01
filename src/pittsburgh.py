@@ -32,7 +32,7 @@ if __name__=="__main__":
     elif running_module == "CTC":
         pass
     elif running_module == "WaysideController":
-        collection = WaysideControllerCollection("GREEN")
+        collection = WaysideControllerCollection(track_data.lines['Green'])
         collection.frontend.show()
     elif running_module == "TrackModel":
         pass
