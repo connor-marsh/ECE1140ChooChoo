@@ -34,7 +34,6 @@ class WaysideControllerCollection():
         self.controllers = [] # A collection of wayside has controllers
         self.CONTROLLER_COUNT = len(track_data.territory_counts) # get the number of controllers (CONSTANT)
 
-        print(self.switches)
         self.blocks.sort(key=lambda block: (block.territory, block.id)) # sort blocks by territory then by id since that is most useful for my module
 
         # Will get the number corresponding to each wayside controller below (CONSTANTS)
@@ -63,12 +62,12 @@ class WaysideControllerCollection():
 
         # Create a list of testbenches for maintenance mode corresponding to each one of the wayside controllers
         from Track.WaysideController.wayside_controller_frontend import WaysideControllerTestbench # Avoiding circular imports?
-        self.testbenches = [WaysideControllerTestbench(self, i) for i in range(self.CONTROLLER_COUNT)]
+        self.testbenches = [WaysideControllerTestbench(collection_reference=self,idx=i) for i in range(self.CONTROLLER_COUNT)]
 
-       
         # Initialize the frontend with access to the collection so that it may modify itself or the backend using the data from the backend
         from Track.WaysideController.wayside_controller_frontend import WaysideControllerFrontend # lazy import to avoid circular import (do NOT tell me about design patterns)
         self.frontend = WaysideControllerFrontend(self)
+        
 
         #self.connect_signals()
 

@@ -155,52 +155,15 @@ class WaysideControllerFrontend(QMainWindow):
                 text = "Switch " + block.id
                 item = QListWidgetItem(text)
                 self.ui.switch_list.addItem(item)
-            elif block.light: # if the block has a light
+            if block.light: # if the block has a light
                 text = "Light " + block.id
                 item = QListWidgetItem(text)
                 self.ui.light_list.addItem(item)
-            elif block.crossing: # if the block has a crossing
+            if block.crossing: # if the block has a crossing
                 text = "Crossing " + block.id
                 item = QListWidgetItem(text)
                 self.ui.crossing_list.addItem(item)
-            else:
-                continue # no need to add to the list
 
-
-        """
-        q_list.clear() # always clear the list on an update to remove the values that no longer need to be there
-        list_name = q_list.objectName() # figure out which list was input to the function
-        active_controller = self.collection.controllers[self.current_controller_index]
-
-        if list_name == "switch_list":
-            row_count = self.collection.SWITCH_COUNTS[self.current_controller_index]
-            for i in range(row_count):
-                if active_controller.switch_positions[i] != None:
-                    item = QListWidgetItem()
-                    text = "Switch " + str(i + 1)
-                    item.setText(text)
-                    q_list.addItem(item)
-        elif list_name == "light_list":
-            row_count = self.collection.LIGHT_COUNTS[self.current_controller_index]
-            lower_bound = self.collection.LIGHT_RANGES[self.current_controller_index][0]
-            for i in range(row_count):
-                if active_controller.light_signals[i] != None:
-                    item = QListWidgetItem()
-                    text = "Light " + str(i + 1)
-                    item.setText(text)
-                    q_list.addItem(item)
-        elif list_name == "crossing_list":
-            row_count = self.collection.CROSSING_COUNTS[self.current_controller_index]
-            lower_bound = self.collection.CROSSING_RANGES[self.current_controller_index][0]
-            for i in range(row_count):
-                if active_controller.crossing_signals[i] != None:
-                    item = QListWidgetItem()
-                    text = "Crossing " + str(i + 1)
-                    item.setText(text)
-                    q_list.addItem(item)
-        else:
-            raise ValueError(f"Invalid Input. QListWidget Does not match any in the UI.")
-        """
     def show_current_selected_output(self, q_list: QListWidget, label: QLabel):
         """
         Updates the corresponding label on the ui with the output of the list item that is selected
@@ -358,11 +321,12 @@ class WaysideControllerTestbench(QMainWindow):
         :param idx: The index that matches the testbench to the backend controller
         """
         super().__init__()
-        self.test_ui = TestbenchUi() # create a ui from the exported file
-        self.test_ui.setupUi(self) 
+        self.ui = TestbenchUi() # create a ui from the exported file
+        self.ui.setupUi(self) 
         self.collection = collection_reference
         self.index = idx
-        # populate the ui with the backend stuff somehow?
+        
+        
     
     
     def open_window(self, window_name: str):
@@ -372,7 +336,8 @@ class WaysideControllerTestbench(QMainWindow):
         :param window_name: The title of the menu? window
         """
         self.setWindowTitle("Wayside Testbench Module")
-        self.test_ui.menu_Blue_Line_Controller_1.setTitle(window_name)
+        self.ui.menu_Blue_Line_Controller_1.setTitle(window_name)
+        self.populate_list()
         self.show()
     
     def hide_window(self): 
@@ -392,3 +357,18 @@ class WaysideControllerTestbench(QMainWindow):
         self.hide_window()
         event.ignore() # do not let the user actually destroy the window
 
+    def populate_list(self):
+        """
+        Adds entries to the list on the testbench ui corresponding to the territory the wayside controller testbench is connected to
+        """
+        for i in range(*self.collection.frontend.current_range):
+            block = self.collection.blocks[i]
+            text = "Block " + block.id
+            if block.switch:
+                text = text + ', Has Switch'
+            if block.light:
+                text = text + ', Has Light'
+            if block.crossing:
+                text = text + ', Has Crossing'
+            item = QListWidgetItem(text)
+            self.ui.select_block_list.addItem(item)
