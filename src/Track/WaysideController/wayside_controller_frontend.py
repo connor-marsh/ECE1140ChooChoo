@@ -285,7 +285,6 @@ class WaysideControllerFrontend(QMainWindow):
             testbench_window_name = self.ui.menu_bar.title() + " Testbench"
             active_testbench = self.collection.testbenches[self.current_controller_index]
             active_testbench.open_window(testbench_window_name)
-            active_controller.maintenance_mode = True
              # Set the exit blocks to be occupied and open the test bench window 
              # Open the test bench window probably other stuff todo as well but whale i cant think of it
           
@@ -294,7 +293,7 @@ class WaysideControllerFrontend(QMainWindow):
             #self.close_testbench.emit() # close the window
             active_testbench = self.collection.testbenches[self.current_controller_index]
             active_testbench.hide_window()
-            active_controller.maintenance_mode = False
+            
             # SWITCH BACK TO READING THE VALUES from other modules?
             # close the testbench window
 
@@ -331,9 +330,9 @@ class WaysideControllerTestbench(QMainWindow):
         self.current_block_index = None
         self.first_open = True # Used to check to see if the testbench has been open before
         # Used for storing the values input by the user
-        self.block_occupancies = [0] * self.collection.BLOCK_COUNTS[idx]
+        self.block_occupancies =     [None] * self.collection.BLOCK_COUNTS[idx]
         self.suggested_authorities = [None] * self.collection.BLOCK_COUNTS[idx] 
-        self.suggested_speeds = [None] * self.collection.BLOCK_COUNTS[idx] 
+        self.suggested_speeds =      [None] * self.collection.BLOCK_COUNTS[idx] 
 
 
         self.ui.select_block_list.itemClicked.connect(self.handle_block_selection)  # Connecting the list signals to the slot
@@ -348,21 +347,23 @@ class WaysideControllerTestbench(QMainWindow):
         """
         self.current_block_index = self.ui.select_block_list.currentRow()
 
-        self.ui.block_occupancy_combo_box.setCurrentIndex(self.block_occupancies[self.current_block_index])
-
         # Update the suggested speed fields to match the corresponding blocks user input, otherwise clear the block since it has nothing 
-        if self.suggested_speeds[self.current_block_index] == None:
-            self.ui.suggested_speed_line_edit.clear()
-            self.ui.suggested_authority_line_edit.clear()
-        else:
-            self.ui.suggested_speed_line_edit.setText(self.suggested_speeds[self.current_block_index])
-            self.ui.suggested_authority_line_edit.setText(self.suggested_authorities[self.current_block_index])
+        if self.current_block_index != None:
+            if self.block_occupancies[self.current_block_index] != None: # Check to update the occupancy
+                self.ui.block_occupancy_combo_box.setCurrentIndex(self.block_occupancies[self.current_block_index])
+            else:
+                self.ui.block_occupancy_combo_box.setCurrentIndex(-1) # Set to the default no option selected
 
-        # Update the suggested authority fields to match the corresponding blocks user input, otherwise clear the block since it has nothing 
-        if self.suggested_authorities[self.current_block_index] == None:
-            self.ui.suggested_authority_line_edit.clear()
-        else:
-            self.ui.suggested_authority_line_edit.setText(self.suggested_authorities[self.current_block_index])
+            if self.suggested_speeds[self.current_block_index] != None: 
+                self.ui.suggested_speed_line_edit.setText(self.suggested_speeds[self.current_block_index])
+            else:
+                self.ui.suggested_speed_line_edit.clear()
+
+            if self.suggested_authorities[self.current_block_index] != None: 
+               self.ui.suggested_authority_line_edit.setText(self.suggested_authorities[self.current_block_index])
+            else:
+                self.ui.suggested_authority_line_edit.clear()
+
 
     @pyqtSlot()
     def handle_speed_confirmation(self):
@@ -381,6 +382,7 @@ class WaysideControllerTestbench(QMainWindow):
         if self.current_block_index != None:
             self.suggested_authorities[self.current_block_index] = self.ui.suggested_authority_line_edit.text()
             self.collection.controllers[self.controller_index].suggested_authorities[self.current_block_index] = float(self.ui.suggested_authority_line_edit.text())
+   
     @pyqtSlot()
     def handle_occupancy_confirmation(self):
         """
@@ -389,23 +391,21 @@ class WaysideControllerTestbench(QMainWindow):
         if self.current_block_index != None:
             if self.ui.block_occupancy_combo_box.currentIndex() == 0:
                 self.collection.controllers[self.controller_index].block_occupancies[self.current_block_index] = False
+                
             elif self.ui.block_occupancy_combo_box.currentIndex() == 1 or self.ui.block_occupancy_combo_box.currentIndex() == 2:
                 self.collection.controllers[self.controller_index].block_occupancies[self.current_block_index] = True
-
-            self.block_occupancies[self.current_block_index] = self.ui.block_occupancy_combo_box.currentIndex()
-            
-        
     
+            self.block_occupancies[self.current_block_index] = self.ui.block_occupancy_combo_box.currentIndex()
     def open_window(self, window_name: str):
         """
         opens the testbench window when the user switches to maintenance mode
 
         :param window_name: The title of the menu? window
         """
-        self.setWindowTitle("Wayside Testbench Module")
-        self.ui.menu_Blue_Line_Controller_1.setTitle(window_name)
-        
-        if self.first_open:
+        self.collection.controllers[self.controller_index].maintenance_mode = True
+        if self.first_open: # On the first time opening the testbench the ui elements need to be initialized 
+            self.setWindowTitle("Wayside Testbench Module")
+            self.ui.menu_Blue_Line_Controller_1.setTitle(window_name)
             self.populate_list()
             self.first_open = False
 
@@ -413,25 +413,27 @@ class WaysideControllerTestbench(QMainWindow):
     
     def hide_window(self): 
         """
-        My defined function for hiding the testbench window when the user exits maintenance mode via the combo box on the ui
+        My defined function for hiding the testbench window resets it to the initial condition
         """
         self.current_block_index = None
-        self.ui.select_block_list.setCurrentRow(-1)
+        self.block_occupancies = [None] * len(self.block_occupancies)
+        self.suggested_speeds = [None] * len(self.suggested_speeds)
+        self.suggested_authorities = [None] * len(self.suggested_authorities)
+
         self.ui.block_occupancy_combo_box.setCurrentIndex(-1)
         self.ui.suggested_authority_line_edit.clear()
         self.ui.suggested_speed_line_edit.clear()
-        self.block_occupancies = [0] * len(self.block_occupancies)
-        self.suggested_speeds = [None] * len(self.suggested_speeds)
-        self.suggested_speeds = [None] * len(self.suggested_authorities)
-        self.hide()
+        self.ui.select_block_list.setCurrentRow(-1)
+        
+        self.collection.controllers[self.controller_index].maintenance_mode = False # User has closed the window so maintenance mode should no longer be active
+        self.hide() # the illusion that the window is no longer with us, but really the testbench was the friends we made along the way
     
     def closeEvent(self, event):
         """
-        Overridden Mainwindow function that handles when the user clicks the exit button in the corner of the window
+        Overridden Mainwindow function so that as long as the main wayside module is running the testbench is never fully destroyed
         """
-        self.collection.controllers[self.controller_index].maintenance_mode = False # User has closed the window so maintenance mode should no longer be active
-        self.hide_window()
-        event.accept() # do not let the user actually destroy the window
+        self.hide_window() # call the clean up to hide the window
+        event.ignore() # do not let the user actually destroy the window
 
     def populate_list(self):
         """
