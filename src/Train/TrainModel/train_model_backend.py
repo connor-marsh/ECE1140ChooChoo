@@ -130,10 +130,15 @@ class TrainModel(QMainWindow):
             final_acceleration = -self.MAX_ACCEL
 
         old_velocity = self.actual_speed
+        # Calculate new velocity using the trapezoidal rule.
         new_velocity = old_velocity + (dt / 2.0) * (final_acceleration + self.previous_acceleration)
+        # Calculate new position using the trapezoidal rule.
+        new_position = self.position + (dt / 2.0) * (old_velocity + new_velocity)
+        self.position = new_position
+        
+        # Check for overspeed and adjust velocity if necessary.
         if new_velocity < 0:
             new_velocity = 0
-
         self.previous_acceleration = final_acceleration
         self.actual_speed = new_velocity
         self.current_acceleration = final_acceleration
@@ -217,6 +222,7 @@ class TrainModel(QMainWindow):
         data["brake_failure"] = self.brake_failure
         data["engine_failure"] = self.engine_failure
         data["speed_limit"] = self.speed_limit * self.MPS_TO_MPH
+        data["position"] = self.position * self.M_TO_FT
         if self.send_emergency_brake_signal:
             data["emergency_brake"] = self.emergency_brake
             self.send_emergency_brake_signal = False
