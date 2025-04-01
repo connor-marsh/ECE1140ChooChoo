@@ -6,6 +6,7 @@ Description:
 """
 import sys
 import globals.track_data_class as init_track_data
+import globals.signals as signals
 from Track.WaysideController.wayside_controller_backend import WaysideController
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
@@ -121,19 +122,57 @@ class WaysideControllerCollection():
             start_index = end_index + 1  # Move start index to next range
         return ranges
 
+    @pyqtSlot(str, bool)
+    def handle_switch_maintenance(block_id, position):
+        """
+        This function is called when the ctc makes a request to change a switch a position
+
+        :param block_id: The id of the block with the switch
+
+        :param position: The requested position to change the switch to
+        """
+    
+    @pyqtSlot(list)
+    def handle_exit_blocks(current_exit_blocks):
+        """
+        Called when the ctc sends what the exit blocks are. Does stuff for exit blocks?
+
+        :param current_exit_blocks: A list of vectors per wayside controller indicating the active exit block
+        """
+
+
+       
+    @pyqtSlot()
+    def handle_dispatch():
+        """
+        Called when the ctc dispatches a train. Verifies that it is safe to dispatch the train
+        """
+    
+    @pyqtSlot(int, bool)
+    def handle_block_maintenance(block_number, state):
+        """
+        Called when the ctc puts a block into maintenance
+
+        :param block_number: the index into the block list
+
+        :param state:  0 for maintenance off, 1 for maintenance on
+        """
+    @pyqtSlot(list,list)
+    def handle_suggested_values(speeds, authorities):
+        """
+        Called when the ctc sends suggested speeds and suggested authorities
+
+        :param speeds: a list of suggested speeds from the ctc
+
+        :param authorities: a list of suggested authoritities from the ctc
+        """
+
+    def connect_signals(self): # may still need this when using signals later
+        """
+        Connects any necessary signals for communication using the pyqt framework
+        """
     #DEFINE A FUNCTION THAT EITHER GRABS VALUES FROM THE TRACK REFERENCE OR FROM THE TESTBENCH DEPENDING ON THE MODE OF THE CONTROLLER
     # FOR EACH CONTROLLER CHECK THE MODE 
     # READ EACH VALUE FROM TRACK MODEL EVERY UPDATE IF NOT IN MAINTENANCE MODE
     # OTHERWISE ONCE TESTBENCH WRITES A NEW VALUE TO THE WAYSIDE
     # WHEN EXITING RESET MAINTENANCE (DONE) RESET THE BACKEND VALUES (EASY) RESET THE TESTBENCH VALUES ( i guess choose whatever is easier?)
-
-    
-    
-    #def connect_signals(self): # may still need this when using signals later
-    #    """
-    #    Connects any necessary signals for communication using the pyqt framework
-    #    """
-    #    for testbench in self.testbenches
-
-        #self.frontend.open_testbench.connect(self.testbench.open_window)
-        #self.frontend.close_testbench.connect(self.testbench.close_window)
