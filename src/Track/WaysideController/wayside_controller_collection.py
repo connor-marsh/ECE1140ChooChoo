@@ -43,7 +43,7 @@ class WaysideControllerCollection():
             self.controllers.append(WaysideController(block_count=block_count,switch_count=switch_count,
                                                       light_count=light_count,crossing_count=crossing_count,exit_block_count=0,scan_time=0.5))
 
-        print(self.BLOCKS_COUNTS)
+        print(self.BLOCK_COUNTS)
         # Create a list of testbenches for maintenance mode corresponding to each one of the wayside controllers
         from Track.WaysideController.wayside_controller_frontend import WaysideControllerTestbench # Avoiding circular imports?
         self.testbenches = [WaysideControllerTestbench(self, i) for i in range(self.CONTROLLER_COUNT)]
@@ -65,9 +65,9 @@ class WaysideControllerCollection():
         """
         if controller_index < len(self.controllers) and controller_index >= 0: # check to see that the controller exists
             controller = self.controllers[controller_index]
-            switches = self.controller.switch_positions
-            lights = self.controller.light_signals
-            crossings = self.controller.crossing_signals
+            switches = controller.switch_positions
+            lights = controller.light_signals
+            crossings = controller.crossing_signals
             return (switches,lights,crossings) # TRIPLE REDUNDANCY?
         else:
             raise IndexError(f"The input index to the Wayside Controller is not in range")
@@ -83,8 +83,8 @@ class WaysideControllerCollection():
         """
         if controller_index < len(self.controllers) and controller_index >= 0: # check to see that the controller exists
             controller = self.controllers[controller_index]
-            authorities = self.controller.commanded_authorities
-            speeds = self.controller.commanded_speeds
+            authorities = controller.commanded_authorities
+            speeds = controller.commanded_speeds
             return (authorities, speeds) # TRIPLE REDUNDANCY?
         else:
             raise IndexError(f"The input index to the Wayside Controller is not in range")

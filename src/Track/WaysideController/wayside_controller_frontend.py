@@ -193,6 +193,7 @@ class WaysideControllerFrontend(QMainWindow):
     
         index = q_list.currentRow()
         current_item = q_list.currentItem()
+        
 
         if index >= 0 and current_item != None:
             if list_name == "switch_list" and label_name == "switch_label":
@@ -218,7 +219,6 @@ class WaysideControllerFrontend(QMainWindow):
                 label.setText(text)
             elif list_name == "crossing_list" and label_name == "crossing_label":
                 text = "Crossing: Not Selected"
-                value = "Active" if active_controller.crossing_signals[index] else "Inactive"
                 label.setText(text)
             else:
                 raise ValueError(f"Invalid Input: Make sure the input list and label correspond.")
