@@ -328,8 +328,8 @@ class WaysideControllerTestbench(QMainWindow):
         self.ui.setupUi(self) 
         self.collection = collection_reference
         self.controller_index = idx
-        self.block_index = None
-
+        self.current_block_index = None
+        self.first_open = True # Used to check to see if the testbench has been open before
         # Used for storing the values input by the user
         self.block_occupancies = [0] * self.collection.BLOCK_COUNTS[idx]
         self.suggested_authorities = [None] * self.collection.BLOCK_COUNTS[idx] 
@@ -346,34 +346,55 @@ class WaysideControllerTestbench(QMainWindow):
         """
         Called when the a new item is clicked
         """
-        self.block_index = self.ui.select_block_list.currentRow()
+        self.current_block_index = self.ui.select_block_list.currentRow()
 
-        self.ui.block_occupancy_combo_box.setCurrentIndex(self.block_occupancies[self.block_index])
+        self.ui.block_occupancy_combo_box.setCurrentIndex(self.block_occupancies[self.current_block_index])
+
+        # Update the suggested speed fields to match the corresponding blocks user input, otherwise clear the block since it has nothing 
+        if self.suggested_speeds[self.current_block_index] == None:
+            self.ui.suggested_speed_line_edit.clear()
+            self.ui.suggested_authority_line_edit.clear()
+        else:
+            self.ui.suggested_speed_line_edit.setText(self.suggested_speeds[self.current_block_index])
+            self.ui.suggested_authority_line_edit.setText(self.suggested_authorities[self.current_block_index])
+
+        # Update the suggested authority fields to match the corresponding blocks user input, otherwise clear the block since it has nothing 
+        if self.suggested_authorities[self.current_block_index] == None:
+            self.ui.suggested_authority_line_edit.clear()
+        else:
+            self.ui.suggested_authority_line_edit.setText(self.suggested_authorities[self.current_block_index])
 
     @pyqtSlot()
     def handle_speed_confirmation(self):
         """
         Called when the confirmation next to the suggested speed is input
         """
+        if self.current_block_index != None:
+            self.suggested_speeds[self.current_block_index] = self.ui.suggested_speed_line_edit.text()
+            self.collection.controllers[self.controller_index].suggested_speeds[self.current_block_index] = float(self.ui.suggested_speed_line_edit.text())
 
     @pyqtSlot()
     def handle_authority_confirmation(self):
         """
         Called when the confirmation next to the suggested authority is input
         """
-    
+        if self.current_block_index != None:
+            self.suggested_authorities[self.current_block_index] = self.ui.suggested_authority_line_edit.text()
+            self.collection.controllers[self.controller_index].suggested_authorities[self.current_block_index] = float(self.ui.suggested_authority_line_edit.text())
     @pyqtSlot()
     def handle_occupancy_confirmation(self):
         """
         Called when the confirmation next to the occupancy is input
         """
-        if self.ui.block_occupancy_combo_box.currentIndex() == 0:
-            self.collection.controllers[self.controller_index].block_occupancies[self.block_index] = False
-        elif self.ui.block_occupancy_combo_box.currentIndex() == 1 or self.ui.block_occupancy_combo_box.currentIndex() == 2:
-            self.collection.controllers[self.controller_index].block_occupancies[self.block_index] = True
-        else:
-            return
-        self.block_occupancies[self.block_index] = self.ui.block_occupancy_combo_box.currentIndex()
+        if self.current_block_index != None:
+            if self.ui.block_occupancy_combo_box.currentIndex() == 0:
+                self.collection.controllers[self.controller_index].block_occupancies[self.current_block_index] = False
+            elif self.ui.block_occupancy_combo_box.currentIndex() == 1 or self.ui.block_occupancy_combo_box.currentIndex() == 2:
+                self.collection.controllers[self.controller_index].block_occupancies[self.current_block_index] = True
+
+            self.block_occupancies[self.current_block_index] = self.ui.block_occupancy_combo_box.currentIndex()
+            
+        
     
     def open_window(self, window_name: str):
         """
@@ -383,25 +404,34 @@ class WaysideControllerTestbench(QMainWindow):
         """
         self.setWindowTitle("Wayside Testbench Module")
         self.ui.menu_Blue_Line_Controller_1.setTitle(window_name)
-        self.populate_list()
+        
+        if self.first_open:
+            self.populate_list()
+            self.first_open = False
+
         self.show()
     
     def hide_window(self): 
         """
         My defined function for hiding the testbench window when the user exits maintenance mode via the combo box on the ui
         """
-        # just gonna leave the window in the previous state it was in if it ever is reopened
-        # can add more here if there needs to be any handling of exiting the testbench since its called in both teh closeEvent and from the frontend main window
-       
+        self.current_block_index = None
+        self.ui.select_block_list.setCurrentRow(-1)
+        self.ui.block_occupancy_combo_box.setCurrentIndex(-1)
+        self.ui.suggested_authority_line_edit.clear()
+        self.ui.suggested_speed_line_edit.clear()
+        self.block_occupancies = [0] * len(self.block_occupancies)
+        self.suggested_speeds = [None] * len(self.suggested_speeds)
+        self.suggested_speeds = [None] * len(self.suggested_authorities)
         self.hide()
     
     def closeEvent(self, event):
         """
         Overridden Mainwindow function that handles when the user clicks the exit button in the corner of the window
         """
-        self.collection.controllers[self.index].maintenance_mode = False # User has closed the window so maintenance mode should no longer be active
+        self.collection.controllers[self.controller_index].maintenance_mode = False # User has closed the window so maintenance mode should no longer be active
         self.hide_window()
-        event.ignore() # do not let the user actually destroy the window
+        event.accept() # do not let the user actually destroy the window
 
     def populate_list(self):
         """
