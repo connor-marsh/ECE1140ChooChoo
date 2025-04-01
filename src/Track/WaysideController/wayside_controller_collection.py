@@ -5,7 +5,7 @@ Description:
     A Class that contains several WaysideControllers and a Frontend. Responsible for interfacing with the Track Model and CTC
 """
 import sys
-import globals.track_data_class as track_data
+import globals.track_data_class as init_track_data
 from Track.WaysideController.wayside_controller_backend import WaysideController
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
@@ -15,16 +15,18 @@ class WaysideControllerCollection():
     A class that contains several wayside controllers and handles interfacing with the other modules such as the Track Model and The CTC.
     The front end that will display information about the currently selected wayside controller is also contained in this class.
     """
-    def __init__(self, track_data=track_data.TrackDataClass):
+    def __init__(self, line_name="Green"):
         """
         :param track_data: A class that contains the unchanging data imported from the track builder
         """
-    
         
-        self.LINE_NAME = track_data.line_name
+        if line_name not in init_track_data.lines:
+            raise KeyError
+        
+        self.track_data = init_track_data.lines[line_name]
+        self.LINE_NAME = line_name
         self.controllers = [] # A collection of wayside has controllers
-        self.CONTROLLER_COUNT = len(track_data.territory_counts) # get the number of controllers (CONSTANTS)
-        print(self.CONTROLLER_COUNT)
+        self.CONTROLLER_COUNT = len(self.track_data.territory_counts) # get the number of controllers (CONSTANTS)
         # Will get the number of each below (CONSTANTS)
         self.BLOCK_COUNTS = [] 
         self.SWITCH_COUNTS = []
@@ -32,10 +34,10 @@ class WaysideControllerCollection():
         self.CROSSING_COUNTS = []
 
         for i in range(self.CONTROLLER_COUNT): # for each controller they will have a specific number of blocks, switches, lights, and crossings associated with it
-            block_count = track_data.territory_counts[i + 1]
-            switch_count = track_data.device_counts[i + 1]['switches']
-            light_count = track_data.device_counts[i + 1]['lights']
-            crossing_count = track_data.device_counts[i + 1]['crossings']
+            block_count = self.track_data.territory_counts[i + 1]
+            switch_count = self.track_data.device_counts[i + 1]['switches']
+            light_count = self.track_data.device_counts[i + 1]['lights']
+            crossing_count = self.track_data.device_counts[i + 1]['crossings']
             self.BLOCK_COUNTS.append(block_count)
             self.SWITCH_COUNTS.append(switch_count)
             self.LIGHT_COUNTS.append(light_count)
@@ -43,7 +45,6 @@ class WaysideControllerCollection():
             self.controllers.append(WaysideController(block_count=block_count,switch_count=switch_count,
                                                       light_count=light_count,crossing_count=crossing_count,exit_block_count=0,scan_time=0.5))
 
-        print(self.BLOCK_COUNTS)
         # Create a list of testbenches for maintenance mode corresponding to each one of the wayside controllers
         from Track.WaysideController.wayside_controller_frontend import WaysideControllerTestbench # Avoiding circular imports?
         self.testbenches = [WaysideControllerTestbench(self, i) for i in range(self.CONTROLLER_COUNT)]

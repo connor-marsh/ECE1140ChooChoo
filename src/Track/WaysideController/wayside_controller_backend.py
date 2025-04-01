@@ -64,7 +64,7 @@ class WaysideController():
 
             print("✅ PLC program loaded successfully!")
 
-        except (FileNotFoundError, ValueError, TypeError) as e:
+        except (FileNotFoundError, ValueError, TypeError, IndexError) as e:
             print(f"\n❌ {e}\nPlease enter a valid PLC program file.")
             self.program = None # make sure there is no program stored
             return False  # Indicate failure
