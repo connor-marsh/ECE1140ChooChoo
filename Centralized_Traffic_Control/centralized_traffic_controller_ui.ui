@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>747</width>
-    <height>719</height>
+    <width>666</width>
+    <height>590</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -62,7 +62,7 @@
               <enum>QFrame::Box</enum>
              </property>
              <property name="text">
-              <string>#</string>
+              <string>0</string>
              </property>
             </widget>
            </item>
@@ -80,15 +80,59 @@
             </spacer>
            </item>
            <item>
-            <widget class="QPushButton" name="main_upload_map_button">
+            <widget class="QLabel" name="label_3">
+             <property name="font">
+              <font>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Green Line</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSlider" name="main_line_slider">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="minimumSize">
+              <size>
+               <width>20</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16776985</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="maximum">
+              <number>1</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_4">
+             <property name="font">
+              <font>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
              <property name="text">
-              <string>Upload Track File</string>
+              <string>Red Line</string>
              </property>
             </widget>
            </item>
@@ -137,7 +181,7 @@
               <enum>QFrame::Box</enum>
              </property>
              <property name="text">
-              <string>12 Hr clock</string>
+              <string>7:00 am</string>
              </property>
              <property name="scaledContents">
               <bool>false</bool>
@@ -316,7 +360,7 @@
              <number>0</number>
             </property>
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout" stretch="1,2,5">
+             <layout class="QVBoxLayout" name="verticalLayout" stretch="4,1,5">
               <item>
                <widget class="QGroupBox" name="groupBox_4">
                 <property name="title">
@@ -343,7 +387,7 @@
                       <string/>
                      </property>
                      <property name="pixmap">
-                      <pixmap>key3.PNG</pixmap>
+                      <pixmap>../../../.designer/backup/key3.PNG</pixmap>
                      </property>
                      <property name="scaledContents">
                       <bool>true</bool>
@@ -356,17 +400,14 @@
                </widget>
               </item>
               <item>
-               <widget class="QGroupBox" name="groupBox_5">
-                <property name="autoFillBackground">
-                 <bool>false</bool>
+               <widget class="QFrame" name="frame_4">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
                 </property>
-                <property name="title">
-                 <string>Line Se;ection</string>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
                 </property>
-                <layout class="QHBoxLayout" name="horizontalLayout_8">
-                 <property name="spacing">
-                  <number>1</number>
-                 </property>
+                <layout class="QHBoxLayout" name="horizontalLayout_21">
                  <property name="leftMargin">
                   <number>0</number>
                  </property>
@@ -380,58 +421,31 @@
                   <number>0</number>
                  </property>
                  <item>
-                  <widget class="QLabel" name="label_3">
-                   <property name="font">
-                    <font>
-                     <weight>75</weight>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Green Line</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSlider" name="main_line_slider">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>20</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16776985</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="maximum">
-                    <number>1</number>
-                   </property>
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_4">
-                   <property name="font">
-                    <font>
-                     <weight>75</weight>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Red Line</string>
-                   </property>
-                  </widget>
+                  <layout class="QHBoxLayout" name="horizontalLayout_11">
+                   <item>
+                    <widget class="QLabel" name="label_2">
+                     <property name="frameShape">
+                      <enum>QFrame::Panel</enum>
+                     </property>
+                     <property name="text">
+                      <string>Throughput</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="main_throughput_label">
+                     <property name="frameShape">
+                      <enum>QFrame::Panel</enum>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </item>
                 </layout>
                </widget>
@@ -515,6 +529,9 @@
                         <property name="text">
                          <string>Block Length</string>
                         </property>
+                        <property name="alignment">
+                         <set>Qt::AlignCenter</set>
+                        </property>
                        </widget>
                       </item>
                       <item row="2" column="0">
@@ -525,6 +542,9 @@
                         <property name="text">
                          <string>Speed Limit</string>
                         </property>
+                        <property name="alignment">
+                         <set>Qt::AlignCenter</set>
+                        </property>
                        </widget>
                       </item>
                       <item row="0" column="0">
@@ -534,6 +554,9 @@
                         </property>
                         <property name="text">
                          <string>Block ID:</string>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignCenter</set>
                         </property>
                        </widget>
                       </item>
@@ -629,7 +652,7 @@
             <enum>QFrame::StyledPanel</enum>
            </property>
            <property name="currentIndex">
-            <number>1</number>
+            <number>0</number>
            </property>
            <widget class="QWidget" name="page">
             <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -740,9 +763,15 @@
            <widget class="QWidget" name="page_2">
             <layout class="QVBoxLayout" name="verticalLayout_11">
              <item>
-              <layout class="QVBoxLayout" name="verticalLayout_10" stretch="1,5,0,3">
+              <layout class="QVBoxLayout" name="verticalLayout_10" stretch="1,8,2,1">
                <item>
                 <widget class="QWidget" name="widget_4" native="true">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
                  <layout class="QHBoxLayout" name="horizontalLayout_9">
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout">
@@ -843,149 +872,362 @@
                  </column>
                  <column>
                   <property name="text">
-                   <string>Total Stops</string>
+                   <string>Stop #1</string>
                   </property>
                  </column>
                  <column>
                   <property name="text">
-                   <string>Stop N</string>
-                  </property>
-                 </column>
-                 <column>
-                  <property name="text">
-                   <string>Stop N...</string>
+                   <string>Stop #n</string>
                   </property>
                  </column>
                 </widget>
                </item>
                <item>
                 <widget class="QGroupBox" name="sub_manual_override_box">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
                  <property name="title">
                   <string>Manual Override</string>
                  </property>
-                 <layout class="QHBoxLayout" name="horizontalLayout_12">
+                 <layout class="QVBoxLayout" name="verticalLayout_18">
                   <item>
-                   <layout class="QGridLayout" name="gridLayout_7">
-                    <item row="0" column="0">
-                     <widget class="QRadioButton" name="sub_dispatch_overide_new_radio">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string>Send new train to block:</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="3" column="0">
-                     <widget class="QComboBox" name="sub_block_letter_combo">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <item>
-                       <property name="text">
-                        <string>A</string>
+                   <widget class="QFrame" name="frame_6">
+                    <property name="frameShape">
+                     <enum>QFrame::Box</enum>
+                    </property>
+                    <property name="frameShadow">
+                     <enum>QFrame::Raised</enum>
+                    </property>
+                    <property name="lineWidth">
+                     <number>2</number>
+                    </property>
+                    <layout class="QGridLayout" name="gridLayout_9">
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <item row="0" column="2">
+                      <widget class="QLabel" name="label_5">
+                       <property name="lineWidth">
+                        <number>0</number>
                        </property>
-                      </item>
-                      <item>
                        <property name="text">
-                        <string>B</string>
+                        <string/>
                        </property>
-                      </item>
-                      <item>
+                      </widget>
+                     </item>
+                     <item row="0" column="0">
+                      <widget class="QRadioButton" name="sub_dispatch_overide_new_radio">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
                        <property name="text">
-                        <string>C</string>
+                        <string>Send new train to block:</string>
                        </property>
-                      </item>
-                      <item>
+                      </widget>
+                     </item>
+                     <item row="1" column="2">
+                      <widget class="Line" name="line_5">
+                       <property name="frameShadow">
+                        <enum>QFrame::Plain</enum>
+                       </property>
+                       <property name="lineWidth">
+                        <number>2</number>
+                       </property>
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="Line" name="line_4">
+                       <property name="frameShadow">
+                        <enum>QFrame::Plain</enum>
+                       </property>
+                       <property name="lineWidth">
+                        <number>2</number>
+                       </property>
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="2">
+                      <widget class="QComboBox" name="sub_select_active_train_combo"/>
+                     </item>
+                     <item row="2" column="0">
+                      <widget class="QRadioButton" name="sub_dispatch_overide_active_radio">
                        <property name="text">
-                        <string>D</string>
+                        <string>Reroute Active Train</string>
                        </property>
-                      </item>
-                      <item>
+                      </widget>
+                     </item>
+                     <item row="2" column="1">
+                      <widget class="Line" name="line_8">
+                       <property name="frameShadow">
+                        <enum>QFrame::Plain</enum>
+                       </property>
+                       <property name="lineWidth">
+                        <number>2</number>
+                       </property>
+                       <property name="orientation">
+                        <enum>Qt::Vertical</enum>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="Line" name="line_9">
+                       <property name="frameShadow">
+                        <enum>QFrame::Plain</enum>
+                       </property>
+                       <property name="lineWidth">
+                        <number>2</number>
+                       </property>
+                       <property name="orientation">
+                        <enum>Qt::Vertical</enum>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFrame" name="frame_5">
+                    <property name="frameShape">
+                     <enum>QFrame::Box</enum>
+                    </property>
+                    <property name="frameShadow">
+                     <enum>QFrame::Raised</enum>
+                    </property>
+                    <property name="lineWidth">
+                     <number>3</number>
+                    </property>
+                    <layout class="QGridLayout" name="gridLayout_11">
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
+                     <item row="2" column="0">
+                      <widget class="QRadioButton" name="sub_dispatch_block_select_radio">
                        <property name="text">
-                        <string>E</string>
+                        <string>Send to Block</string>
                        </property>
-                      </item>
-                     </widget>
-                    </item>
-                    <item row="3" column="1">
-                     <widget class="QComboBox" name="sub_block_number_combo">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <item>
+                      </widget>
+                     </item>
+                     <item row="0" column="0">
+                      <widget class="QRadioButton" name="sub_dispatch_station_select_radio">
                        <property name="text">
-                        <string>1</string>
+                        <string>Send to Station</string>
                        </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>2</string>
+                      </widget>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="Line" name="line_3">
+                       <property name="frameShadow">
+                        <enum>QFrame::Plain</enum>
                        </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>3</string>
+                       <property name="lineWidth">
+                        <number>2</number>
                        </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>4</string>
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
                        </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>5</string>
+                      </widget>
+                     </item>
+                     <item row="1" column="2">
+                      <widget class="Line" name="line">
+                       <property name="frameShadow">
+                        <enum>QFrame::Plain</enum>
                        </property>
-                      </item>
-                     </widget>
-                    </item>
-                    <item row="1" column="1">
-                     <widget class="QComboBox" name="sub_select_active_train_combo"/>
-                    </item>
-                    <item row="1" column="0">
-                     <widget class="QRadioButton" name="sub_dispatch_overide_active_radio">
-                      <property name="text">
-                       <string>Reroute Active Train</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="2" column="0">
-                     <widget class="Line" name="line_3">
-                      <property name="frameShadow">
-                       <enum>QFrame::Plain</enum>
-                      </property>
-                      <property name="lineWidth">
-                       <number>2</number>
-                      </property>
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="2" column="1">
-                     <widget class="Line" name="line_4">
-                      <property name="frameShadow">
-                       <enum>QFrame::Plain</enum>
-                      </property>
-                      <property name="lineWidth">
-                       <number>2</number>
-                      </property>
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
+                       <property name="lineWidth">
+                        <number>2</number>
+                       </property>
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="2">
+                      <widget class="QComboBox" name="sub_block_number_combo">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="currentText">
+                        <string/>
+                       </property>
+                       <property name="placeholderText">
+                        <string>Block</string>
+                       </property>
+                       <item>
+                        <property name="text">
+                         <string>1</string>
+                        </property>
+                       </item>
+                      </widget>
+                     </item>
+                     <item row="0" column="2">
+                      <widget class="QComboBox" name="sub_station_combo">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="currentText">
+                        <string/>
+                       </property>
+                       <property name="placeholderText">
+                        <string>Station</string>
+                       </property>
+                       <item>
+                        <property name="text">
+                         <string>Pioneer</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Edgebrook</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Placeholder Name</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Whited</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>South Bank</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Central (I 39)</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Inglewood (I 48)</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Overbrook (I 57)</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Glenbury (K 65)</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Dormont (N 77)</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Mt. Lebanon</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Poplar</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Castle Shannon</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Dormont (T 105)</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Glenbury (U 114)</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Overbrook (W 123)</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Inglewood (W 132)</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Cemtral (W 141)</string>
+                        </property>
+                       </item>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="Line" name="line_6">
+                       <property name="frameShadow">
+                        <enum>QFrame::Plain</enum>
+                       </property>
+                       <property name="lineWidth">
+                        <number>2</number>
+                       </property>
+                       <property name="orientation">
+                        <enum>Qt::Vertical</enum>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="1">
+                      <widget class="Line" name="line_7">
+                       <property name="frameShadow">
+                        <enum>QFrame::Plain</enum>
+                       </property>
+                       <property name="lineWidth">
+                        <number>2</number>
+                       </property>
+                       <property name="orientation">
+                        <enum>Qt::Vertical</enum>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
                   </item>
                  </layout>
                 </widget>
@@ -1102,7 +1344,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QTableWidget" name="sub_train_select_table">
+                <widget class="QTableWidget" name="sub_active_trains_table">
                  <column>
                   <property name="text">
                    <string>Train ID</string>

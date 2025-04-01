@@ -1,7 +1,7 @@
 '''
 Author: Aaron Kuchta
-Date: 2-20-2025
-Version: 1.4
+Date: 3-30-2025
+Version: 2.0
 '''
 
 
@@ -9,14 +9,14 @@ import sys
 import os
 import time
 import pandas as pd
-import openpyxl
-from PyQt5.QtCore import *
+import openpyxl 
+from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem
 from PyQt5.QtGui import QColor
 
 from centralized_traffic_controller_ui import Ui_MainWindow as CtcUI
 from centralized_traffic_controller_test_bench_ui import Ui_ctc_TestBench as CtcTestBenchUI
-
+#import globals.global_clock as global_clock
 
 
 
@@ -85,8 +85,6 @@ class CtcFrontEnd(QMainWindow):
         #self.backend.link_frontend(self)
 
         #Variable initializations
-        self.train_count = 0
-        self.time = ""
         self.active_block_id = ""
         self.active_block_length = ""
         self.active_block_speed = ""
@@ -95,11 +93,13 @@ class CtcFrontEnd(QMainWindow):
         self.ctc_ui.main_switch_to_dispatch_button.clicked.connect(self.switch_to_dispatch_page)
         self.ctc_ui.main_switch_to_select_button.clicked.connect(self.switch_to_select_page)
         self.ctc_ui.main_switch_to_maintenance_button.clicked.connect(self.switch_to_maintenance_page)
-        self.ctc_ui.main_switch_to_upload_button.clicked.connect(self.get_train_schedule)
-        #self.ctc_ui.main_upload_map_button.clicked.connect(self.get_map_data)
         self.ctc_ui.sub_return_button.clicked.connect(self.switch_to_home)
         self.ctc_ui.sub_return_button2.clicked.connect(self.switch_to_home)
         self.ctc_ui.sub_return_button3.clicked.connect(self.switch_to_home)
+
+        self.ctc_ui.main_switch_to_upload_button.clicked.connect(self.get_train_schedule)
+        #self.ctc_ui.main_upload_map_button.clicked.connect(self.get_map_data)
+
         self.ctc_ui.maintenance_toggle.clicked.connect(self.toggle_maintenance_mode)
         #self.ctc_ui.main_map_table.cellClicked.connect(self.on_map_row_clicked)
         #self.ctc_ui.main_line_slider.sliderReleased.connect(self.toggle_active_line) #Not implemented yet
@@ -107,11 +107,13 @@ class CtcFrontEnd(QMainWindow):
         #self.ctc_ui.sub_confirm_override_button.clicked.connect(self.update_override)
         #self.ctc_ui.sub_activate_maintenance_button.clicked.connect(self.start_maintenance)
         #self.ctc_ui.sub_end_maintenance_button.clicked.connect(self.end_maintenance)
+        self.ctc_ui.sub_dispatch_confirm_button.clicked.connect(self.dispatch_pressed)
         self.ctc_ui.multiPageWidget.setCurrentIndex(0)# Set Starting page for stacked widget
         #self.toggle_mode() #toggles manual mode, NEEDS CHANGED 
 
         self.toggle_maintenance_mode()
         self.initialize_map()
+
 
     #Stacked Widget Navigation
     def switch_to_dispatch_page(self):
@@ -215,8 +217,6 @@ class CtcFrontEnd(QMainWindow):
 
         self.ctc_ui.main_map_table.resizeColumnsToContents()
 
-    
-
     def update_occupancy_map(self, occupancy):
         pass
     def update_switch_map(self, state):
@@ -228,6 +228,20 @@ class CtcFrontEnd(QMainWindow):
     def update_maintenance_map(self, state):
         pass
 
+    def update_throughput(self, throughput):
+        #updates throughput label on main screen
+        self.ctc_ui.main_throughput_label.setText(str(throughput))
+
+    def dispatch_pressed(self):
+        if self.ctc_ui.sub_dispatch_overide_new_radio.isChecked():
+            #new train needs to be dispatched
+            destination_block = self.ctc_ui.sub_block_number_combo.currentText()
+            self.backend.dispatch_handler(destination_block)
+        elif self.ctc_ui.sub_dispatch_overide_existing_radio.isChecked():
+            #existing train needs to be rerouted
+            pass
+
+
     #maintenance page - Change to send data to backend
     def start_maintenance(self):
         #starts maintenance on selected block | activated by button
@@ -235,6 +249,7 @@ class CtcFrontEnd(QMainWindow):
             block_info = self.block_data.get(self.selected_row)
             block_info['maintenance'] = 1
             self.update_maintenance(block_info)
+            self.backend.send_maintenance(block_info['block_id'], 1) #Calls backend to send data to wayside
             self.test_bench.print_maintenance(block_info['block_id'], 1)
         
     def end_maintenance(self):
@@ -243,6 +258,7 @@ class CtcFrontEnd(QMainWindow):
             block_info = self.block_data.get(self.selected_row)
             block_info['maintenance'] = 0
             self.update_maintenance(block_info)
+            self.backend.send_maintenance(block_info['block_id'], 0) #Calls backend to send data to wayside
             self.test_bench.print_maintenance(block_info['block_id'], 0)
     
     def update_maintenance(self, block_info):
@@ -275,26 +291,38 @@ class CtcBackEnd():
     #Stations located on red line
     #R_STATIONS = ()
 
-    def __init__(self): #NEEDS UPDATED
+    def __init__(self): 
         super().__init__()
         self.route_data = {}
-        self.frontend = None
 
         #Controls active track data
         self.green_line = Track("Green")
         #self.red_line = Track("Red") #No red line implementation yet
         self.active_line = self.green_line
 
+        #Uncomment when ticket signal is ready-----------------------------------------------
+        #self.trackModel.track_tickets.connect(self.handle_tickets)'
         
+        self.total_tickets = 0
+        self.throughput = 0
+        self.train_count = 0
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update)
+        self.timer.start(100)  # 10 Hz update
+
+        #self.wall_clock = global_clock.clock
+
+    def update(self):
+        ##Main UI clock element, uncomment when global clock is implemented-------------------------------
+        #clock_Time = self.global_clock.text()
+        #day_night = self.global_clock.am_pm()
+        #full_time = clock_time + " " + day_night
+        #self.ctc_ui.current_time_label.setText(full_time)
+        pass        
         
     def get_blocks(self):
         return self.active_line.blocks
-
-   # def link_frontend(self, frontend):
-    #    self.frontend = frontend
-
-
-    
 
     def process_route_data(self, file_data):
         if(file_data is not None):
@@ -316,10 +344,11 @@ class CtcBackEnd():
 
     def initialize_route_table(self):
         
-
+        
     #Scheduling Algorithm
     #Suggested Authority
     #Suggested Speed
+        pass
 
     def upload_train_schedule(self):
         #uploads train schedule file | activated by button
@@ -350,6 +379,42 @@ class CtcBackEnd():
         #updates override authority | input from user
         override_authority = self.ctc_ui.sub_enter_authority_override.text()
         self.test_bench.print_suggested_authority(override_authority)
+
+    def dispatch_handler(self, destination_block):
+        #Train dispatch handler | controlls Manually dispatched trains 
+        Track.add_active_train(self.train_count, destination_block, "manual")
+        self.train_count += 1
+
+    def handle_tickets(self, num_tickets):
+        #Takes tickets sold from track model and updates throughput
+        self.total_tickets += num_tickets
+        self.throughput = self.total_tickets / self.time_elapsed
+        #Send throughput to UI
+        self.frontend.update_throughput(self.throughput)
+
+
+    def send_dispatch_train(self):
+        
+        
+        #ctc_dispatch.emit()
+        pass
+        
+
+    def send_maintenance():
+        #ctc_maintenance.emit(block_id, maintenance_val)
+        pass
+
+    def send_suggestions():
+        #ctc_suggested.emit(speedList, authList)
+        pass
+
+    def send_exit_blocks():
+        #ctc_exit_blocks.emit()
+        pass
+
+    def send_switch_states():
+        #ctc_switch_states.emit(switchStates)
+        pass
 
     
 class Track: 
@@ -418,11 +483,23 @@ class Track:
     def set_block_data(self, block_data):
         pass
 
-    def add_active_train(self, train):
-        pass
+    def add_active_train(self, train_id, train_route, train_mode):
+        #Adds train to active trains list
+        self.active_trains[train_id] = {
+            'train_id': train_id,
+            'route': train_route,
+            'next_stop': train_route, #Change so it is the next stop, not the whole route----------
+            'mode': train_mode,
+            'curent_block': None,
+            'authority': None}
+            #add exit blocks, authority, speed, etc.
+        
 
     def get_train_data(self, train_id):
-        pass   
+        if train_id not in self.active_trains:
+            return None
+        else:
+            return self.active_trains[train_id]
 
 
             

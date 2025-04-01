@@ -17,7 +17,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(747, 719)
+        MainWindow.resize(666, 590)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout_4 = QVBoxLayout(self.centralwidget)
@@ -55,15 +55,35 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_3.addItem(self.horizontalSpacer_7)
 
-        self.main_upload_map_button = QPushButton(self.frame)
-        self.main_upload_map_button.setObjectName(u"main_upload_map_button")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
+        self.label_3 = QLabel(self.frame)
+        self.label_3.setObjectName(u"label_3")
+        font = QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.label_3.setFont(font)
+
+        self.horizontalLayout_3.addWidget(self.label_3)
+
+        self.main_line_slider = QSlider(self.frame)
+        self.main_line_slider.setObjectName(u"main_line_slider")
+        self.main_line_slider.setEnabled(False)
+        sizePolicy1 = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.main_upload_map_button.sizePolicy().hasHeightForWidth())
-        self.main_upload_map_button.setSizePolicy(sizePolicy1)
+        sizePolicy1.setHeightForWidth(self.main_line_slider.sizePolicy().hasHeightForWidth())
+        self.main_line_slider.setSizePolicy(sizePolicy1)
+        self.main_line_slider.setMinimumSize(QSize(20, 0))
+        self.main_line_slider.setMaximumSize(QSize(16776985, 16777215))
+        self.main_line_slider.setMaximum(1)
+        self.main_line_slider.setOrientation(Qt.Horizontal)
 
-        self.horizontalLayout_3.addWidget(self.main_upload_map_button)
+        self.horizontalLayout_3.addWidget(self.main_line_slider)
+
+        self.label_4 = QLabel(self.frame)
+        self.label_4.setObjectName(u"label_4")
+        self.label_4.setFont(font)
+
+        self.horizontalLayout_3.addWidget(self.label_4)
 
         self.horizontalSpacer_8 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -173,7 +193,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
         self.main_key = QLabel(self.groupBox_41)
         self.main_key.setObjectName(u"main_key")
-        self.main_key.setPixmap(QPixmap(u"key3.PNG"))
+        self.main_key.setPixmap(QPixmap(u"../../../.designer/backup/key3.PNG"))
         self.main_key.setScaledContents(True)
 
         self.verticalLayout_5.addWidget(self.main_key)
@@ -184,44 +204,33 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.groupBox_41)
 
-        self.groupBox_5 = QGroupBox(self.frame_3)
-        self.groupBox_5.setObjectName(u"groupBox_5")
-        self.groupBox_5.setAutoFillBackground(False)
-        self.horizontalLayout_8 = QHBoxLayout(self.groupBox_5)
-        self.horizontalLayout_8.setSpacing(1)
-        self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
-        self.horizontalLayout_8.setContentsMargins(0, 0, 0, 0)
-        self.label_3 = QLabel(self.groupBox_5)
-        self.label_3.setObjectName(u"label_3")
-        font = QFont()
-        font.setBold(True)
-        font.setWeight(75)
-        self.label_3.setFont(font)
+        self.frame_4 = QFrame(self.frame_3)
+        self.frame_4.setObjectName(u"frame_4")
+        self.frame_4.setFrameShape(QFrame.StyledPanel)
+        self.frame_4.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout_21 = QHBoxLayout(self.frame_4)
+        self.horizontalLayout_21.setObjectName(u"horizontalLayout_21")
+        self.horizontalLayout_21.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_11 = QHBoxLayout()
+        self.horizontalLayout_11.setObjectName(u"horizontalLayout_11")
+        self.label_2 = QLabel(self.frame_4)
+        self.label_2.setObjectName(u"label_2")
+        self.label_2.setFrameShape(QFrame.Panel)
+        self.label_2.setAlignment(Qt.AlignCenter)
 
-        self.horizontalLayout_8.addWidget(self.label_3)
+        self.horizontalLayout_11.addWidget(self.label_2)
 
-        self.main_line_slider = QSlider(self.groupBox_5)
-        self.main_line_slider.setObjectName(u"main_line_slider")
-        sizePolicy2 = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.main_line_slider.sizePolicy().hasHeightForWidth())
-        self.main_line_slider.setSizePolicy(sizePolicy2)
-        self.main_line_slider.setMinimumSize(QSize(20, 0))
-        self.main_line_slider.setMaximumSize(QSize(16776985, 16777215))
-        self.main_line_slider.setMaximum(1)
-        self.main_line_slider.setOrientation(Qt.Horizontal)
+        self.main_throughput_label = QLabel(self.frame_4)
+        self.main_throughput_label.setObjectName(u"main_throughput_label")
+        self.main_throughput_label.setFrameShape(QFrame.Panel)
 
-        self.horizontalLayout_8.addWidget(self.main_line_slider)
-
-        self.label_4 = QLabel(self.groupBox_5)
-        self.label_4.setObjectName(u"label_4")
-        self.label_4.setFont(font)
-
-        self.horizontalLayout_8.addWidget(self.label_4)
+        self.horizontalLayout_11.addWidget(self.main_throughput_label)
 
 
-        self.verticalLayout.addWidget(self.groupBox_5)
+        self.horizontalLayout_21.addLayout(self.horizontalLayout_11)
+
+
+        self.verticalLayout.addWidget(self.frame_4)
 
         self.groupBox_3 = QGroupBox(self.frame_3)
         self.groupBox_3.setObjectName(u"groupBox_3")
@@ -259,18 +268,21 @@ class Ui_MainWindow(object):
         self.label_10 = QLabel(self.widget)
         self.label_10.setObjectName(u"label_10")
         self.label_10.setFrameShape(QFrame.StyledPanel)
+        self.label_10.setAlignment(Qt.AlignCenter)
 
         self.gridLayout.addWidget(self.label_10, 1, 0, 1, 1)
 
         self.label_11 = QLabel(self.widget)
         self.label_11.setObjectName(u"label_11")
         self.label_11.setFrameShape(QFrame.StyledPanel)
+        self.label_11.setAlignment(Qt.AlignCenter)
 
         self.gridLayout.addWidget(self.label_11, 2, 0, 1, 1)
 
         self.label_9 = QLabel(self.widget)
         self.label_9.setObjectName(u"label_9")
         self.label_9.setFrameShape(QFrame.StyledPanel)
+        self.label_9.setAlignment(Qt.AlignCenter)
 
         self.gridLayout.addWidget(self.label_9, 0, 0, 1, 1)
 
@@ -323,8 +335,8 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.groupBox_3)
 
-        self.verticalLayout.setStretch(0, 1)
-        self.verticalLayout.setStretch(1, 2)
+        self.verticalLayout.setStretch(0, 4)
+        self.verticalLayout.setStretch(1, 1)
         self.verticalLayout.setStretch(2, 5)
 
         self.verticalLayout_3.addLayout(self.verticalLayout)
@@ -413,17 +425,19 @@ class Ui_MainWindow(object):
         self.verticalLayout_10.setObjectName(u"verticalLayout_10")
         self.widget_4 = QWidget(self.page_2)
         self.widget_4.setObjectName(u"widget_4")
+        sizePolicy.setHeightForWidth(self.widget_4.sizePolicy().hasHeightForWidth())
+        self.widget_4.setSizePolicy(sizePolicy)
         self.horizontalLayout_9 = QHBoxLayout(self.widget_4)
         self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.sub_return_button = QPushButton(self.widget_4)
         self.sub_return_button.setObjectName(u"sub_return_button")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.sub_return_button.sizePolicy().hasHeightForWidth())
-        self.sub_return_button.setSizePolicy(sizePolicy3)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.sub_return_button.sizePolicy().hasHeightForWidth())
+        self.sub_return_button.setSizePolicy(sizePolicy2)
         self.sub_return_button.setMaximumSize(QSize(16777215, 16777215))
 
         self.horizontalLayout.addWidget(self.sub_return_button)
@@ -459,85 +473,179 @@ class Ui_MainWindow(object):
         self.verticalLayout_10.addWidget(self.widget_4)
 
         self.sub_dispatch_train_table = QTableWidget(self.page_2)
-        if (self.sub_dispatch_train_table.columnCount() < 4):
-            self.sub_dispatch_train_table.setColumnCount(4)
+        if (self.sub_dispatch_train_table.columnCount() < 3):
+            self.sub_dispatch_train_table.setColumnCount(3)
         __qtablewidgetitem14 = QTableWidgetItem()
         self.sub_dispatch_train_table.setHorizontalHeaderItem(0, __qtablewidgetitem14)
         __qtablewidgetitem15 = QTableWidgetItem()
         self.sub_dispatch_train_table.setHorizontalHeaderItem(1, __qtablewidgetitem15)
         __qtablewidgetitem16 = QTableWidgetItem()
         self.sub_dispatch_train_table.setHorizontalHeaderItem(2, __qtablewidgetitem16)
-        __qtablewidgetitem17 = QTableWidgetItem()
-        self.sub_dispatch_train_table.setHorizontalHeaderItem(3, __qtablewidgetitem17)
         self.sub_dispatch_train_table.setObjectName(u"sub_dispatch_train_table")
 
         self.verticalLayout_10.addWidget(self.sub_dispatch_train_table)
 
         self.sub_manual_override_box = QGroupBox(self.page_2)
         self.sub_manual_override_box.setObjectName(u"sub_manual_override_box")
-        self.horizontalLayout_12 = QHBoxLayout(self.sub_manual_override_box)
-        self.horizontalLayout_12.setObjectName(u"horizontalLayout_12")
-        self.gridLayout_7 = QGridLayout()
-        self.gridLayout_7.setObjectName(u"gridLayout_7")
-        self.sub_dispatch_overide_new_radio = QRadioButton(self.sub_manual_override_box)
+        self.sub_manual_override_box.setEnabled(True)
+        self.verticalLayout_18 = QVBoxLayout(self.sub_manual_override_box)
+        self.verticalLayout_18.setObjectName(u"verticalLayout_18")
+        self.frame_6 = QFrame(self.sub_manual_override_box)
+        self.frame_6.setObjectName(u"frame_6")
+        self.frame_6.setFrameShape(QFrame.Box)
+        self.frame_6.setFrameShadow(QFrame.Raised)
+        self.frame_6.setLineWidth(2)
+        self.gridLayout_9 = QGridLayout(self.frame_6)
+        self.gridLayout_9.setSpacing(0)
+        self.gridLayout_9.setObjectName(u"gridLayout_9")
+        self.gridLayout_9.setContentsMargins(0, 0, 0, 0)
+        self.label_5 = QLabel(self.frame_6)
+        self.label_5.setObjectName(u"label_5")
+        self.label_5.setLineWidth(0)
+
+        self.gridLayout_9.addWidget(self.label_5, 0, 2, 1, 1)
+
+        self.sub_dispatch_overide_new_radio = QRadioButton(self.frame_6)
         self.sub_dispatch_overide_new_radio.setObjectName(u"sub_dispatch_overide_new_radio")
-        sizePolicy1.setHeightForWidth(self.sub_dispatch_overide_new_radio.sizePolicy().hasHeightForWidth())
-        self.sub_dispatch_overide_new_radio.setSizePolicy(sizePolicy1)
+        sizePolicy3 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.sub_dispatch_overide_new_radio.sizePolicy().hasHeightForWidth())
+        self.sub_dispatch_overide_new_radio.setSizePolicy(sizePolicy3)
 
-        self.gridLayout_7.addWidget(self.sub_dispatch_overide_new_radio, 0, 0, 1, 1)
+        self.gridLayout_9.addWidget(self.sub_dispatch_overide_new_radio, 0, 0, 1, 1)
 
-        self.sub_block_letter_combo = QComboBox(self.sub_manual_override_box)
-        self.sub_block_letter_combo.addItem("")
-        self.sub_block_letter_combo.addItem("")
-        self.sub_block_letter_combo.addItem("")
-        self.sub_block_letter_combo.addItem("")
-        self.sub_block_letter_combo.addItem("")
-        self.sub_block_letter_combo.setObjectName(u"sub_block_letter_combo")
-        sizePolicy.setHeightForWidth(self.sub_block_letter_combo.sizePolicy().hasHeightForWidth())
-        self.sub_block_letter_combo.setSizePolicy(sizePolicy)
+        self.line_5 = QFrame(self.frame_6)
+        self.line_5.setObjectName(u"line_5")
+        self.line_5.setFrameShadow(QFrame.Plain)
+        self.line_5.setLineWidth(2)
+        self.line_5.setFrameShape(QFrame.HLine)
 
-        self.gridLayout_7.addWidget(self.sub_block_letter_combo, 3, 0, 1, 1)
+        self.gridLayout_9.addWidget(self.line_5, 1, 2, 1, 1)
 
-        self.sub_block_number_combo = QComboBox(self.sub_manual_override_box)
-        self.sub_block_number_combo.addItem("")
-        self.sub_block_number_combo.addItem("")
-        self.sub_block_number_combo.addItem("")
-        self.sub_block_number_combo.addItem("")
-        self.sub_block_number_combo.addItem("")
-        self.sub_block_number_combo.setObjectName(u"sub_block_number_combo")
-        sizePolicy.setHeightForWidth(self.sub_block_number_combo.sizePolicy().hasHeightForWidth())
-        self.sub_block_number_combo.setSizePolicy(sizePolicy)
-
-        self.gridLayout_7.addWidget(self.sub_block_number_combo, 3, 1, 1, 1)
-
-        self.sub_select_active_train_combo = QComboBox(self.sub_manual_override_box)
-        self.sub_select_active_train_combo.setObjectName(u"sub_select_active_train_combo")
-
-        self.gridLayout_7.addWidget(self.sub_select_active_train_combo, 1, 1, 1, 1)
-
-        self.sub_dispatch_overide_active_radio = QRadioButton(self.sub_manual_override_box)
-        self.sub_dispatch_overide_active_radio.setObjectName(u"sub_dispatch_overide_active_radio")
-
-        self.gridLayout_7.addWidget(self.sub_dispatch_overide_active_radio, 1, 0, 1, 1)
-
-        self.line_3 = QFrame(self.sub_manual_override_box)
-        self.line_3.setObjectName(u"line_3")
-        self.line_3.setFrameShadow(QFrame.Plain)
-        self.line_3.setLineWidth(2)
-        self.line_3.setFrameShape(QFrame.HLine)
-
-        self.gridLayout_7.addWidget(self.line_3, 2, 0, 1, 1)
-
-        self.line_4 = QFrame(self.sub_manual_override_box)
+        self.line_4 = QFrame(self.frame_6)
         self.line_4.setObjectName(u"line_4")
         self.line_4.setFrameShadow(QFrame.Plain)
         self.line_4.setLineWidth(2)
         self.line_4.setFrameShape(QFrame.HLine)
 
-        self.gridLayout_7.addWidget(self.line_4, 2, 1, 1, 1)
+        self.gridLayout_9.addWidget(self.line_4, 1, 0, 1, 1)
+
+        self.sub_select_active_train_combo = QComboBox(self.frame_6)
+        self.sub_select_active_train_combo.setObjectName(u"sub_select_active_train_combo")
+
+        self.gridLayout_9.addWidget(self.sub_select_active_train_combo, 2, 2, 1, 1)
+
+        self.sub_dispatch_overide_active_radio = QRadioButton(self.frame_6)
+        self.sub_dispatch_overide_active_radio.setObjectName(u"sub_dispatch_overide_active_radio")
+
+        self.gridLayout_9.addWidget(self.sub_dispatch_overide_active_radio, 2, 0, 1, 1)
+
+        self.line_8 = QFrame(self.frame_6)
+        self.line_8.setObjectName(u"line_8")
+        self.line_8.setFrameShadow(QFrame.Plain)
+        self.line_8.setLineWidth(2)
+        self.line_8.setFrameShape(QFrame.VLine)
+
+        self.gridLayout_9.addWidget(self.line_8, 2, 1, 1, 1)
+
+        self.line_9 = QFrame(self.frame_6)
+        self.line_9.setObjectName(u"line_9")
+        self.line_9.setFrameShadow(QFrame.Plain)
+        self.line_9.setLineWidth(2)
+        self.line_9.setFrameShape(QFrame.VLine)
+
+        self.gridLayout_9.addWidget(self.line_9, 0, 1, 1, 1)
 
 
-        self.horizontalLayout_12.addLayout(self.gridLayout_7)
+        self.verticalLayout_18.addWidget(self.frame_6)
+
+        self.frame_5 = QFrame(self.sub_manual_override_box)
+        self.frame_5.setObjectName(u"frame_5")
+        self.frame_5.setFrameShape(QFrame.Box)
+        self.frame_5.setFrameShadow(QFrame.Raised)
+        self.frame_5.setLineWidth(3)
+        self.gridLayout_11 = QGridLayout(self.frame_5)
+        self.gridLayout_11.setSpacing(0)
+        self.gridLayout_11.setObjectName(u"gridLayout_11")
+        self.gridLayout_11.setContentsMargins(0, 0, 0, 0)
+        self.sub_dispatch_block_select_radio = QRadioButton(self.frame_5)
+        self.sub_dispatch_block_select_radio.setObjectName(u"sub_dispatch_block_select_radio")
+
+        self.gridLayout_11.addWidget(self.sub_dispatch_block_select_radio, 2, 0, 1, 1)
+
+        self.sub_dispatch_station_select_radio = QRadioButton(self.frame_5)
+        self.sub_dispatch_station_select_radio.setObjectName(u"sub_dispatch_station_select_radio")
+
+        self.gridLayout_11.addWidget(self.sub_dispatch_station_select_radio, 0, 0, 1, 1)
+
+        self.line_3 = QFrame(self.frame_5)
+        self.line_3.setObjectName(u"line_3")
+        self.line_3.setFrameShadow(QFrame.Plain)
+        self.line_3.setLineWidth(2)
+        self.line_3.setFrameShape(QFrame.HLine)
+
+        self.gridLayout_11.addWidget(self.line_3, 1, 0, 1, 1)
+
+        self.line = QFrame(self.frame_5)
+        self.line.setObjectName(u"line")
+        self.line.setFrameShadow(QFrame.Plain)
+        self.line.setLineWidth(2)
+        self.line.setFrameShape(QFrame.HLine)
+
+        self.gridLayout_11.addWidget(self.line, 1, 2, 1, 1)
+
+        self.sub_block_number_combo = QComboBox(self.frame_5)
+        self.sub_block_number_combo.addItem("")
+        self.sub_block_number_combo.setObjectName(u"sub_block_number_combo")
+        sizePolicy.setHeightForWidth(self.sub_block_number_combo.sizePolicy().hasHeightForWidth())
+        self.sub_block_number_combo.setSizePolicy(sizePolicy)
+
+        self.gridLayout_11.addWidget(self.sub_block_number_combo, 2, 2, 1, 1)
+
+        self.sub_station_combo = QComboBox(self.frame_5)
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.addItem("")
+        self.sub_station_combo.setObjectName(u"sub_station_combo")
+        sizePolicy.setHeightForWidth(self.sub_station_combo.sizePolicy().hasHeightForWidth())
+        self.sub_station_combo.setSizePolicy(sizePolicy)
+
+        self.gridLayout_11.addWidget(self.sub_station_combo, 0, 2, 1, 1)
+
+        self.line_6 = QFrame(self.frame_5)
+        self.line_6.setObjectName(u"line_6")
+        self.line_6.setFrameShadow(QFrame.Plain)
+        self.line_6.setLineWidth(2)
+        self.line_6.setFrameShape(QFrame.VLine)
+
+        self.gridLayout_11.addWidget(self.line_6, 0, 1, 1, 1)
+
+        self.line_7 = QFrame(self.frame_5)
+        self.line_7.setObjectName(u"line_7")
+        self.line_7.setFrameShadow(QFrame.Plain)
+        self.line_7.setLineWidth(2)
+        self.line_7.setFrameShape(QFrame.VLine)
+
+        self.gridLayout_11.addWidget(self.line_7, 2, 1, 1, 1)
+
+
+        self.verticalLayout_18.addWidget(self.frame_5)
 
 
         self.verticalLayout_10.addWidget(self.sub_manual_override_box)
@@ -550,8 +658,9 @@ class Ui_MainWindow(object):
         self.verticalLayout_10.addWidget(self.sub_dispatch_confirm_button)
 
         self.verticalLayout_10.setStretch(0, 1)
-        self.verticalLayout_10.setStretch(1, 5)
-        self.verticalLayout_10.setStretch(3, 3)
+        self.verticalLayout_10.setStretch(1, 8)
+        self.verticalLayout_10.setStretch(2, 2)
+        self.verticalLayout_10.setStretch(3, 1)
 
         self.verticalLayout_11.addLayout(self.verticalLayout_10)
 
@@ -570,8 +679,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_14.setObjectName(u"horizontalLayout_14")
         self.sub_return_button2 = QPushButton(self.widget_6)
         self.sub_return_button2.setObjectName(u"sub_return_button2")
-        sizePolicy3.setHeightForWidth(self.sub_return_button2.sizePolicy().hasHeightForWidth())
-        self.sub_return_button2.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.sub_return_button2.sizePolicy().hasHeightForWidth())
+        self.sub_return_button2.setSizePolicy(sizePolicy2)
         self.sub_return_button2.setMaximumSize(QSize(16777215, 16777215))
 
         self.horizontalLayout_14.addWidget(self.sub_return_button2)
@@ -606,18 +715,18 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_12.addWidget(self.widget_6)
 
-        self.sub_train_select_table = QTableWidget(self.page_3)
-        if (self.sub_train_select_table.columnCount() < 3):
-            self.sub_train_select_table.setColumnCount(3)
+        self.sub_active_trains_table = QTableWidget(self.page_3)
+        if (self.sub_active_trains_table.columnCount() < 3):
+            self.sub_active_trains_table.setColumnCount(3)
+        __qtablewidgetitem17 = QTableWidgetItem()
+        self.sub_active_trains_table.setHorizontalHeaderItem(0, __qtablewidgetitem17)
         __qtablewidgetitem18 = QTableWidgetItem()
-        self.sub_train_select_table.setHorizontalHeaderItem(0, __qtablewidgetitem18)
+        self.sub_active_trains_table.setHorizontalHeaderItem(1, __qtablewidgetitem18)
         __qtablewidgetitem19 = QTableWidgetItem()
-        self.sub_train_select_table.setHorizontalHeaderItem(1, __qtablewidgetitem19)
-        __qtablewidgetitem20 = QTableWidgetItem()
-        self.sub_train_select_table.setHorizontalHeaderItem(2, __qtablewidgetitem20)
-        self.sub_train_select_table.setObjectName(u"sub_train_select_table")
+        self.sub_active_trains_table.setHorizontalHeaderItem(2, __qtablewidgetitem19)
+        self.sub_active_trains_table.setObjectName(u"sub_active_trains_table")
 
-        self.verticalLayout_12.addWidget(self.sub_train_select_table)
+        self.verticalLayout_12.addWidget(self.sub_active_trains_table)
 
         self.groupBox_7 = QGroupBox(self.page_3)
         self.groupBox_7.setObjectName(u"groupBox_7")
@@ -679,8 +788,8 @@ class Ui_MainWindow(object):
 
         self.sub_confirm_override_button = QPushButton(self.page_3)
         self.sub_confirm_override_button.setObjectName(u"sub_confirm_override_button")
-        sizePolicy1.setHeightForWidth(self.sub_confirm_override_button.sizePolicy().hasHeightForWidth())
-        self.sub_confirm_override_button.setSizePolicy(sizePolicy1)
+        sizePolicy3.setHeightForWidth(self.sub_confirm_override_button.sizePolicy().hasHeightForWidth())
+        self.sub_confirm_override_button.setSizePolicy(sizePolicy3)
 
         self.verticalLayout_12.addWidget(self.sub_confirm_override_button)
 
@@ -704,8 +813,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_16.setObjectName(u"horizontalLayout_16")
         self.sub_return_button3 = QPushButton(self.widget_8)
         self.sub_return_button3.setObjectName(u"sub_return_button3")
-        sizePolicy3.setHeightForWidth(self.sub_return_button3.sizePolicy().hasHeightForWidth())
-        self.sub_return_button3.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.sub_return_button3.sizePolicy().hasHeightForWidth())
+        self.sub_return_button3.setSizePolicy(sizePolicy2)
         self.sub_return_button3.setMaximumSize(QSize(16777215, 16777215))
 
         self.horizontalLayout_16.addWidget(self.sub_return_button3)
@@ -830,7 +939,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.multiPageWidget.setCurrentIndex(1)
+        self.multiPageWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -839,10 +948,11 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Centralized Traffic Control", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Active Trains:", None))
-        self.active_train_number_label.setText(QCoreApplication.translate("MainWindow", u"#", None))
-        self.main_upload_map_button.setText(QCoreApplication.translate("MainWindow", u"Upload Track File", None))
+        self.active_train_number_label.setText(QCoreApplication.translate("MainWindow", u"0", None))
+        self.label_3.setText(QCoreApplication.translate("MainWindow", u"Green Line", None))
+        self.label_4.setText(QCoreApplication.translate("MainWindow", u"Red Line", None))
         self.maintenance_toggle.setText(QCoreApplication.translate("MainWindow", u"Maintenance Mode", None))
-        self.current_time_label.setText(QCoreApplication.translate("MainWindow", u"12 Hr clock", None))
+        self.current_time_label.setText(QCoreApplication.translate("MainWindow", u"7:00 am", None))
         self.groupBox_4.setTitle(QCoreApplication.translate("MainWindow", u"Map", None))
         ___qtablewidgetitem = self.main_map_table.horizontalHeaderItem(0)
         ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"Section", None));
@@ -866,9 +976,8 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem9.setText(QCoreApplication.translate("MainWindow", u"Underground", None));
         self.groupBox_41.setTitle(QCoreApplication.translate("MainWindow", u"Key", None))
         self.main_key.setText("")
-        self.groupBox_5.setTitle(QCoreApplication.translate("MainWindow", u"Line Se;ection", None))
-        self.label_3.setText(QCoreApplication.translate("MainWindow", u"Green Line", None))
-        self.label_4.setText(QCoreApplication.translate("MainWindow", u"Red Line", None))
+        self.label_2.setText(QCoreApplication.translate("MainWindow", u"Throughput", None))
+        self.main_throughput_label.setText("")
         self.groupBox_3.setTitle(QCoreApplication.translate("MainWindow", u"Block Data", None))
         self.main_active_block_id.setText(QCoreApplication.translate("MainWindow", u"ID #", None))
         self.main_active_block_length.setText(QCoreApplication.translate("MainWindow", u"yd", None))
@@ -895,36 +1004,50 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem14 = self.sub_dispatch_train_table.horizontalHeaderItem(0)
         ___qtablewidgetitem14.setText(QCoreApplication.translate("MainWindow", u"Designator", None));
         ___qtablewidgetitem15 = self.sub_dispatch_train_table.horizontalHeaderItem(1)
-        ___qtablewidgetitem15.setText(QCoreApplication.translate("MainWindow", u"Total Stops", None));
+        ___qtablewidgetitem15.setText(QCoreApplication.translate("MainWindow", u"Stop #1", None));
         ___qtablewidgetitem16 = self.sub_dispatch_train_table.horizontalHeaderItem(2)
-        ___qtablewidgetitem16.setText(QCoreApplication.translate("MainWindow", u"Stop N", None));
-        ___qtablewidgetitem17 = self.sub_dispatch_train_table.horizontalHeaderItem(3)
-        ___qtablewidgetitem17.setText(QCoreApplication.translate("MainWindow", u"Stop N...", None));
+        ___qtablewidgetitem16.setText(QCoreApplication.translate("MainWindow", u"Stop #n", None));
         self.sub_manual_override_box.setTitle(QCoreApplication.translate("MainWindow", u"Manual Override", None))
+        self.label_5.setText("")
         self.sub_dispatch_overide_new_radio.setText(QCoreApplication.translate("MainWindow", u"Send new train to block:", None))
-        self.sub_block_letter_combo.setItemText(0, QCoreApplication.translate("MainWindow", u"A", None))
-        self.sub_block_letter_combo.setItemText(1, QCoreApplication.translate("MainWindow", u"B", None))
-        self.sub_block_letter_combo.setItemText(2, QCoreApplication.translate("MainWindow", u"C", None))
-        self.sub_block_letter_combo.setItemText(3, QCoreApplication.translate("MainWindow", u"D", None))
-        self.sub_block_letter_combo.setItemText(4, QCoreApplication.translate("MainWindow", u"E", None))
-
-        self.sub_block_number_combo.setItemText(0, QCoreApplication.translate("MainWindow", u"1", None))
-        self.sub_block_number_combo.setItemText(1, QCoreApplication.translate("MainWindow", u"2", None))
-        self.sub_block_number_combo.setItemText(2, QCoreApplication.translate("MainWindow", u"3", None))
-        self.sub_block_number_combo.setItemText(3, QCoreApplication.translate("MainWindow", u"4", None))
-        self.sub_block_number_combo.setItemText(4, QCoreApplication.translate("MainWindow", u"5", None))
-
         self.sub_dispatch_overide_active_radio.setText(QCoreApplication.translate("MainWindow", u"Reroute Active Train", None))
+        self.sub_dispatch_block_select_radio.setText(QCoreApplication.translate("MainWindow", u"Send to Block", None))
+        self.sub_dispatch_station_select_radio.setText(QCoreApplication.translate("MainWindow", u"Send to Station", None))
+        self.sub_block_number_combo.setItemText(0, QCoreApplication.translate("MainWindow", u"1", None))
+
+        self.sub_block_number_combo.setCurrentText("")
+        self.sub_block_number_combo.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Block", None))
+        self.sub_station_combo.setItemText(0, QCoreApplication.translate("MainWindow", u"Pioneer", None))
+        self.sub_station_combo.setItemText(1, QCoreApplication.translate("MainWindow", u"Edgebrook", None))
+        self.sub_station_combo.setItemText(2, QCoreApplication.translate("MainWindow", u"Placeholder Name", None))
+        self.sub_station_combo.setItemText(3, QCoreApplication.translate("MainWindow", u"Whited", None))
+        self.sub_station_combo.setItemText(4, QCoreApplication.translate("MainWindow", u"South Bank", None))
+        self.sub_station_combo.setItemText(5, QCoreApplication.translate("MainWindow", u"Central (I 39)", None))
+        self.sub_station_combo.setItemText(6, QCoreApplication.translate("MainWindow", u"Inglewood (I 48)", None))
+        self.sub_station_combo.setItemText(7, QCoreApplication.translate("MainWindow", u"Overbrook (I 57)", None))
+        self.sub_station_combo.setItemText(8, QCoreApplication.translate("MainWindow", u"Glenbury (K 65)", None))
+        self.sub_station_combo.setItemText(9, QCoreApplication.translate("MainWindow", u"Dormont (N 77)", None))
+        self.sub_station_combo.setItemText(10, QCoreApplication.translate("MainWindow", u"Mt. Lebanon", None))
+        self.sub_station_combo.setItemText(11, QCoreApplication.translate("MainWindow", u"Poplar", None))
+        self.sub_station_combo.setItemText(12, QCoreApplication.translate("MainWindow", u"Castle Shannon", None))
+        self.sub_station_combo.setItemText(13, QCoreApplication.translate("MainWindow", u"Dormont (T 105)", None))
+        self.sub_station_combo.setItemText(14, QCoreApplication.translate("MainWindow", u"Glenbury (U 114)", None))
+        self.sub_station_combo.setItemText(15, QCoreApplication.translate("MainWindow", u"Overbrook (W 123)", None))
+        self.sub_station_combo.setItemText(16, QCoreApplication.translate("MainWindow", u"Inglewood (W 132)", None))
+        self.sub_station_combo.setItemText(17, QCoreApplication.translate("MainWindow", u"Cemtral (W 141)", None))
+
+        self.sub_station_combo.setCurrentText("")
+        self.sub_station_combo.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Station", None))
         self.sub_dispatch_confirm_button.setText(QCoreApplication.translate("MainWindow", u"Dispatch Train", None))
         self.sub_return_button2.setText(QCoreApplication.translate("MainWindow", u"<- Back", None))
         self.label_18.setText(QCoreApplication.translate("MainWindow", u"Select Train", None))
         self.sub_select_manual_radio.setText(QCoreApplication.translate("MainWindow", u"Manual", None))
-        ___qtablewidgetitem18 = self.sub_train_select_table.horizontalHeaderItem(0)
-        ___qtablewidgetitem18.setText(QCoreApplication.translate("MainWindow", u"Train ID", None));
-        ___qtablewidgetitem19 = self.sub_train_select_table.horizontalHeaderItem(1)
-        ___qtablewidgetitem19.setText(QCoreApplication.translate("MainWindow", u"Current Block", None));
-        ___qtablewidgetitem20 = self.sub_train_select_table.horizontalHeaderItem(2)
-        ___qtablewidgetitem20.setText(QCoreApplication.translate("MainWindow", u"Route", None));
+        ___qtablewidgetitem17 = self.sub_active_trains_table.horizontalHeaderItem(0)
+        ___qtablewidgetitem17.setText(QCoreApplication.translate("MainWindow", u"Train ID", None));
+        ___qtablewidgetitem18 = self.sub_active_trains_table.horizontalHeaderItem(1)
+        ___qtablewidgetitem18.setText(QCoreApplication.translate("MainWindow", u"Current Block", None));
+        ___qtablewidgetitem19 = self.sub_active_trains_table.horizontalHeaderItem(2)
+        ___qtablewidgetitem19.setText(QCoreApplication.translate("MainWindow", u"Route", None));
         self.groupBox_7.setTitle(QCoreApplication.translate("MainWindow", u"Manual Override", None))
         self.sub_current_speed.setText(QCoreApplication.translate("MainWindow", u"MPH", None))
         self.sub_current_authority.setText(QCoreApplication.translate("MainWindow", u"MI", None))
@@ -940,5 +1063,4 @@ class Ui_MainWindow(object):
         self.sub_activate_maintenance_button.setText(QCoreApplication.translate("MainWindow", u"Start Maintenance", None))
         self.sub_end_maintenance_button.setText(QCoreApplication.translate("MainWindow", u"End Maintenance", None))
     # retranslateUi
-
 
