@@ -6,20 +6,25 @@ Description:
 '''
 
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSignal, QObject
+
+class Signals(QObject):
+    ctc_switch_maintenance = pyqtSignal(str, bool) 
+    ctc_exit_blocks = pyqtSignal(list)
+    ctc_dispatch = pyqtSignal()
+    ctc_block_maintenance = pyqtSignal(int, bool)
+    ctc_suggested = pyqtSignal(list,list)
 
 
+    wayside_block_occupancies = pyqtSignal(list)
+    wayside_switches = pyqtSignal(list)
+    wayside_lights = pyqtSignal(list)
+    wayside_crossings = pyqtSignal(list)
 
-ctc_switch_maintenance = pyqtSignal(str, bool) 
-ctc_exit_blocks = pyqtSignal(list)
-ctc_dispatch = pyqtSignal()
-ctc_block_maintenance = pyqtSignal(int, bool)
-ctc_suggested = pyqtSignal(list,list)
+    def __init__(self):
+        super().__init__()
 
-
-wayside_block_occupancies = pyqtSignal(list)
-wayside_switches = pyqtSignal(list)
-wayside_lights = pyqtSignal(list)
-wayside_crossings = pyqtSignal(list)
-
-track_tickets = pyqtSignal(int)
+    track_tickets = pyqtSignal(int)
+def init():
+    global communication
+    communication = Signals()

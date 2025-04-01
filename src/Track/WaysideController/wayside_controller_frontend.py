@@ -8,7 +8,7 @@ import sys
 import os
 from pathlib import Path
 from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
-from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem, QFileDialog, QListWidget, QListWidgetItem, QLabel
+from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem, QFileDialog, QListWidget, QListWidgetItem, QLabel 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer
 from Track.WaysideController.wayside_controller_ui import Ui_MainWindow as WaysideUi
 from Track.WaysideController.wayside_controller_testbench_ui import Ui_MainWindow as TestbenchUi

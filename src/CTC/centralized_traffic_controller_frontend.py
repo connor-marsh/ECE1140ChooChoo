@@ -58,7 +58,7 @@ class CtcFrontEnd(QMainWindow):
         self.initialize_block_combo()
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.frontend_update)
-        self.timer.start(100)  # 10 Hz update - change to slower update for performance??
+        self.timer.start(100)  
 
         self.wall_clock = global_clock.clock
 

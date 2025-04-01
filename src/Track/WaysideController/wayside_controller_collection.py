@@ -9,9 +9,9 @@ import globals.track_data_class as init_track_data
 import globals.signals as signals
 from Track.WaysideController.wayside_controller_backend import WaysideController
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
 
-class WaysideControllerCollection():
+class WaysideControllerCollection(QObject):
     """
     A class that contains several wayside controllers and handles interfacing with the other modules such as the Track Model and The CTC.
     The front end that will display information about the currently selected wayside controller is also contained in this class.
@@ -20,7 +20,7 @@ class WaysideControllerCollection():
         """
         :param track_data: A class that contains the unchanging data imported from the track builder
         """
-        
+        super().__init__()
         if line_name not in init_track_data.lines:
             raise KeyError
         
@@ -70,7 +70,7 @@ class WaysideControllerCollection():
         self.frontend = WaysideControllerFrontend(self)
         
 
-        #self.connect_signals()
+        self.connect_signals()
 
     def get_plc_outputs(self, controller_index : int) -> tuple[list[bool], list[bool], list[bool]]:
         """
@@ -171,6 +171,12 @@ class WaysideControllerCollection():
         """
         Connects any necessary signals for communication using the pyqt framework
         """
+        signals.communication.ctc_switch_maintenance.connect(self.handle_switch_maintenance)
+        signals.communication.ctc_exit_blocks.connect(self.handle_exit_blocks)
+        signals.communication.ctc_dispatch.connect(self.handle_dispatch)
+        signals.communication.ctc_block_maintenance.connect(self.handle_block_maintenance)
+        signals.communication.ctc_suggested.connect(self.handle_suggested_values)
+
     #DEFINE A FUNCTION THAT EITHER GRABS VALUES FROM THE TRACK REFERENCE OR FROM THE TESTBENCH DEPENDING ON THE MODE OF THE CONTROLLER
     # FOR EACH CONTROLLER CHECK THE MODE 
     # READ EACH VALUE FROM TRACK MODEL EVERY UPDATE IF NOT IN MAINTENANCE MODE
