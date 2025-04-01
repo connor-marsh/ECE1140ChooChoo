@@ -8,11 +8,13 @@ Description:
 # frontend.py
 import sys
 import os
+import random
 
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = "1"
 
 from PyQt5.QtWidgets import QMainWindow, QApplication, QComboBox, QWidgetAction, QButtonGroup
 from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
+from PyQt5.QtGui import QPixmap
 from Train.TrainModel.train_model_ui_iteration_1 import Ui_MainWindow as TrainModelUI
 from Train.TrainModel.train_model_testbench import TrainModelTestbench
 import globals.global_clock as global_clock
@@ -34,7 +36,7 @@ class TrainModelFrontEnd(QMainWindow):
         # Setup dropdown for selecting a train model.
         self.setup_train_dropdown()
 
-        # Initialize physics and clock timers.
+        # Initialize physics timers.
         # self.prev_time = None
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
@@ -45,6 +47,44 @@ class TrainModelFrontEnd(QMainWindow):
         # Configure emergency brake button.
         self.init_failure_buttons()
         self.init_emergency_button()
+
+        # Rotating advertisements:
+        self.setup_advertisements()
+
+    def setup_advertisements(self):
+        """Initializes advertisement rotation using the UI's advertisement labels."""
+        # List of advertisement image file paths.
+        self.ad_paths = [
+            r"src\Train\TrainModel\Assets\pizza_hut_ad_1.jpg",
+            r"src\Train\TrainModel\Assets\McD.jpg",
+            r"src\Train\TrainModel\Assets\whopper.jpg"
+        ]
+        # Collect references to the advertisement labels from the UI.
+        self.ad_labels = [
+            self.train_ui.Advertisements,
+            self.train_ui.Advertisements_2,
+            self.train_ui.Advertisements_3
+        ]
+        
+        # Set up a timer to update the advertisement every 5 seconds.
+        self.ad_timer = QTimer(self)
+        self.ad_timer.timeout.connect(self.rotate_advertisements)
+        self.ad_timer.start(5000)  # 5000 ms = 5 seconds
+
+        # Immediately randomize and assign unique ads at startup.
+        self.rotate_advertisements()
+
+    def rotate_advertisements(self):
+        """Randomly assign different advertisement images to each ad label."""
+        # Use random.sample for unique selection if possible, otherwise allow duplicates.
+        selected_ads = (
+            random.sample(self.ad_paths, len(self.ad_labels))
+            if len(self.ad_paths) >= len(self.ad_labels)
+            else [random.choice(self.ad_paths) for _ in range(len(self.ad_labels))]
+        )
+        # Update each advertisement label with its corresponding image.
+        for label, ad_path in zip(self.ad_labels, selected_ads):
+            label.setPixmap(QPixmap(ad_path))
 
     def setup_train_dropdown(self):
         """Embeds a small dropdown in the menuTrain_ID_1 menu."""
