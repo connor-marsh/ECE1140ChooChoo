@@ -94,12 +94,10 @@ class TrackBackend:
         self.trains = {}  # Key: train_id, holds TrainModel instances
         self.train_counter = 0
 
-
-
     # Parsing data sent from main track file
     def parse_track_layout_data(self, filepath):
         """
-        Loads and parses track layout using the TrackDataClass.
+        Loads and parses track layout using the TrackDataClass. - add params
         """
         self.track_data = TrackDataClass(filepath)
         print(f"[{self.name}] Loaded layout for {self.track_data.line_name} line.")
@@ -108,7 +106,6 @@ class TrackBackend:
             devices = self.track_data.device_counts[territory]
             print(f"  Territory {territory}: {blocks} blocks, {devices['switches']} switches, "
                 f"{devices['lights']} lights, {devices['crossings']} crossings")
-
 
     # Updating switches, lights, and railway crossings sent from wayside
     def update_from_wayside_outputs(self, controller_index, switch_states, light_states, crossing_states):
@@ -168,23 +165,27 @@ class TrackBackend:
 
         print(f"[Occupancy Update] Block {block_id} status = {occupancy_enum.name} -> Display as {'OCCUPIED' if derived_occupied else 'UNOCCUPIED'}")
 
+    #  Sends beacon data when a train is on the specific block
+    def send_beacon_data(self, block_id: str):
+        # Check if a train is on this block
+        train_on_block = any(train.current_block == block_id for train in self.trains.values())
+        if not train_on_block:
+            print(f"[Beacon] No train present on {block_id}. Beacon not sent.")
+            return
 
-        # Recompute derived occupied state
-        failure = self.runtime_status[block_id].get("failure", Failures.NONE)
-        derived_occupied = (
-            occupancy_enum in [Occupancy.OCCUPIED, Occupancy.MAINTENANCE]
-            or failure != Failures.NONE
-        )
-        self.runtime_status[block_id]["is_occupied_display"] = derived_occupied
+        # Check if the block has a beacon
+        if block_id not in self.track_data.beacons:
+            print(f"[Beacon] Block {block_id} does not contain a transponder.")
+            return
 
-        print(f"[Occupancy Update] Block {block_id} status = {occupancy_enum.name} -> Display as {'OCCUPIED' if derived_occupied else 'UNOCCUPIED'}")
+        # Encode and store beacon data
+        beacon_data = f"Beacon: Block {block_id}".encode()
+        self.runtime_status.setdefault(block_id, {})
+        self.runtime_status[block_id]["beacon_data"] = beacon_data
 
-    #  WIP Send beacon data when a train is on the specific block?
-    def send_beacon_data(self, block_key): # Need to add train func to read changes
-        block = self.block_data.get(block_key)
-        if block and "Transponder" in block.infrastructure:
-            block.beacon_data = f"This is block {block.block_id[1]}{block.block_id[2]}".encode()
-            print(f"Beacon data sent for block {block.block_id}")
+        print(f"[Beacon] Beacon data sent on block {block_id}: {beacon_data.decode()}")
+
+
 
     # WIP - probably going to delete,Sending section data to frontend, can probably scrap
     # Returns a list of block keys that belong to the given section, could scrap if only blocks shown and not section divides
@@ -205,29 +206,28 @@ class TrackBackend:
     # Sends block information
     # Returns the Block for the specified block key
     def send_block_data(self, block_id_str):
-        block = self.block_data.get(block_id_str)
-
+        block = next((b for b in self.track_data.blocks if b.id == block_id_str), None)
         if not block:
             print(f"[{self.name}] Block {block_id_str} not found.")
             return None
 
-        return [
-            block.block_id,
-            block.length,
-            block.grade,
-            block.speed_limit,
-            block.elevation,
-            block.cumulative_elevation,
-            block.infrastructure,
-            block.station_side,
-            block.occupancy.name,
-            block.failures.name,
-            block.switch_state,
-            block.railway_signal,
-            block.traffic_signal,
-            block.beacon_data.decode() if block.beacon_data else None
-        ]
-    
+        return {
+            "block_id": block.id,
+            "length": block.length,
+            "grade": block.grade,
+            "speed_limit": block.speed_limit,
+            "underground": block.underground,
+            "station": block.station,
+            "switch": block.switch,
+            "light": block.light,
+            "crossing": block.crossing,
+            "beacon": block.beacon,
+            "occupancy": self.runtime_status.get(block.id, {}).get("occupancy", Occupancy.UNOCCUPIED).name,
+            "failure": self.runtime_status.get(block.id, {}).get("failure", Failures.NONE).name,
+            "is_occupied_display": self.runtime_status.get(block.id, {}).get("is_occupied_display", False),
+        }
+
+        
     # Sending Wayside Commanded Speed and Authority to Train
     # Triple redundancy, so send 3 times
     def send_wayside_commanded(self, train_id, wayside_speed, wayside_authority):
@@ -255,8 +255,8 @@ class TrackBackend:
             return
 
         # Increment and assign new train
-        TrainModel.train_counter += 1
-        train_id = TrainModel.train_counter
+        self.train_counter += 1
+        train_id = self.train_counter
         new_train = TrainModel(train_id=train_id, current_block=start_block)
 
         # Store train in backend registry
