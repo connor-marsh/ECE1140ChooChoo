@@ -1,6 +1,6 @@
 """
 Author: Connor Murray
-Date: 3/20/2025
+Date: 4/1/2025
 Description: 
     Defines a data structure that can extract a track layout from an excel and turn it into a usable form of lists and dictionaries
     of the blocks and infrastructure on the track
@@ -9,8 +9,13 @@ import pandas as pd
 from dataclasses import dataclass
 from collections import defaultdict
 
+
 @dataclass(frozen=True) # makes it immutable (values should not change once read from excel)
-class Block:
+class Section: # has an attribute to help determine the direction of travel
+    increasing: int = 0 # 0 is decreasing, 1 is increasing, 2 is bidirectional with regard to the train moving over the blocks
+
+@dataclass(frozen=True) # makes it immutable (values should not change once read from excel)
+class Block: # contains unchanging information
     id: str = ""
     length: int = 0
     speed_limit: float = 0
@@ -62,8 +67,7 @@ class TrackDataClass():
 
             self.populate_blocks(dictionary)
             self.count_territory()  
-        else:
-            self = None
+        
 
     def populate_blocks(self, dictionary):
         """
@@ -165,7 +169,7 @@ class TrackDataClass():
         # Using default dictionary so that key errors do not occur when adding in elements with keys that have not been created before
         temp_territory_counts = defaultdict(int)
         temp_device_counts = defaultdict(lambda: {"switches": 0, "lights": 0, "crossings": 0})
-        # Iterate through blocks and count the number of blocks in each territory
+        # Iterate through blocks and count the number of blocks in each terri
         for block in self.blocks:
             temp_territory_counts[block.territory] += 1
             temp_device_counts[block.territory]["switches"] += block.switch
@@ -175,14 +179,10 @@ class TrackDataClass():
         # convert back to regular dictionaries
         self.territory_counts = dict(temp_territory_counts)
         self.device_counts = {k: dict(v) for k, v in temp_device_counts.items()} 
-
+        
         
 def init():
-        global lines 
-        lines = {}
-        line = TrackDataClass("src\Track\TrackModel\GreenLine_Layout.xlsx")
-        lines[line.line_name] = line
-
-if __name__=="__main__":
-    init()
-    
+    global lines 
+    lines = defaultdict(TrackDataClass)
+    line = TrackDataClass("src\Track\TrackModel\GreenLine_Layout.xlsx")
+    lines[line.line_name] = line
