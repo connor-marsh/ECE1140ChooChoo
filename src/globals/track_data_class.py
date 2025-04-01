@@ -165,7 +165,7 @@ class TrackDataClass():
         # Using default dictionary so that key errors do not occur when adding in elements with keys that have not been created before
         temp_territory_counts = defaultdict(int)
         temp_device_counts = defaultdict(lambda: {"switches": 0, "lights": 0, "crossings": 0})
-        # Iterate through blocks and count the number of blocks in each terri
+        # Iterate through blocks and count the number of blocks in each territory
         for block in self.blocks:
             temp_territory_counts[block.territory] += 1
             temp_device_counts[block.territory]["switches"] += block.switch

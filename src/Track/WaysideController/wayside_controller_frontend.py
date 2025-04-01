@@ -31,6 +31,7 @@ class WaysideControllerFrontend(QMainWindow):
         super().__init__()
         self.collection = collection_reference
         self.current_controller_index = 0 # Tells the ui which backend controller from the collection to reference
+        self.current_range = (0,0) # Tells the ui which range of blocks to display
         self.ui = WaysideUi() # create a ui from the exported file
         self.ui.setupUi(self) 
         self.setWindowTitle("Wayside Controller Module")
@@ -96,20 +97,21 @@ class WaysideControllerFrontend(QMainWindow):
         :return changed: If the row count has changed then this value will be True
         """
 
-        if table.rowCount() < self.collection.BLOCK_COUNTS[self.current_controller_index]: # if the current row count is less
-            for row in range(table.rowCount(), self.collection.BLOCK_COUNTS[self.current_controller_index]):
-                # NEED TO INSET THE NAME OF THE ROW AS THE NAME OF THE BLOCK, HOW?? Talk to aaron and pj and pray they have a way already
-                # THIS WAY OF DOING IT COULD BE BAD SINCE ROW NAMES NEED TO CHANGE REGARDLESS
-                table.insertRow(row) # insert until row count is equivalent
-            
-            return True
-        elif table.rowCount() > self.collection.BLOCK_COUNTS[self.current_controller_index]:
-            for row in range(self.collection.BLOCK_COUNTS[self.current_controller_index], table.rowCount()):
-                table.removeRow(row) # remove until row count is equivalent
-            
-            return True
-        return False
-    
+        if self.current_range != self.collection.BLOCK_RANGES[self.current_controller_index]: # check to see if the controller changed
+            self.current_range = self.collection.BLOCK_RANGES[self.current_controller_index] # update the range to match the current controller
+            table.setRowCount(self.collection.BLOCK_COUNTS[self.current_controller_index]) # update the row count of the table
+            for i in range(*self.current_range):
+                row = 0 + i - self.current_range[0] # The range of the blocks that is referenced does not match the indexing to the rows
+                text = self.collection.blocks[i].id # want to use the block id as the label for the row
+                if table.verticalHeaderItem(row) != None: # check to see if it exists
+                    table.verticalHeaderItem(row).setText(text) # can just set the text of the current item
+                else:
+                    header_item = QTableWidgetItem(text) # otherwise create new item with text
+                    table.setVerticalHeaderItem(row, header_item)
+            return True # The controller displayed changed
+        else:
+            return False # The controller displayed did not change
+
     def populate_table(self, table: QTableWidget):
         """
         Writes the latest values from the currently selected backend to the table

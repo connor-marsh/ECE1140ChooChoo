@@ -23,27 +23,43 @@ class WaysideControllerCollection():
         if line_name not in init_track_data.lines:
             raise KeyError
         
-        self.track_data = init_track_data.lines[line_name]
+        # get references to the data from the corresponding track
+        track_data = init_track_data.lines[line_name]
         self.LINE_NAME = line_name
+        self.blocks = track_data.blocks 
+        self.switches = track_data.switches # dictionaries don't require sorting duh
+        self.lights = track_data.lights
+        self.crossings = track_data.crossings
+
         self.controllers = [] # A collection of wayside has controllers
-        self.CONTROLLER_COUNT = len(self.track_data.territory_counts) # get the number of controllers (CONSTANTS)
-        # Will get the number of each below (CONSTANTS)
+        self.CONTROLLER_COUNT = len(track_data.territory_counts) # get the number of controllers (CONSTANT)
+
+        
+        self.blocks.sort(key=lambda block: (block.territory, block.id)) # sort blocks by territory then by id since that is most useful for my module
+
+        # Will get the number corresponding to each wayside controller below (CONSTANTS)
         self.BLOCK_COUNTS = [] 
         self.SWITCH_COUNTS = []
         self.LIGHT_COUNTS = []
         self.CROSSING_COUNTS = []
 
         for i in range(self.CONTROLLER_COUNT): # for each controller they will have a specific number of blocks, switches, lights, and crossings associated with it
-            block_count = self.track_data.territory_counts[i + 1]
-            switch_count = self.track_data.device_counts[i + 1]['switches']
-            light_count = self.track_data.device_counts[i + 1]['lights']
-            crossing_count = self.track_data.device_counts[i + 1]['crossings']
+            block_count = track_data.territory_counts[i + 1]
+            switch_count = track_data.device_counts[i + 1]['switches']
+            light_count = track_data.device_counts[i + 1]['lights']
+            crossing_count = track_data.device_counts[i + 1]['crossings']
             self.BLOCK_COUNTS.append(block_count)
             self.SWITCH_COUNTS.append(switch_count)
             self.LIGHT_COUNTS.append(light_count)
             self.CROSSING_COUNTS.append(crossing_count)
             self.controllers.append(WaysideController(block_count=block_count,switch_count=switch_count,
                                                       light_count=light_count,crossing_count=crossing_count,exit_block_count=0,scan_time=0.5))
+
+        # Get the ranges of each territory, so that indexing the list is easier
+        self.BLOCK_RANGES = self.get_ranges(self.BLOCK_COUNTS)
+        self.SWITCH_RANGES = self.get_ranges(self.SWITCH_COUNTS)
+        self.LIGHT_RANGES = self.get_ranges(self.LIGHT_COUNTS)
+        self.CROSSING_RANGES = self.get_ranges(self.CROSSING_COUNTS)
 
         # Create a list of testbenches for maintenance mode corresponding to each one of the wayside controllers
         from Track.WaysideController.wayside_controller_frontend import WaysideControllerTestbench # Avoiding circular imports?
@@ -89,6 +105,22 @@ class WaysideControllerCollection():
             return (authorities, speeds) # TRIPLE REDUNDANCY?
         else:
             raise IndexError(f"The input index to the Wayside Controller is not in range")
+    
+    def get_ranges(self, counts): # THIS FUNCTION COULD BE MOVED TO THE TRACK DATA CLASS BUT THIS KINDA FITS MORE WITH WHAT I HAVE TO DO (ONLY USED FOR INIT)
+        """
+        Given a list of counts per territory, compute the start and end indices. 
+        
+        :param counts: List of the number of blocks per territory ie. [50,30,40] indicates 50 blocks for wayside 1, 30 blocks for wayside 2 and so on
+
+        :return: List of [start, end) index tuples. Start inclusive end not inclusive.
+        """
+        ranges = []
+        start_index = 0  # 0 based indexing
+        for count in counts:
+            end_index = start_index + count - 1  # Last element in this range
+            ranges.append((start_index, end_index + 1))
+            start_index = end_index + 1  # Move start index to next range
+        return ranges
 
     #DEFINE A FUNCTION THAT EITHER GRABS VALUES FROM THE TRACK REFERENCE OR FROM THE TESTBENCH DEPENDING ON THE MODE OF THE CONTROLLER
     # FOR EACH CONTROLLER CHECK THE MODE 
