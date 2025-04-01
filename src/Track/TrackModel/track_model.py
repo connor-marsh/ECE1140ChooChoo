@@ -267,6 +267,8 @@ class TrackBackend:
 
         print(f"[Train Init] Train {train_id} initialized on {start_block}.")
 
+        # WIP should initialize train UI
+
 
 
 
