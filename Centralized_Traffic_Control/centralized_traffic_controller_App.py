@@ -1,22 +1,22 @@
 '''
 Author: Aaron Kuchta
-Date: 2-20-2025
-Version: 1.4
+Date: 3-30-2025
 '''
 
 
 import sys
 import os
 import time
+import queue 
 import pandas as pd
-import openpyxl
-from PyQt5.QtCore import *
+import openpyxl 
+from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem
 from PyQt5.QtGui import QColor
 
 from centralized_traffic_controller_ui import Ui_MainWindow as CtcUI
 from centralized_traffic_controller_test_bench_ui import Ui_ctc_TestBench as CtcTestBenchUI
-
+import globals.global_clock as global_clock
 
 
 
@@ -70,12 +70,6 @@ class TestBenchFrontEnd:
         message = ("Block " + str(block_id) + ": " + str(switch_state))
         self.ctc_tb_ui.tb_out_switch_states.setText(message)
 
-class WaysideSignal:
-    pass
-
-
-
-
 class CtcFrontEnd(QMainWindow):
     def __init__(self, backend):
         super().__init__()
@@ -85,8 +79,6 @@ class CtcFrontEnd(QMainWindow):
         #self.backend.link_frontend(self)
 
         #Variable initializations
-        self.train_count = 0
-        self.time = ""
         self.active_block_id = ""
         self.active_block_length = ""
         self.active_block_speed = ""
@@ -95,23 +87,38 @@ class CtcFrontEnd(QMainWindow):
         self.ctc_ui.main_switch_to_dispatch_button.clicked.connect(self.switch_to_dispatch_page)
         self.ctc_ui.main_switch_to_select_button.clicked.connect(self.switch_to_select_page)
         self.ctc_ui.main_switch_to_maintenance_button.clicked.connect(self.switch_to_maintenance_page)
-        self.ctc_ui.main_switch_to_upload_button.clicked.connect(self.get_train_schedule)
-        #self.ctc_ui.main_upload_map_button.clicked.connect(self.get_map_data)
         self.ctc_ui.sub_return_button.clicked.connect(self.switch_to_home)
         self.ctc_ui.sub_return_button2.clicked.connect(self.switch_to_home)
         self.ctc_ui.sub_return_button3.clicked.connect(self.switch_to_home)
+
+        self.ctc_ui.main_switch_to_upload_button.clicked.connect(self.get_train_schedule)
+        #self.ctc_ui.main_upload_map_button.clicked.connect(self.get_map_data)
+
         self.ctc_ui.maintenance_toggle.clicked.connect(self.toggle_maintenance_mode)
         #self.ctc_ui.main_map_table.cellClicked.connect(self.on_map_row_clicked)
         #self.ctc_ui.main_line_slider.sliderReleased.connect(self.toggle_active_line) #Not implemented yet
-        #self.ctc_ui.main_switch_knob.valueChanged.connect(self.set_switch_state)
-        #self.ctc_ui.sub_confirm_override_button.clicked.connect(self.update_override)
+        self.ctc_ui.main_switch_knob.valueChanged.connect(self.set_switch_state)
+        #self.ctc_ui.sub_confirm_override_button.clicked.connect(self.update_suggested)
         #self.ctc_ui.sub_activate_maintenance_button.clicked.connect(self.start_maintenance)
         #self.ctc_ui.sub_end_maintenance_button.clicked.connect(self.end_maintenance)
+        self.ctc_ui.sub_dispatch_confirm_button.clicked.connect(self.dispatch_pressed)
         self.ctc_ui.multiPageWidget.setCurrentIndex(0)# Set Starting page for stacked widget
         #self.toggle_mode() #toggles manual mode, NEEDS CHANGED 
 
         self.toggle_maintenance_mode()
         self.initialize_map()
+        self.initialize_block_combo()
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.frontend_update)
+        self.timer.start(100)  # 10 Hz update - change to slower update for performance??
+
+        self.wall_clock = global_clock.clock
+
+    def frontend_update(self):
+        self.update_clock() #update clock label
+        self.update_throughput() #update throughput label
+        self.update_track_table() #update track data table
+
 
     #Stacked Widget Navigation
     def switch_to_dispatch_page(self):
@@ -154,8 +161,20 @@ class CtcFrontEnd(QMainWindow):
         self.ctc_ui.main_active_block_length.setText(str(block_info['block_length']))
         self.ctc_ui.main_active_block_speed_limit.setText(str(block_info['speed_limit']))
 
+    def update_clock(self):
+        #Main UI clock element
+        clock_time = self.global_clock.text()
+        day_night = self.global_clock.am_pm()
+        full_time = clock_time + " " + day_night
+        self.ctc_ui.current_time_label.setText(full_time)
 
-    #Map Ini - UPDATE NEEDED, SWITCH DIRECTION
+    def initialize_block_combo(self):
+        #initialize block combo box with block ids - currently 1-150
+        self.ctc_ui.sub_block_number_combo.clear()
+        for i in range(1, 150):
+            self.ctc_ui.sub_block_number_combo.addItem(str(i))
+
+    #Map Ini - OVERHAUL NEEDED - TRACK CLASS UPDATED
     def initialize_map(self):
         self.block_data = self.backend.get_blocks()
         #update map with block data
@@ -215,26 +234,38 @@ class CtcFrontEnd(QMainWindow):
 
         self.ctc_ui.main_map_table.resizeColumnsToContents()
 
-    
-
-    def update_occupancy_map(self, occupancy):
-        pass
-    def update_switch_map(self, state):
-        pass
-    def update_light_map(self, state):
-        pass
-    def update_crossing_map(self, state):
-        pass
-    def update_maintenance_map(self, state):
+    def update_map(self):
+        #updates map occupancy, maintenance, switch state, crossing state and light color
         pass
 
-    #maintenance page - Change to send data to backend
+    def update_throughput(self):
+        #updates throughput label on UI
+        self.ctc_ui.main_throughput_label.setText(str(self.backend.throughput))
+
+    def dispatch_pressed(self):
+        if self.ctc_ui.sub_dispatch_overide_new_radio.isChecked():
+            #new train needs to be dispatched
+            if self.ctc_ui.sub_dispatch_station_select_radio.isChecked():
+                #dispatch to station
+                destination_station = self.ctc_ui.sub_station_combo.currentIndex()
+                self.backend.dispatch_handler(destination_station, 'station')
+            elif self.ctc_ui.sub_dispatch_block_select_radio.isChecked():
+                #dispatch to block
+                destination_block = self.ctc_ui.sub_block_number_combo.currentText()
+                self.backend.dispatch_handler(destination_block, 'block')
+            #elif For selected route from table | not implemented yet
+        elif self.ctc_ui.sub_dispatch_overide_existing_radio.isChecked():
+            #existing train needs to be rerouted | not implemented yet
+            print("Reroute Train Not Implemented")
+
+    #maintenance page - Change to send data to backend - UPDATE NEEDED, TRACK CLASS CHANGED
     def start_maintenance(self):
         #starts maintenance on selected block | activated by button
         if self.selected_row is not None:
             block_info = self.block_data.get(self.selected_row)
             block_info['maintenance'] = 1
             self.update_maintenance(block_info)
+            self.backend.send_maintenance(block_info['block_id'], 1) #Calls backend to send data to wayside
             self.test_bench.print_maintenance(block_info['block_id'], 1)
         
     def end_maintenance(self):
@@ -243,6 +274,7 @@ class CtcFrontEnd(QMainWindow):
             block_info = self.block_data.get(self.selected_row)
             block_info['maintenance'] = 0
             self.update_maintenance(block_info)
+            self.backend.send_maintenance(block_info['block_id'], 0) #Calls backend to send data to wayside
             self.test_bench.print_maintenance(block_info['block_id'], 0)
     
     def update_maintenance(self, block_info):
@@ -265,36 +297,70 @@ class CtcFrontEnd(QMainWindow):
             self.ctc_ui.sub_end_maintenance_button.setEnabled(False)
             self.ctc_ui.main_switch_knob.setSliderPosition(1)
         
+    def set_switch_state(self):
+        #updates switch state | activated by knob
+        switch_state = self.ctc_ui.main_switch_knob.value()
+        if self.selected_row is not None: # and block has switch
+            #set block switch value
+            self.backend.send_switch_states(block_id, switch_state)
+
 
 class CtcBackEnd():
 
     #Stations located green line
-    G_STATIONS = ("Pioneer", "Edgebrook", "Station", "Whited", "South Bank", "Centrral", "Inglewood", "Overbrook", "Glenbury", "Dormont", 
+    G_STATIONS = ("Pioneer", "Edgebrook", "Station", "Whited", "South Bank", "Central", "Inglewood", "Overbrook", "Glenbury", "Dormont", 
                 "MT Lebanon", "Poplar", "Castle Shannon", "Dormont", "Glenbury", "Overbrook", "Inglewood", "Central")
+    G_STATIONS_BLOCKS = (2, 9, 16, 22, 31, 39, 48, 57, 65, 73, 77, 88, 96, 105, 114, 123, 132, 141)
+
+    EDGEBROOK_EXIT_BLOCKS = [[0,0,1], [0,0,1], [0,0,1]] #1 hot vector for each wayside exit blocks - Need to find which blocks
     
     #Stations located on red line
     #R_STATIONS = ()
+    #R_STATIONS_BLOCKS = ()
 
-    def __init__(self): #NEEDS UPDATED
+    def __init__(self): 
         super().__init__()
         self.route_data = {}
-        self.frontend = None
 
         #Controls active track data
         self.green_line = Track("Green")
         #self.red_line = Track("Red") #No red line implementation yet
         self.active_line = self.green_line
 
+        self.train_queue = queue.Queue()
+
+        self.wall_clock = global_clock.clock
+
+        #Read in signal from Track Model
+        self.trackModel.track_tickets.connect(self.tickets_handler()) #need to specify param?
         
+        self.suggested_speed = [] #length of track, each block has a suggested speed, speed limit for now
+        self.suggested_authority = [] #length of track, each block has a suggested authority, -1 for no change
+        self.manual_switch_states = [] #length of switch count, each block has a switch state, 0 for first option, 1 for second option
+
+        self.total_tickets = 0
+        self.throughput = 0
+        self.train_count = 0
+        self.elapsed_mins = 0
+        self.last_minute = self.wall_clock.get_minute()
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.backend_update)
+        self.timer.start(100)  # 10 Hz update
+
+        
+
+    def backend_update(self):
+        
+        if self.wall_clock.get_minute() != self.last_minute:
+            self.elapsed_mins += 1
+            self.last_minute = self.wall_clock.get_minute()
+
+        self.dispatch_queue_handler() #Dispatch queue handler    
+        self.send_suggestions() #Send suggestions to wayside     
         
     def get_blocks(self):
         return self.active_line.blocks
-
-   # def link_frontend(self, frontend):
-    #    self.frontend = frontend
-
-
-    
 
     def process_route_data(self, file_data):
         if(file_data is not None):
@@ -315,31 +381,25 @@ class CtcBackEnd():
                 }
 
     def initialize_route_table(self):
-        
 
-    #Scheduling Algorithm
-    #Suggested Authority
-    #Suggested Speed
+        pass
 
     def upload_train_schedule(self):
         #uploads train schedule file | activated by button
         pass
 
-    def update_dispatch_train_table(self):
-        #updates table of trains ready to dispatch
-        pass
 
     def update_active_trains_count(self):
         #Updated mainscreen train count
         #reads number of rows from train data file + manual sent trains
         pass
 
-    def update_override(self):
+    def update_manual_suggested(self):
         if self.ctc_ui.sub_enter_speed_override.value() > 0:
-            self.update_override_speed()
+            self.update_manual_speed()
 
         if self.ctc_ui.sub_enter_authority_override.value() > 0:
-            self.update_override_authority()
+            self.update_manual_authority()
 
     def update_override_speed(self):
         #updates override speed | input from user
@@ -350,6 +410,68 @@ class CtcBackEnd():
         #updates override authority | input from user
         override_authority = self.ctc_ui.sub_enter_authority_override.text()
         self.test_bench.print_suggested_authority(override_authority)
+
+
+
+    def tickets_handler(self, num_tickets):
+        #Takes tickets sold from track model and updates throughput
+        self.total_tickets += num_tickets
+        self.throughput = self.total_tickets / (self.elapsed_mins/60) #Tickets per hour
+        #Send throughput to UI
+        self.frontend.update_throughput(self.throughput)
+
+    def first_blocks_free(self):
+        #Checks if first blocks are free | called by dispatch queue handler
+        block_1 = self.active_line.blocks[self.active_line.entrance_blocks[0]] 
+        block_2 = self.active_line.blocks[self.active_line.entrance_blocks[1]]
+        block_3 = self.active_line.blocks[self.active_line.entrance_blocks[2]]
+
+        if block_1['occupancy'] == 0 and block_2['occupancy'] == 0 and block_3['occupancy'] == 0: #Needs updated after new track class implemented
+            return True
+        else:
+            return False
+
+    def dispatch_handler(self, destination, destination_type):
+        #Train dispatch handler | called by front end
+        if destination_type == 'station':
+            #Dispatch to station
+            destination_block = int(self.G_STATION_BLOCKS[destination])
+        elif destination_type == 'block':
+            #Dispatch to block
+            destination_block = int(destination)
+
+        self.train_queue.put(destination_block)
+
+    def dispatch_queue_handler(self):
+        #Handles train queue | called by update function
+        if not self.train_queue.empty() and self.first_blocks_free():
+            #get destination block from queue
+            destination_block = self.train_queue.get()
+            Track.add_active_train(self.train_count, destination_block, "manual")
+            self.train_count += 1
+            self.update_active_trains_count() #Move to own function eventually, update periodicly
+            #Update active train list
+            self.send_dispatch_train() 
+ 
+    def send_dispatch_train(self):
+        #ctc_dispatch.emit()
+        pass
+
+    def send_maintenance(self, block_id, maintenance_val):
+        #ctc_maintenance.emit(block_id, maintenance_val)
+        pass
+
+    def send_suggestions(self, suggested_speeds, suggested_authorities):
+        #ctc_suggested.emit(suggested_speeds, suggested_authorities)
+        pass
+
+    def send_exit_blocks(self, exit_blocks):
+        #ctc_exit_blocks.emit(EDGEBROOK_EXIT_BLOCKS[0], EDGEBROOK_EXIT_BLOCKS[1], EDGEBROOK_EXIT_BLOCKS[2])
+        pass
+
+    def send_switch_states():
+        #ctc_switch_states.emit(switchStates)
+        pass
 
     
 class Track: 
@@ -366,9 +488,13 @@ class Track:
 
         if name == "Green":
             self.file_name = Track.GREEN_LINE
+            self.entrance_blocks = [62, 63, 64] #Entrance blocks for green line
         #elif name == "Red":
         #    self.file_name = Track.RED_LINE
-        #ADD ELSE FOR ERROR DETECTION
+        #    self.entrance_blocks = [1, 2, 3] #Entrance blocks for red line
+        else:
+            print("ERROR: Track name not recognized. Please use 'Green' or 'Red'.")
+
 
         self.initialize_blocks()
 
@@ -383,7 +509,7 @@ class Track:
             block_length = int(row['Block Length (m)'])
             block_speed_limit = int(row['Speed Limit (Km/Hr)'])
             block_station = row['Station'] if isinstance(row['Station'], str) else " "
-            block_switch = row['Switch'][7:] if isinstance(row['Switch'], str) else " " #remove "Switch " from string
+            block_switch = row['Switch'][7:] if isinstance(row['Switch'], str) else " " #remove "Switch " from string - MAY NEED UPDATED
             block_crossing = 1 if pd.notna(row['Crossing']) else 0
             block_traffic_light = 1 if pd.notna(row['Light']) else 0
             block_transponder = 1 if pd.notna(row['Transponder']) else 0
@@ -394,11 +520,13 @@ class Track:
             light_color = 0 #0 green, 1 red
             occupancy = 0 #0 unoccupied, 1 occupied, 2 failure | TO CHANGE
             switch_state = 0 #0 left, 1 right
+            maintenance = 0 #0 no maintenance, 1 maintenance 
 
             self.blocks[block_id] = {
                 'section': block_section,
                 'block_id': block_id,
                 'occupancy': occupancy,
+                'maintenance': maintenance,
                 'block_length': block_length,
                 'speed_limit': block_speed_limit,
                 'station': block_station,
@@ -415,14 +543,65 @@ class Track:
 
 
 
-    def set_block_data(self, block_data):
-        pass
+    def set_block_occupancy(self, block_id, occupancy):
+        #sets occupancy for block
+        if block_id in self.blocks:
+            self.blocks[block_id]['occupancy'] = occupancy
+        else:
+            print(f"CTC Set Occupancy ERROR! Block ID {block_id} not found.")
 
-    def add_active_train(self, train):
-        pass
+    def set_block_maintenance(self, block_id, maintenance_val):
+        #sets maintenance for block
+        if block_id in self.blocks:
+            self.blocks[block_id]['maintenance'] = maintenance_val
+        else:
+            print(f"CTC Set Maintenance ERROR! Block ID {block_id} not found.")
+
+    def set_block_switch_state(self, block_id, switch_state):
+        #sets switch state for block
+        if block_id in self.blocks:
+            self.blocks[block_id]['switch_state'] = switch_state
+        else:
+            print(f"CTC Set Switch ERROR! Block ID {block_id} not found.")
+
+    def set_block_light_state(self, block_id, light_color):
+        #sets light state for block
+        if block_id in self.blocks:
+            self.blocks[block_id]['light_color'] = light_color
+        else:
+            print(f"CTC Set Light ERROR! Block ID {block_id} not found.")
+
+    def set_block_crossing_state(self, block_id, crossing_state):
+        #sets crossing state for block
+        if block_id in self.blocks:
+            self.blocks[block_id]['crossing_active'] = crossing_state
+        else:
+            print(f"CTC Set Crossing ERROR! Block ID {block_id} not found.")
+
+    def get_block_data(self, block_id):
+        #Returns block data for given block id
+        if block_id in self.blocks:
+            return self.blocks[block_id]
+        else:
+            return None
+
+    def add_active_train(self, train_id, train_route, train_mode):
+        #Adds train to active trains list
+        self.active_trains[train_id] = {
+            'train_id': train_id,
+            'route': train_route,
+            'next_stop': train_route, #Change so it is the next stop, not the whole route----------
+            'mode': train_mode,
+            'curent_block': None,
+            'authority': None}
+            #add exit blocks, authority, speed, etc.
+        
 
     def get_train_data(self, train_id):
-        pass   
+        if train_id not in self.active_trains:
+            return None
+        else:
+            return self.active_trains[train_id]
 
 
             
