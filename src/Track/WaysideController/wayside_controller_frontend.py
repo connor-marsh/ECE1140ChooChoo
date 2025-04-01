@@ -313,7 +313,10 @@ class WaysideControllerFrontend(QMainWindow):
                     break
             else:
                 break
-                
+
+
+
+
 class WaysideControllerTestbench(QMainWindow):
     def __init__(self, collection_reference: WaysideControllerCollection, idx: int):
         """
@@ -324,10 +327,53 @@ class WaysideControllerTestbench(QMainWindow):
         self.ui = TestbenchUi() # create a ui from the exported file
         self.ui.setupUi(self) 
         self.collection = collection_reference
-        self.index = idx
-        
-        
+        self.controller_index = idx
+        self.block_index = None
+
+        # Used for storing the values input by the user
+        self.block_occupancies = [0] * self.collection.BLOCK_COUNTS[idx]
+        self.suggested_authorities = [None] * self.collection.BLOCK_COUNTS[idx] 
+        self.suggested_speeds = [None] * self.collection.BLOCK_COUNTS[idx] 
+
+
+        self.ui.select_block_list.itemClicked.connect(self.handle_block_selection)  # Connecting the list signals to the slot
+        self.ui.suggested_speed_confirm_button.clicked.connect(self.handle_speed_confirmation)
+        self.ui.suggested_authority_confirm_button.clicked.connect(self.handle_authority_confirmation)
+        self.ui.block_occupancy_confirm_button.clicked.connect(self.handle_occupancy_confirmation)
+
+    @pyqtSlot()
+    def handle_block_selection(self):
+        """
+        Called when the a new item is clicked
+        """
+        self.block_index = self.ui.select_block_list.currentRow()
+
+        self.ui.block_occupancy_combo_box.setCurrentIndex(self.block_occupancies[self.block_index])
+
+    @pyqtSlot()
+    def handle_speed_confirmation(self):
+        """
+        Called when the confirmation next to the suggested speed is input
+        """
+
+    @pyqtSlot()
+    def handle_authority_confirmation(self):
+        """
+        Called when the confirmation next to the suggested authority is input
+        """
     
+    @pyqtSlot()
+    def handle_occupancy_confirmation(self):
+        """
+        Called when the confirmation next to the occupancy is input
+        """
+        if self.ui.block_occupancy_combo_box.currentIndex() == 0:
+            self.collection.controllers[self.controller_index].block_occupancies[self.block_index] = False
+        elif self.ui.block_occupancy_combo_box.currentIndex() == 1 or self.ui.block_occupancy_combo_box.currentIndex() == 2:
+            self.collection.controllers[self.controller_index].block_occupancies[self.block_index] = True
+        else:
+            return
+        self.block_occupancies[self.block_index] = self.ui.block_occupancy_combo_box.currentIndex()
     
     def open_window(self, window_name: str):
         """
