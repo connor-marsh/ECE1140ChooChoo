@@ -60,99 +60,133 @@ class Block:
         self.beacon_data = None
 
 ###############################################################################
+# Train Class
+###############################################################################
+
+class TrainModel:
+    def __init__(self, train_id, initial_block: str):
+        self.train_id = train_id
+        self.current_block = initial_block
+        self.distance_traveled = 0.0
+        self.passenger_count = 0
+
+    def update_location(self, new_block: str, distance_delta: float):
+        self.current_block = new_block
+        self.distance_traveled += distance_delta
+
+    def board_passengers(self, count: int):
+        self.passenger_count += count
+
+    def __str__(self):
+        return (f"Train {self.train_id} | Block: {self.current_block} | "
+                f"Distance: {self.distance_traveled:.2f} | Passengers: {self.passenger_count}")
+
+
+
+###############################################################################
 # Track BackEnd
 ###############################################################################
 
 class TrackBackend:
     def __init__(self, name):
         self.name = name
-        self.block_data = {}
+        self.runtime_status = {} # Runtime status of blocks
+        self.trains = {}  # Key: train_id, holds TrainModel instances
+        self.train_counter = 0
+
+
 
     # Parsing data sent from main track file
-        def parse_track_layout_data(self, filepath):
-            """
-            Loads and parses track layout using the TrackDataClass.
-            """
-            self.track_data = TrackDataClass(filepath)
-            print(f"[{self.name}] Loaded layout for {self.track_data.line_name} line.")
-            print(f"  Total Blocks: {len(self.track_data.blocks)}")
-            for territory, blocks in self.track_data.territory_counts.items():
-                devices = self.track_data.device_counts[territory]
-                print(f"  Territory {territory}: {blocks} blocks, {devices['switches']} switches, "
-                    f"{devices['lights']} lights, {devices['crossings']} crossings")
+    def parse_track_layout_data(self, filepath):
+        """
+        Loads and parses track layout using the TrackDataClass.
+        """
+        self.track_data = TrackDataClass(filepath)
+        print(f"[{self.name}] Loaded layout for {self.track_data.line_name} line.")
+        print(f"  Total Blocks: {len(self.track_data.blocks)}")
+        for territory, blocks in self.track_data.territory_counts.items():
+            devices = self.track_data.device_counts[territory]
+            print(f"  Territory {territory}: {blocks} blocks, {devices['switches']} switches, "
+                f"{devices['lights']} lights, {devices['crossings']} crossings")
+
+
+    # Updating switches, lights, and railway crossings sent from wayside
+    def update_from_wayside_outputs(self, controller_index, switch_states, light_states, crossing_states):
+        block_ids = self.track_data.controller_territory[controller_index]
 
     # Updating switch position , should display the proper next block
     # XOR with current position list and compare to see if update
-    def update_switch_states_from_wayside(self, switch_updates):
-        switch_blocks = [block for block in self.block_data.values() if "SWITCH" in block.infrastructure]
-
-        for i, desired_state in enumerate(switch_updates):
-            if i >= len(switch_blocks):
-                break  # Safety check
-
-            block = switch_blocks[i]
-            if block.switch_state != bool(desired_state):  # XOR behavior
-                block.switch_state = bool(desired_state)
-                direction = "higher-numbered" if desired_state else "lower-numbered"
-                print(f"[Wayside Update] Switch at Block {block.block_id} set to {direction} connection.")
-
-    # Updating railway crossing position, should display if open/closed
-    # XOR with current position list and compare to see if update
-    def update_railway_crossings_from_wayside(self, crossing_updates):
-        crossing_blocks = [block for block in self.block_data.values() if "RAILWAY CROSSING" in block.infrastructure]
-
-        for i, desired_state in enumerate(crossing_updates):
-            if i >= len(crossing_blocks):
-                break
-
-            block = crossing_blocks[i]
-            if block.railway_signal != bool(desired_state):  # XOR behavior
-                block.railway_signal = bool(desired_state)
-                state = "ACTIVE (train approaching)" if desired_state else "INACTIVE (cars can cross)"
-                print(f"[Wayside Update] Railway Crossing at Block {block.block_id} is now {state}.")
-
-
+        switch_keys = [bid for bid in block_ids if bid in self.track_data.switches]
+        for i, state in enumerate(switch_states):
+            if i < len(switch_keys):
+                block_id = switch_keys[i]
+                direction = "higher-numbered" if state else "lower-numbered"
+                print(f"[Wayside Update] Switch at Block {block_id} set to {direction} connection.")
 
     # Updating light states, should display green/red
     # XOR with current position list and compare to see if update
-    def update_light_states_from_wayside(self, light_updates):
-        light_blocks = [block for block in self.block_data.values() if "Light" in block.infrastructure]
+        light_keys = [bid for bid in block_ids if bid in self.track_data.lights]
+        for i, state in enumerate(light_states):
+            if i < len(light_keys):
+                block_id = light_keys[i]
+                color = "Green" if state else "Red"
+                print(f"[Wayside Update] Light at Block {block_id} turned {color}.")
 
-        for i, desired_state in enumerate(light_updates):
-            if i >= len(light_blocks):
-                break
-
-            block = light_blocks[i]
-            current_green = block.traffic_signal == "Green"
-            if current_green != bool(desired_state):  # XOR behavior
-                block.traffic_signal = "Green" if desired_state else "Red"
-                print(f"[Wayside Update] Light at Block {block.block_id} turned {block.traffic_signal}.")
-
-
-
-    # Reading wayside values
-    def update_from_wayside_outputs(self, switch_list, light_list, crossing_list):
-        self.update_switch_states_from_wayside(switch_list)
-        self.update_light_states_from_wayside(light_list)
-        self.update_railway_crossings_from_wayside(crossing_list)
-
+    # Updating railway crossing position, should display if open/closed
+    # XOR with current position list and compare to see if update
+        crossing_keys = [bid for bid in block_ids if bid in self.track_data.crossings]
+        for i, state in enumerate(crossing_states):
+            if i < len(crossing_keys):
+                block_id = crossing_keys[i]
+                status = "ACTIVE (train approaching)" if state else "INACTIVE (safe for cars)"
+                print(f"[Wayside Update] Crossing at Block {block_id} is now {status}.")
 
     # Updating block occupancies, should read if train, maintenance, or failure is there
     # OR with train, maintenance, and failures
-    def update_block_occupancy(self, block_key, occupancy_status): # Need to add train func to read changes
-        block = self.block_data.get(block_key)
-        if block:
-            block.occupancy = Occupancy[occupancy_status.upper()]
-            print(f"Block {block.block_id} occupancy updated to {block.occupancy.name}")
+    # Should dynamically update
+    def update_block_occupancy(self, block_id: str, status: str):
 
-    # Send beacon data when a train is on the specific block?
+        if not any(b.id == block_id for b in self.track_data.blocks):
+            print(f"[Occupancy Update] Block {block_id} not found in static layout.")
+            return
+
+        try:
+            occupancy_enum = Occupancy[status.upper()]
+        except KeyError:
+            print(f"[Occupancy Update] Invalid occupancy status: {status}")
+            return
+
+        self.runtime_status.setdefault(block_id, {})
+        self.runtime_status[block_id]["occupancy"] = occupancy_enum
+
+        failure = self.runtime_status[block_id].get("failure", Failures.NONE)
+        derived_occupied = (
+            occupancy_enum in [Occupancy.OCCUPIED, Occupancy.MAINTENANCE]
+            or failure != Failures.NONE
+        )
+        self.runtime_status[block_id]["is_occupied_display"] = derived_occupied
+
+        print(f"[Occupancy Update] Block {block_id} status = {occupancy_enum.name} -> Display as {'OCCUPIED' if derived_occupied else 'UNOCCUPIED'}")
+
+
+        # Recompute derived occupied state
+        failure = self.runtime_status[block_id].get("failure", Failures.NONE)
+        derived_occupied = (
+            occupancy_enum in [Occupancy.OCCUPIED, Occupancy.MAINTENANCE]
+            or failure != Failures.NONE
+        )
+        self.runtime_status[block_id]["is_occupied_display"] = derived_occupied
+
+        print(f"[Occupancy Update] Block {block_id} status = {occupancy_enum.name} -> Display as {'OCCUPIED' if derived_occupied else 'UNOCCUPIED'}")
+
+    #  WIP Send beacon data when a train is on the specific block?
     def send_beacon_data(self, block_key): # Need to add train func to read changes
         block = self.block_data.get(block_key)
         if block and "Transponder" in block.infrastructure:
             block.beacon_data = f"This is block {block.block_id[1]}{block.block_id[2]}".encode()
             print(f"Beacon data sent for block {block.block_id}")
 
-    # Sending section data to frontend, can probably scrap
+    # WIP - probably going to delete,Sending section data to frontend, can probably scrap
     # Returns a list of block keys that belong to the given section, could scrap if only blocks shown and not section divides
     def send_section_data(self, section_id):
         section_blocks = []
@@ -168,7 +202,7 @@ class TrackBackend:
         print(f"[{self.name}] Section '{section_id}' contains blocks: {section_blocks}")
         return section_blocks
 
-    # Sends main block information
+    # Sends block information
     # Returns the Block for the specified block key
     def send_block_data(self, block_id_str):
         block = self.block_data.get(block_id_str)
@@ -210,10 +244,28 @@ class TrackBackend:
         else:
             print(f"[{self.name}] Train {train_id} not found.")
 
+    # Initializing a train - somewhat WIP not sure if it works yet
+    # Wayside will call when to initialize a train
+    def initialize_train(self):
+        start_block = "GreenK63"
+        
+        # Verify block exists
+        if not any(b.id == start_block for b in self.track_data.blocks):
+            print(f"[Train Init] Block {start_block} not found in static layout.")
+            return
 
-    # Initializing a train
+        # Increment and assign new train
+        TrainModel.train_counter += 1
+        train_id = TrainModel.train_counter
+        new_train = TrainModel(train_id=train_id, current_block=start_block)
 
-    # Wayside will send when to initialize a train
+        # Store train in backend registry
+        self.trains[train_id] = new_train
+
+        # Mark the block as occupied
+        self.update_block_occupancy(start_block, "Occupied")
+
+        print(f"[Train Init] Train {train_id} initialized on {start_block}.")
 
 
 
@@ -224,14 +276,14 @@ class TrackBackend:
 
 # Initializing UI
 
-# When a section is clicked, zoom in (may scrap)
+# WIP When a section is clicked, zoom in (may scrap)
     def load_section(self, section_id, line):
         if line.lower() == "green":
             block_ids = self.backend.green_line.send_section_data(section_id)
         else:
             block_ids = self.backend.red_line.send_section_data(section_id)
 
-# When a block is clicked, display block information
+# WIP When a block is clicked, display block information
     def load_block(self, block_id, line):
         if line.lower() == "green":
             block_data = self.backend.green_line.send_block_data(block_id)
@@ -259,17 +311,13 @@ class TrackModelApp:
         self.outside_temp = 70.0
         self.track_heater_status = False
 
+    # WIP Uploading a Track Layout with Track Builder
     def upload_track_layout_data(self, file_path):
-        df = pd.read_excel(file_path)
-
-        red_df = df[df["Line"].str.strip().str.lower() == "red"]
-        green_df = df[df["Line"].str.strip().str.lower() == "green"]
-
-        self.red_line.parse_track_layout_data(red_df)
-        self.green_line.parse_track_layout_data(green_df)
-
+        self.red_line.parse_track_layout_data(file_path)
+        self.green_line.parse_track_layout_data(file_path)
         print("Successfully loaded and parsed layout for Red and Green lines.")
 
+    # Changing Temperature
     def change_temperature(self, new_temp):
         try:
             new_temp = float(new_temp)
@@ -279,20 +327,9 @@ class TrackModelApp:
         except ValueError:
             print("Invalid temperature input.")
 
-    def send_wayside_commanded(self, train_id, wayside_speed, wayside_authority):
-        for i in range(3):
-            print(f"Wayside commanded data to Train {train_id}: Speed={wayside_speed}, Authority={wayside_authority} (Send #{i+1})")
 
 # Example usage
 if __name__ == "__main__":
     track_model = TrackModelApp()
     track_model.upload_track_layout_data("Track Layout & Vehicle Data vF5.xlsx")
     track_model.change_temperature(35)
-
-    block_key = ("Green", "A", 1)
-    track_model.green_line.toggle_switch(block_key)
-    track_model.green_line.toggle_railway_crossing(block_key)
-    track_model.green_line.update_block_occupancy(block_key, "Occupied")
-    track_model.green_line.send_beacon_data(block_key)
-
-    track_model.send_wayside_commanded(train_id=1, wayside_speed=50, wayside_authority=500)
