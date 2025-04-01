@@ -9,7 +9,7 @@ import globals.track_data_class as init_track_data
 import globals.signals as signals
 from Track.WaysideController.wayside_controller_backend import WaysideController
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject, QTimer
 
 class WaysideControllerCollection(QObject):
     """
@@ -88,7 +88,6 @@ class WaysideControllerCollection(QObject):
             return (switches,lights,crossings) # TRIPLE REDUNDANCY?
         else:
             raise IndexError(f"The input index to the Wayside Controller is not in range")
-
 
     def get_wayside_commanded(self, controller_index : int) -> tuple[list[float], list[float]]:
         """
