@@ -10,13 +10,15 @@ import time
 import queue 
 import pandas as pd
 import openpyxl 
-from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
+from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt, pyqtSlot, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem
 from PyQt5.QtGui import QColor
 
 from centralized_traffic_controller_ui import Ui_MainWindow as CtcUI
 from centralized_traffic_controller_test_bench_ui import Ui_ctc_TestBench as CtcTestBenchUI
 import globals.global_clock as global_clock
+import globals.track_data_class as init_track_data
+import globals.signals as signals
 
 
 class CtcBackEnd():
@@ -46,7 +48,13 @@ class CtcBackEnd():
         self.wall_clock = global_clock.clock
 
         #Read in signal from Track Model
-        self.trackModel.track_tickets.connect(self.tickets_handler()) #need to specify param?
+        signals.track_tickets.connect(self.update_tickets) 
+
+        signals.wayside_block_occupancies.connect(self.update_occupancy)
+        signals.wayside_switches.connect(self.update_switches())
+        signals.wayside_lights.connect(self.update_lights())
+        signals.wayside_crossings.connect(self.update_crossings())
+        
         
         self.suggested_speed = [] #length of track, each block has a suggested speed, speed limit for now
         self.suggested_authority = [] #length of track, each block has a suggested authority, -1 for no change
@@ -65,7 +73,6 @@ class CtcBackEnd():
         
 
     def backend_update(self):
-        
         if self.wall_clock.get_minute() != self.last_minute:
             self.elapsed_mins += 1
             self.last_minute = self.wall_clock.get_minute()
@@ -126,13 +133,29 @@ class CtcBackEnd():
         self.test_bench.print_suggested_authority(override_authority)
 
 
-
-    def tickets_handler(self, num_tickets):
+    @pyqtSlot(int)
+    def update_tickets(self, num_tickets):
         #Takes tickets sold from track model and updates throughput
         self.total_tickets += num_tickets
         self.throughput = self.total_tickets / (self.elapsed_mins/60) #Tickets per hour
         #Send throughput to UI
         self.frontend.update_throughput(self.throughput)
+
+    @pyqtSlot(list)
+    def update_occupancy(self, occupancy_list):
+        pass
+
+    @pyqtSlot(list)
+    def update_switches(self, switch_list):
+        pass
+
+    @pyqtSlot(list)
+    def update_lights(self, light_list):
+        pass
+
+    @pyqtSlot(list)
+    def update_crossings(self, block_id, crossing_state):
+        pass
 
     def first_blocks_free(self):
         #Checks if first blocks are free | called by dispatch queue handler
@@ -168,24 +191,21 @@ class CtcBackEnd():
             self.send_dispatch_train() 
  
     def send_dispatch_train(self):
-        #ctc_dispatch.emit()
-        pass
+        signals.ctc_dispatch.emit()
 
     def send_maintenance(self, block_id, maintenance_val):
-        #ctc_maintenance.emit(block_id, maintenance_val)
-        pass
+        signals.ctc_maintenance.emit(block_id, maintenance_val)
 
     def send_suggestions(self, suggested_speeds, suggested_authorities):
-        #ctc_suggested.emit(suggested_speeds, suggested_authorities)
-        pass
+        signals.ctc_suggested.emit(suggested_speeds, suggested_authorities)
 
     def send_exit_blocks(self, exit_blocks):
-        #ctc_exit_blocks.emit(EDGEBROOK_EXIT_BLOCKS[0], EDGEBROOK_EXIT_BLOCKS[1], EDGEBROOK_EXIT_BLOCKS[2])
-        pass
+        signals.ctc_exit_blocks.emit() #Currently Unused, need for iteration #4
 
     def send_switch_states():
-        #ctc_switch_states.emit(switchStates)
-        pass
+        switch_id = "0" #String to locate switch
+        switch_state = False #False for first option, True for second option
+        signals.ctc_switch_states.emit(switch_id, switch_state)
 
     
 class DummyTrain:
@@ -210,15 +230,13 @@ class DummyTrain:
     def set_route(self, route):
         self.route = route
 
-class Blocks:
-    pass
 
 class Track: 
     def __init__(self, name):
         super().__init__()
         self.name = name
-        self.blocks = {}
         self.active_trains = {}
+
 
         if name == "Green":
             self.entrance_blocks = [62, 63, 64] #Entrance blocks for green line
@@ -232,7 +250,12 @@ class Track:
 
 
     def initialize_blocks(self):
-        pass
+        track_data = init_track_data.lines[self.name]
+        self.LINE_NAME = self.name
+        self.blocks = track_data.blocks 
+        self.switches = track_data.switches
+        self.lights = track_data.lights
+        self.crossings = track_data.crossings
 
     def add_active_train(self, train_id, train_route, train_mode):
         #Adds train to active trains list
