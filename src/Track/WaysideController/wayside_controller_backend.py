@@ -30,10 +30,10 @@ class WaysideController():
         self.crossing_signals = [False] * crossing_count # List of crossings [ACTIVE == True, INACTIVE == False]
         self.previous_occupancies = [False] * block_count # List of previous block occupancies [OCCUPIED == True, UNOCCUPIED == False]
         self.exit_blocks = [False] * exit_block_count # List of exit blocks [1 hot vector, SELECTED/CURRENT == True, NOT SELECTED == False ]
-        self.suggested_authorities = [None] * block_count # List of the suggested authority to each block
-        self.suggested_speeds = [None] * block_count # List of the suggested speed to each block
-        self.commanded_authorities = [None] * block_count # List of the commanded authority to each block
-        self.commanded_speeds = [None] * block_count # List of the commanded speed to each block
+        self.suggested_authorities = [0] * block_count # List of the suggested authority to each block
+        self.suggested_speeds = [0] * block_count # List of the suggested speed to each block
+        self.commanded_authorities = [0] * block_count # List of the commanded authority to each block
+        self.commanded_speeds = [0] * block_count # List of the commanded speed to each block
         
         
 
@@ -64,7 +64,7 @@ class WaysideController():
 
             print("✅ PLC program loaded successfully!")
 
-        except (FileNotFoundError, ValueError, TypeError) as e:
+        except (FileNotFoundError, ValueError, TypeError, IndexError) as e:
             print(f"\n❌ {e}\nPlease enter a valid PLC program file.")
             self.program = None # make sure there is no program stored
             return False  # Indicate failure

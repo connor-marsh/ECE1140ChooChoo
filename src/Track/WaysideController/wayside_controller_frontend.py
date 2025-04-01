@@ -10,9 +10,9 @@ from pathlib import Path
 from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem, QFileDialog, QListWidget, QListWidgetItem, QLabel
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer
-from Track.WaysideController.track_constants import BLOCK_COUNT, SWITCH_COUNT, LIGHT_COUNT, CROSSING_COUNT, CONTROLLER_COUNT, EXIT_BLOCK_COUNT
 from Track.WaysideController.wayside_controller_ui import Ui_MainWindow as WaysideUi
 from Track.WaysideController.wayside_controller_testbench_ui import Ui_MainWindow as TestbenchUi
+
 
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
@@ -21,17 +21,17 @@ class WaysideControllerFrontend(QMainWindow):
     A class that contains several wayside controllers and handles interfacing with the other modules such as the Track Model and The CTC.
     The front end that will display information about the currently selected wayside controller is also contained in this class. Inherits from teh QMainWindow because ?
     """
-    # signals below, if used should move to external file that all modules can reference?
-    #open_testbench = pyqtSignal(str, int) # signal that opens a testbench with the name of the window
-    #close_testbench = pyqtSignal(int) # signal that closes a testbench
+
 
     def __init__(self, collection_reference: WaysideControllerCollection):
         """
         :param collection_reference: Reference to the Wayside Collection object so that the UI can display the values in the backend
         """
+
         super().__init__()
         self.collection = collection_reference
         self.current_controller_index = 0 # Tells the ui which backend controller from the collection to reference
+        self.current_range = None # Tells the ui which range of blocks to display (initial value should guarantee that the update runs to change the table row count)
         self.ui = WaysideUi() # create a ui from the exported file
         self.ui.setupUi(self) 
         self.setWindowTitle("Wayside Controller Module")
@@ -61,8 +61,8 @@ class WaysideControllerFrontend(QMainWindow):
         Responsible for populating the combo box for selecting wayside controllers with the appropriate text
         """
         combo_box = self.ui.controller_select_combo_box
-        for i in range(CONTROLLER_COUNT[self.collection.line_name]):
-            controller_name = self.collection.line_name + " Line Controller #" + str(i + 1)
+        for i in range(self.collection.CONTROLLER_COUNT):
+            controller_name = self.collection.LINE_NAME + " Line Controller #" + str(i + 1)
             combo_box.addItem(controller_name)
 
        
@@ -97,20 +97,21 @@ class WaysideControllerFrontend(QMainWindow):
         :return changed: If the row count has changed then this value will be True
         """
 
-        if table.rowCount() < BLOCK_COUNT[self.collection.line_name][self.current_controller_index]: # if the current row count is less
-            for row in range(table.rowCount(), BLOCK_COUNT[self.collection.line_name][self.current_controller_index]):
-                # NEED TO INSET THE NAME OF THE ROW AS THE NAME OF THE BLOCK, HOW?? Talk to aaron and pj and pray they have a way already
-                # THIS WAY OF DOING IT COULD BE BAD SINCE ROW NAMES NEED TO CHANGE REGARDLESS
-                table.insertRow(row) # insert until row count is equivalent
-            
-            return True
-        elif table.rowCount() > BLOCK_COUNT[self.collection.line_name][self.current_controller_index]:
-            for row in range(BLOCK_COUNT[self.collection.line_name][self.current_controller_index], table.rowCount()):
-                table.removeRow(row) # remove until row count is equivalent
-            
-            return True
-        return False
-    
+        if self.current_range != self.collection.BLOCK_RANGES[self.current_controller_index]: # check to see if the controller changed
+            self.current_range = self.collection.BLOCK_RANGES[self.current_controller_index] # update the range to match the current controller
+            table.setRowCount(self.collection.BLOCK_COUNTS[self.current_controller_index]) # update the row count of the table
+            for i in range(*self.current_range): # * is the unpacking operator, it unpacks the tuple so that the 0th entry is the lower bound and the 1st entry is the upper
+                row = 0 + i - self.current_range[0] # The range of the blocks that is referenced does not match the indexing to the rows
+                text = self.collection.blocks[i].id # want to use the block id as the label for the row
+                if table.verticalHeaderItem(row) != None: # check to see if it exists
+                    table.verticalHeaderItem(row).setText(text) # can just set the text of the current item
+                else: # it does in fact exist
+                    header_item = QTableWidgetItem(text) # otherwise create new item with text
+                    table.setVerticalHeaderItem(row, header_item)
+            return True # The controller displayed changed
+        else:
+            return False # The controller displayed did not change
+
     def populate_table(self, table: QTableWidget):
         """
         Writes the latest values from the currently selected backend to the table
@@ -142,43 +143,29 @@ class WaysideControllerFrontend(QMainWindow):
                     table.setItem(row, col, item) # put the item in the table
                 row += 1
     
-    def populate_list(self, q_list: QListWidget):
+    def populate_lists(self):
         """
         Adds entries to the input list. Runs every ui update that the controller has switched.
-
-        :param list: A pyqt QListWidget
         """
-        q_list.clear()
-        list_name = q_list.objectName()
-        active_controller = self.collection.controllers[self.current_controller_index]
+        self.ui.switch_list.clear()
+        self.ui.light_list.clear()
+        self.ui.crossing_list.clear()
+        
+        for i in range(*self.current_range):
+            block = self.collection.blocks[i]
+            if block.switch: # if the block has a switch (I BELIEVE THESE ARE MUTUALLY EXCLUSIVE)
+                text = "Switch " + block.id
+                item = QListWidgetItem(text)
+                self.ui.switch_list.addItem(item)
+            if block.light: # if the block has a light
+                text = "Light " + block.id
+                item = QListWidgetItem(text)
+                self.ui.light_list.addItem(item)
+            if block.crossing: # if the block has a crossing
+                text = "Crossing " + block.id
+                item = QListWidgetItem(text)
+                self.ui.crossing_list.addItem(item)
 
-        if list_name == "switch_list":
-            row_count = SWITCH_COUNT[self.collection.line_name][self.current_controller_index]
-            for i in range(row_count):
-                if active_controller.switch_positions[i] != None:
-                    item = QListWidgetItem()
-                    text = "Switch " + str(i + 1) # FOR NOW, WILL NEED TO FIGURE OUT HOW TO GET THE SPECIFIC LABEL
-                    item.setText(text)
-                    q_list.addItem(item)
-        elif list_name == "light_list":
-            row_count = LIGHT_COUNT[self.collection.line_name][self.current_controller_index]
-            for i in range(row_count):
-                if active_controller.light_signals[i] != None:
-                    item = QListWidgetItem()
-                    text = "Light " + str(i + 1) # FOR NOW, WILL NEED TO FIGURE OUT HOW TO GET THE SPECIFIC LABEL
-                    item.setText(text)
-                    q_list.addItem(item)
-        elif list_name == "crossing_list":
-            row_count = CROSSING_COUNT[self.collection.line_name][self.current_controller_index]
-            for i in range(row_count):
-                if active_controller.crossing_signals[i] != None:
-                    item = QListWidgetItem()
-                    text = "Crossing " + str(i + 1) # FOR NOW, WILL NEED TO FIGURE OUT HOW TO GET THE SPECIFIC LABEL
-                    item.setText(text)
-                    q_list.addItem(item)
-        else:
-            raise ValueError(f"Invalid Input. QListWidget Does not match any in the UI.")
-    
     def show_current_selected_output(self, q_list: QListWidget, label: QLabel):
         """
         Updates the corresponding label on the ui with the output of the list item that is selected
@@ -194,11 +181,13 @@ class WaysideControllerFrontend(QMainWindow):
     
         index = q_list.currentRow()
         current_item = q_list.currentItem()
+        
 
         if index >= 0 and current_item != None:
             if list_name == "switch_list" and label_name == "switch_label":
-                item_name = current_item.text() 
-                value = "Up" if active_controller.switch_positions[index] else "Down"
+                item_name = current_item.text()
+                id = item_name[7:] # extract the block id from the text
+                value = self.collection.switches[id].positions[1] if active_controller.switch_positions[index] else self.collection.switches[id].positions[0] # reference the dictionary since specific to the switch
                 label.setText(item_name + ": " + value)
             elif list_name == "light_list" and label_name == "light_label":
                 item_name = current_item.text()
@@ -219,7 +208,6 @@ class WaysideControllerFrontend(QMainWindow):
                 label.setText(text)
             elif list_name == "crossing_list" and label_name == "crossing_label":
                 text = "Crossing: Not Selected"
-                value = "Active" if active_controller.crossing_signals[index] else "Inactive"
                 label.setText(text)
             else:
                 raise ValueError(f"Invalid Input: Make sure the input list and label correspond.")
@@ -251,9 +239,7 @@ class WaysideControllerFrontend(QMainWindow):
 
         if controller_changed: # Perform any ui updates that only happen when the controller changes
             self.ui.menu_bar.setTitle(self.ui.controller_select_combo_box.currentText())
-            self.populate_list(self.ui.switch_list)
-            self.populate_list(self.ui.light_list)
-            self.populate_list(self.ui.crossing_list)
+            self.populate_lists()
         
         self.populate_table(self.ui.block_table) # populate the table with values from the backend regardless, but only after the rows have been updated
         
@@ -301,7 +287,6 @@ class WaysideControllerFrontend(QMainWindow):
             testbench_window_name = self.ui.menu_bar.title() + " Testbench"
             active_testbench = self.collection.testbenches[self.current_controller_index]
             active_testbench.open_window(testbench_window_name)
-            active_controller.maintenance_mode = True
              # Set the exit blocks to be occupied and open the test bench window 
              # Open the test bench window probably other stuff todo as well but whale i cant think of it
           
@@ -310,7 +295,7 @@ class WaysideControllerFrontend(QMainWindow):
             #self.close_testbench.emit() # close the window
             active_testbench = self.collection.testbenches[self.current_controller_index]
             active_testbench.hide_window()
-            active_controller.maintenance_mode = False
+            
             # SWITCH BACK TO READING THE VALUES from other modules?
             # close the testbench window
 
@@ -329,7 +314,10 @@ class WaysideControllerFrontend(QMainWindow):
                     break
             else:
                 break
-                
+
+
+
+
 class WaysideControllerTestbench(QMainWindow):
     def __init__(self, collection_reference: WaysideControllerCollection, idx: int):
         """
@@ -337,44 +325,140 @@ class WaysideControllerTestbench(QMainWindow):
         :param idx: The index that matches the testbench to the backend controller
         """
         super().__init__()
-        self.test_ui = TestbenchUi() # create a ui from the exported file
-        self.test_ui.setupUi(self) 
+        self.ui = TestbenchUi() # create a ui from the exported file
+        self.ui.setupUi(self) 
         self.collection = collection_reference
-        self.index = idx
-        # populate the ui with the backend stuff somehow?
+        self.controller_index = idx
+        self.current_block_index = None
+        self.first_open = True # Used to check to see if the testbench has been open before
+        # Used for storing the values input by the user
+        self.block_occupancies =     [None] * self.collection.BLOCK_COUNTS[idx]
+        self.suggested_authorities = [None] * self.collection.BLOCK_COUNTS[idx] 
+        self.suggested_speeds =      [None] * self.collection.BLOCK_COUNTS[idx] 
+
+
+        self.ui.select_block_list.itemClicked.connect(self.handle_block_selection)  # Connecting the list signals to the slot
+        self.ui.suggested_speed_confirm_button.clicked.connect(self.handle_speed_confirmation)
+        self.ui.suggested_authority_confirm_button.clicked.connect(self.handle_authority_confirmation)
+        self.ui.block_occupancy_confirm_button.clicked.connect(self.handle_occupancy_confirmation)
+
+    @pyqtSlot()
+    def handle_block_selection(self):
+        """
+        Called when the a new item is clicked
+        """
+        self.current_block_index = self.ui.select_block_list.currentRow()
+
+        # Update the suggested speed fields to match the corresponding blocks user input, otherwise clear the block since it has nothing 
+        if self.current_block_index != None:
+            if self.block_occupancies[self.current_block_index] != None: # Check to update the occupancy
+                self.ui.block_occupancy_combo_box.setCurrentIndex(self.block_occupancies[self.current_block_index])
+            else:
+                self.ui.block_occupancy_combo_box.setCurrentIndex(-1) # Set to the default no option selected
+
+            if self.suggested_speeds[self.current_block_index] != None: 
+                self.ui.suggested_speed_line_edit.setText(self.suggested_speeds[self.current_block_index])
+            else:
+                self.ui.suggested_speed_line_edit.clear()
+
+            if self.suggested_authorities[self.current_block_index] != None: 
+               self.ui.suggested_authority_line_edit.setText(self.suggested_authorities[self.current_block_index])
+            else:
+                self.ui.suggested_authority_line_edit.clear()
+
+
+    @pyqtSlot()
+    def handle_speed_confirmation(self):
+        """
+        Called when the confirmation next to the suggested speed is input
+        """
+        if self.current_block_index != None:
+            self.suggested_speeds[self.current_block_index] = self.ui.suggested_speed_line_edit.text()
+            self.collection.controllers[self.controller_index].suggested_speeds[self.current_block_index] = float(self.ui.suggested_speed_line_edit.text())
+
+    @pyqtSlot()
+    def handle_authority_confirmation(self):
+        """
+        Called when the confirmation next to the suggested authority is input
+        """
+        if self.current_block_index != None:
+            self.suggested_authorities[self.current_block_index] = self.ui.suggested_authority_line_edit.text()
+            self.collection.controllers[self.controller_index].suggested_authorities[self.current_block_index] = float(self.ui.suggested_authority_line_edit.text())
+   
+    @pyqtSlot()
+    def handle_occupancy_confirmation(self):
+        """
+        Called when the confirmation next to the occupancy is input
+        """
+        if self.current_block_index != None:
+            if self.ui.block_occupancy_combo_box.currentIndex() == 0:
+                self.collection.controllers[self.controller_index].block_occupancies[self.current_block_index] = False
+                
+            elif self.ui.block_occupancy_combo_box.currentIndex() == 1 or self.ui.block_occupancy_combo_box.currentIndex() == 2:
+                self.collection.controllers[self.controller_index].block_occupancies[self.current_block_index] = True
     
-    
+            self.block_occupancies[self.current_block_index] = self.ui.block_occupancy_combo_box.currentIndex()
     def open_window(self, window_name: str):
         """
         opens the testbench window when the user switches to maintenance mode
 
         :param window_name: The title of the menu? window
         """
-        self.setWindowTitle("Wayside Testbench Module")
-        self.test_ui.menu_Blue_Line_Controller_1.setTitle(window_name)
+        self.collection.controllers[self.controller_index].maintenance_mode = True
+        if self.first_open: # On the first time opening the testbench the ui elements need to be initialized 
+            self.setWindowTitle("Wayside Testbench Module")
+            self.ui.menu_Blue_Line_Controller_1.setTitle(window_name)
+            self.populate_list()
+            self.first_open = False
+
         self.show()
     
     def hide_window(self): 
         """
-        My defined function for hiding the testbench window when the user exits maintenance mode via the combo box on the ui
+        My defined function for hiding the testbench window resets it to the initial condition
         """
-        # just gonna leave the window in the previous state it was in if it ever is reopened
-        # can add more here if there needs to be any handling of exiting the testbench since its called in both teh closeEvent and from the frontend main window
-       
-        self.hide()
+        active_controller = self.collection.controllers[self.controller_index] # get the active train so that values can be reset
+        
+        # Reset the testbench values
+        self.current_block_index = None
+        self.block_occupancies = [None] * len(self.block_occupancies)
+        self.suggested_speeds = [None] * len(self.suggested_speeds)
+        self.suggested_authorities = [None] * len(self.suggested_authorities)
+
+        
+        # Reset the values set to the wayside
+        active_controller.block_occupancies = [False] * len(active_controller.block_occupancies)
+        active_controller.suggested_speeds = [0] * len(active_controller.suggested_speeds)
+        active_controller.suggested_authorities = [0] * len(active_controller.suggested_authorities)
+
+        # Reset UI elements
+        self.ui.block_occupancy_combo_box.setCurrentIndex(-1)
+        self.ui.suggested_authority_line_edit.clear()
+        self.ui.suggested_speed_line_edit.clear()
+        self.ui.select_block_list.setCurrentRow(-1)
+        
+        self.collection.controllers[self.controller_index].maintenance_mode = False # User has closed the window so maintenance mode should no longer be active
+        self.hide() # the illusion that the window is no longer with us, but really the testbench was the friends we made along the way
     
     def closeEvent(self, event):
         """
-        Overridden Mainwindow function that handles when the user clicks the exit button in the corner of the window
+        Overridden Mainwindow function so that as long as the main wayside module is running the testbench is never fully destroyed
         """
-        self.collection.controllers[self.index].maintenance_mode = False # User has closed the window so maintenance mode should no longer be active
-        self.hide_window()
+        self.hide_window() # call the clean up to hide the window
         event.ignore() # do not let the user actually destroy the window
 
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    collection = WaysideControllerCollection("GREEN")
-    collection.frontend.show()
-    sys.exit(app.exec_())
+    def populate_list(self):
+        """
+        Adds entries to the list on the testbench ui corresponding to the territory the wayside controller testbench is connected to
+        """
+        for i in range(*self.collection.frontend.current_range):
+            block = self.collection.blocks[i]
+            text = "Block " + block.id
+            if block.switch:
+                text = text + ', Has Switch'
+            if block.light:
+                text = text + ', Has Light'
+            if block.crossing:
+                text = text + ', Has Crossing'
+            item = QListWidgetItem(text)
+            self.ui.select_block_list.addItem(item)
