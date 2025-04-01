@@ -8,6 +8,7 @@ Description:
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
+
 class Signals(QObject):
     ctc_switch_maintenance = pyqtSignal(str, bool) 
     ctc_exit_blocks = pyqtSignal(list)
@@ -21,10 +22,13 @@ class Signals(QObject):
     wayside_lights = pyqtSignal(list)
     wayside_crossings = pyqtSignal(list)
 
+    track_tickets = pyqtSignal(int)
+
     def __init__(self):
         super().__init__()
 
-    track_tickets = pyqtSignal(int)
+    
+    
 def init():
     global communication
     communication = Signals()
