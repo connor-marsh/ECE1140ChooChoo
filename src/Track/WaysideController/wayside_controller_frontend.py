@@ -13,6 +13,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer
 from Track.WaysideController.wayside_controller_ui import Ui_MainWindow as WaysideUi
 from Track.WaysideController.wayside_controller_testbench_ui import Ui_MainWindow as TestbenchUi
 
+
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
 class WaysideControllerFrontend(QMainWindow):
@@ -26,6 +27,7 @@ class WaysideControllerFrontend(QMainWindow):
         """
         :param collection_reference: Reference to the Wayside Collection object so that the UI can display the values in the backend
         """
+
         super().__init__()
         self.collection = collection_reference
         self.current_controller_index = 0 # Tells the ui which backend controller from the collection to reference
@@ -415,11 +417,21 @@ class WaysideControllerTestbench(QMainWindow):
         """
         My defined function for hiding the testbench window resets it to the initial condition
         """
+        active_controller = self.collection.controllers[self.controller_index] # get the active train so that values can be reset
+        
+        # Reset the testbench values
         self.current_block_index = None
         self.block_occupancies = [None] * len(self.block_occupancies)
         self.suggested_speeds = [None] * len(self.suggested_speeds)
         self.suggested_authorities = [None] * len(self.suggested_authorities)
 
+        
+        # Reset the values set to the wayside
+        active_controller.block_occupancies = [False] * len(active_controller.block_occupancies)
+        active_controller.suggested_speeds = [0] * len(active_controller.suggested_speeds)
+        active_controller.suggested_authorities = [0] * len(active_controller.suggested_authorities)
+
+        # Reset UI elements
         self.ui.block_occupancy_combo_box.setCurrentIndex(-1)
         self.ui.suggested_authority_line_edit.clear()
         self.ui.suggested_speed_line_edit.clear()
