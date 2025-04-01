@@ -927,6 +927,13 @@
            </property>
           </widget>
          </item>
+         <item row="4" column="4">
+          <widget class="QPushButton" name="service_brake_apply_button">
+           <property name="text">
+            <string>Apply</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
