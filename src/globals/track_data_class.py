@@ -15,38 +15,38 @@ class Section: # has an attribute to help determine the direction of travel
     increasing: int = 0 # 0 is decreasing, 1 is increasing, 2 is bidirectional with regard to the train moving over the blocks
 
 @dataclass(frozen=True) # makes it immutable (values should not change once read from excel)
-class Block: # contains unchanging information
-    id: str = ""
-    length: int = 0
-    speed_limit: float = 0
-    grade: float = 0
-    underground: bool = 0
-    territory: int = 0
-    station: bool = 0
-    switch: bool = 0
-    light: bool = 0
-    crossing: bool = 0
-    beacon: bool = 0
+class Block: # contains unchanging information about blocks
+    id: str = "" # A1, B4, C12 etc..
+    length: int = 0 # length of the block in yards
+    speed_limit: float = 0 # speed limit in mph
+    grade: float = 0 # percent grade
+    underground: bool = False # is underground
+    territory: int = 0 # integer that is 1 based indexed for each wayside
+    station: bool = False # has a station 
+    switch: bool = False # has a switch
+    light: bool = False # has a light
+    crossing: bool = False # has a crossing
+    beacon: bool = False # has a beacon
     
 @dataclass(frozen=True)
 class Station:
-    name: str = ""
-    doors: int = 0  
+    name: str = "" # name of the station
+    doors: int = 0  # 0 for left side, 1 for right side, 2 for both sides
     
 @dataclass(frozen=True)
 class Switch:
-    territory: int = 0
-    positions: tuple = ("","") # 0, 1
+    territory: int = 0 # which wayside it corresponds to
+    positions: tuple = ("","") # 0, 1 # tuple of strings containing position if false, true
 
 @dataclass(frozen=True)
 class Light:
-    territory: int = 0
-    positions: tuple = ("Red","Green") # 0, 1
+    territory: int = 0, # which wayside it corresponds to
+    positions: tuple = ("Red","Green") # 0, 1 # tuple of strings containing position if false, true
 
 @dataclass(frozen=True)
 class Crossing:
-    territory: int = 0
-    positions: tuple = ("Inactive","Active") # 0, 1
+    territory: int = 0 # which wayside it corresponds to
+    positions: tuple = ("Inactive","Active") # 0, 1 # tuple of strings containing position if false, true
 
 @dataclass(frozen=True)
 class Beacon:
@@ -61,19 +61,23 @@ class TrackDataClass():
         :param filepath: The filepath to an excel containing information about the track
         """
         if filepath != None:
-            dataframe = pd.read_excel(filepath, engine="openpyxl") 
+            dataframe = pd.read_excel(filepath, engine="openpyxl", sheet_name="Sheet1")
+            dataframe2 = pd.read_excel(filepath,engine="openpyxl",sheet_name="Sheet2")
             dictionary = {key: list(dataframe[key]) for key in dataframe.columns}
+            dictionary2 = {key: list(dataframe2[key]) for key in dataframe2.columns}
             self.line_name = dictionary["Line"][0]
 
-            self.populate_blocks(dictionary)
+            self.populate_blocks(dictionary,dictionary2)
             self.count_territory()  
         
 
-    def populate_blocks(self, dictionary):
+    def populate_blocks(self, dictionary, dictionary2):
         """
         Creates a list of blocks from a dictionary imported from the excel sheet
 
-        :param dictionary: A dictionary created from a pandas dataframe of the track excel sheet
+        :param dictionary: A dictionary created from a pandas dataframe of the track excel sheet "Main sheet containing info about entire track"
+
+        :param dictionary2: Another dictionary with information about each section
         """
         self.blocks = [] # list that contains every block's (a struct) properties indexed 0 - 149 for green line
         self.switches = {} # a dictionary that allows lookup of a switch at a certain block id, if block.switch: switch[block.id].position(0), is equivalent to getting the switches position when plc outputs false
@@ -120,7 +124,15 @@ class TrackDataClass():
                 self.stations[block_id] = station_obj
             if beacon_obj:
                 self.beacons[block_id] = beacon_obj
-    
+        
+        self.sections = []
+
+        for row in range(len(dictionary2["Section"])):
+            section = Section(dictionary2["Increasing"][row])
+            self.sections.append(section)
+            print(section.increasing)
+        
+        
     def parse_switch(self, value: str, territory: int):
         """
         Parses a switch column entry into an immutable Switch object.
@@ -183,6 +195,6 @@ class TrackDataClass():
         
 def init():
     global lines 
-    lines = defaultdict(TrackDataClass)
+    lines = {}
     line = TrackDataClass("src\Track\TrackModel\GreenLine_Layout.xlsx")
     lines[line.line_name] = line
