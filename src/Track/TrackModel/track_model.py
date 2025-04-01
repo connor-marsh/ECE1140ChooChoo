@@ -11,6 +11,8 @@ from PyQt5.QtWidgets import QFileDialog, QMainWindow, QTableWidgetItem
 from track_model_ui import Ui_MainWindow as TrackModelUI
 from test_bench_track_model import Ui_MainWindow as TBTrackModelUI
 
+from Train.train_collection import TrainCollection
+
 # Ensure proper scaling on high-DPI screens
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
@@ -63,13 +65,23 @@ class Block:
 # Train Class
 ###############################################################################
 
-class TrainModel:
+class Train:
     def __init__(self, train_id, initial_block: str):
         self.train_id = train_id
         self.current_block = initial_block
         self.distance_traveled = 0.0
         self.passenger_count = 0
+        self.travel_direction = 0 # CHANGE THIS MOST LIKELY
+        self.train_model = None
 
+    def update(self):
+        distance_within_block = self.train_model.position - self.distance_traveled
+        # if distance within block > length of block
+        # then update_location(new_block=bloc, distance_delta=distance_within_block)
+        if distance_within_block > self.block.length:
+            # implement still
+
+        
     def update_location(self, new_block: str, distance_delta: float):
         self.current_block = new_block
         self.distance_traveled += distance_delta
@@ -91,8 +103,25 @@ class TrackBackend:
     def __init__(self, name):
         self.name = name
         self.runtime_status = {} # Runtime status of blocks
-        self.trains = {}  # Key: train_id, holds TrainModel instances
+        self.trains = []  # Key: holds Train instances
         self.train_counter = 0
+        self.train_collection = TrainCollection()
+
+        self.prev_time = None
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self.update)
+        self.timer.start(100)
+
+    def update(self):
+        self.update_train_collection()
+
+    # Populating the trains with information sent from train
+    def update_train_collection(self):
+        for train in self.trains:
+            data = {self.send_wayside_commanded, self.send_beacon_data, self.block.grade, self.station.passengers} # Need to update wayside func
+            # put in wayside speed, wayside authority (only if new value), beacon data (if it exists), grade, passengers
+            train.train_model.set_input_data(wayside_data=data)
+            train.update()
 
     # Parsing data sent from main track file
     def parse_track_layout_data(self, filepath):
@@ -185,7 +214,7 @@ class TrackBackend:
 
         print(f"[Beacon] Beacon data sent on block {block_id}: {beacon_data.decode()}")
 
-
+        return beacon_data
 
     # WIP - probably going to delete,Sending section data to frontend, can probably scrap
     # Returns a list of block keys that belong to the given section, could scrap if only blocks shown and not section divides
@@ -256,11 +285,13 @@ class TrackBackend:
 
         # Increment and assign new train
         self.train_counter += 1
-        train_id = self.train_counter
-        new_train = TrainModel(train_id=train_id, current_block=start_block)
+        train_id = self.train_counter-1
+        new_train = Train(train_id=train_id, current_block=start_block)
+        self.train_collection.createTrain()
+        new_train.train_model = self.train_collection.train_list[-1]
 
         # Store train in backend registry
-        self.trains[train_id] = new_train
+        self.trains.append(new_train)
 
         # Mark the block as occupied
         self.update_block_occupancy(start_block, "Occupied")
@@ -269,8 +300,43 @@ class TrackBackend:
 
         # WIP should initialize train UI
 
+    
+    # Ensure the train is travelling the proper direction (ascending or descending)
+    def train_travel_direction(self, train_id, current_section):
+        # Get current section's direction
+        current_direction = current_section.direction
 
+        # Get previous section from train stored state
+        previous_section = self.previous_section.get(train_id, ) # add variable
 
+        # Decide the proper travel direction
+        if current_direction == 2 and previous_section == 0:
+            travel_direction = 1  # Going descending
+            print(f"Train {train_id} is traveling descending (A -> D).")
+
+        elif current_direction == 2 and previous_section == 1:
+            travel_direction = 0  # Going ascending
+            print(f"Train {train_id} is traveling ascending (Z -> F).")
+
+        elif previous_section == 2 and current_direction == 1:
+            travel_direction = 1  # Continue descending
+            print(f"Train {train_id} is continuing descending.")
+
+        elif previous_section == 2 and current_direction == 0:
+            travel_direction = 0  # Continue ascending
+            print(f"Train {train_id} is continuing ascending.")
+
+        else:
+            # Default: keep going same direction
+            travel_direction = current_direction
+            print(f"Train {train_id} continues in direction {travel_direction}.")
+
+        # Update the train's previous section
+        self.previous_section[train_id] = current_section
+
+        return travel_direction
+    
+            
 
 ###############################################################################
 # Track FrontEnd
