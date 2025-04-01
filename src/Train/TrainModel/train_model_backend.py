@@ -174,9 +174,20 @@ class TrainModel(QMainWindow):
             selected = "train_controller"
 
         if selected in ["testbench", "wayside"]:
-            self.wayside_speed = selected_data["commanded_speed"]
-            self.wayside_authority = selected_data["authority"]
+            self.wayside_speed = selected_data["commanded_speed"] / self.MPS_TO_MPH
+            self.wayside_authority = selected_data["authority"] / self.M_TO_FT
             self.beacon_data = selected_data["beacon_data"]
+            self.speed_limit = selected_data.get("speed_limit", self.speed_limit) / self.MPS_TO_MPH
+            grade = selected_data.get("grade", self.grade)
+            if grade > 60:
+                grade = 60.0
+            elif grade < 0:
+                grade = 0.0
+            self.grade = grade
+            self.passenger_count = selected_data.get("passenger_count", self.passenger_count)
+            self.crew_count = selected_data.get("crew_count", self.crew_count)
+            self.mass_kg = 37103.86 + (self.passenger_count * 70) + (self.crew_count * 70)
+            
         if selected in ["testbench", "train_controller"]:
             commanded_power = selected_data.get("commanded_power", self.commanded_power)
             if commanded_power > 120000:
@@ -194,16 +205,6 @@ class TrainModel(QMainWindow):
             self.announcement = selected_data.get("announcements", self.announcement)
             self.heating = selected_data.get("heating_signal", self.heating)
             self.air_conditioning = selected_data.get("air_conditioning_signal", self.air_conditioning)
-            grade = selected_data.get("grade", self.grade)
-            if grade > 60:
-                grade = 60.0
-            elif grade < 0:
-                grade = 0.0
-            self.grade = grade
-            self.passenger_count = selected_data.get("passenger_count", self.passenger_count)
-            self.crew_count = selected_data.get("crew_count", self.crew_count)
-            self.mass_kg = 37103.86 + (self.passenger_count * 70) + (self.crew_count * 70)
-            self.speed_limit = selected_data.get("speed_limit", self.speed_limit)
 
     def get_output_data(self):
         data = {}
