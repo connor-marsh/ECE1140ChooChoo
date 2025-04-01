@@ -34,7 +34,7 @@ class WaysideControllerCollection():
         self.controllers = [] # A collection of wayside has controllers
         self.CONTROLLER_COUNT = len(track_data.territory_counts) # get the number of controllers (CONSTANT)
 
-        
+        print(self.switches)
         self.blocks.sort(key=lambda block: (block.territory, block.id)) # sort blocks by territory then by id since that is most useful for my module
 
         # Will get the number corresponding to each wayside controller below (CONSTANTS)

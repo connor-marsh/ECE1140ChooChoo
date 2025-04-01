@@ -20,9 +20,7 @@ class WaysideControllerFrontend(QMainWindow):
     A class that contains several wayside controllers and handles interfacing with the other modules such as the Track Model and The CTC.
     The front end that will display information about the currently selected wayside controller is also contained in this class. Inherits from teh QMainWindow because ?
     """
-    # signals below, if used should move to external file that all modules can reference?
-    #open_testbench = pyqtSignal(str, int) # signal that opens a testbench with the name of the window
-    #close_testbench = pyqtSignal(int) # signal that closes a testbench
+
 
     def __init__(self, collection_reference: WaysideControllerCollection):
         """
@@ -31,7 +29,7 @@ class WaysideControllerFrontend(QMainWindow):
         super().__init__()
         self.collection = collection_reference
         self.current_controller_index = 0 # Tells the ui which backend controller from the collection to reference
-        self.current_range = (0,0) # Tells the ui which range of blocks to display
+        self.current_range = None # Tells the ui which range of blocks to display (initial value should guarantee that the update runs to change the table row count)
         self.ui = WaysideUi() # create a ui from the exported file
         self.ui.setupUi(self) 
         self.setWindowTitle("Wayside Controller Module")
@@ -100,12 +98,12 @@ class WaysideControllerFrontend(QMainWindow):
         if self.current_range != self.collection.BLOCK_RANGES[self.current_controller_index]: # check to see if the controller changed
             self.current_range = self.collection.BLOCK_RANGES[self.current_controller_index] # update the range to match the current controller
             table.setRowCount(self.collection.BLOCK_COUNTS[self.current_controller_index]) # update the row count of the table
-            for i in range(*self.current_range):
+            for i in range(*self.current_range): # * is the unpacking operator, it unpacks the tuple so that the 0th entry is the lower bound and the 1st entry is the upper
                 row = 0 + i - self.current_range[0] # The range of the blocks that is referenced does not match the indexing to the rows
                 text = self.collection.blocks[i].id # want to use the block id as the label for the row
                 if table.verticalHeaderItem(row) != None: # check to see if it exists
                     table.verticalHeaderItem(row).setText(text) # can just set the text of the current item
-                else:
+                else: # it does in fact exist
                     header_item = QTableWidgetItem(text) # otherwise create new item with text
                     table.setVerticalHeaderItem(row, header_item)
             return True # The controller displayed changed
@@ -143,14 +141,35 @@ class WaysideControllerFrontend(QMainWindow):
                     table.setItem(row, col, item) # put the item in the table
                 row += 1
     
-    def populate_list(self, q_list: QListWidget):
+    def populate_lists(self):
         """
         Adds entries to the input list. Runs every ui update that the controller has switched.
-
-        :param list: A pyqt QListWidget
         """
-        q_list.clear()
-        list_name = q_list.objectName()
+        self.ui.switch_list.clear()
+        self.ui.light_list.clear()
+        self.ui.crossing_list.clear()
+        
+        for i in range(*self.current_range):
+            block = self.collection.blocks[i]
+            if block.switch: # if the block has a switch (I BELIEVE THESE ARE MUTUALLY EXCLUSIVE)
+                text = "Switch " + block.id
+                item = QListWidgetItem(text)
+                self.ui.switch_list.addItem(item)
+            elif block.light: # if the block has a light
+                text = "Light " + block.id
+                item = QListWidgetItem(text)
+                self.ui.light_list.addItem(item)
+            elif block.crossing: # if the block has a crossing
+                text = "Crossing " + block.id
+                item = QListWidgetItem(text)
+                self.ui.crossing_list.addItem(item)
+            else:
+                continue # no need to add to the list
+
+
+        """
+        q_list.clear() # always clear the list on an update to remove the values that no longer need to be there
+        list_name = q_list.objectName() # figure out which list was input to the function
         active_controller = self.collection.controllers[self.current_controller_index]
 
         if list_name == "switch_list":
@@ -158,28 +177,30 @@ class WaysideControllerFrontend(QMainWindow):
             for i in range(row_count):
                 if active_controller.switch_positions[i] != None:
                     item = QListWidgetItem()
-                    text = "Switch " + str(i + 1) # FOR NOW, WILL NEED TO FIGURE OUT HOW TO GET THE SPECIFIC LABEL
+                    text = "Switch " + str(i + 1)
                     item.setText(text)
                     q_list.addItem(item)
         elif list_name == "light_list":
             row_count = self.collection.LIGHT_COUNTS[self.current_controller_index]
+            lower_bound = self.collection.LIGHT_RANGES[self.current_controller_index][0]
             for i in range(row_count):
                 if active_controller.light_signals[i] != None:
                     item = QListWidgetItem()
-                    text = "Light " + str(i + 1) # FOR NOW, WILL NEED TO FIGURE OUT HOW TO GET THE SPECIFIC LABEL
+                    text = "Light " + str(i + 1)
                     item.setText(text)
                     q_list.addItem(item)
         elif list_name == "crossing_list":
             row_count = self.collection.CROSSING_COUNTS[self.current_controller_index]
+            lower_bound = self.collection.CROSSING_RANGES[self.current_controller_index][0]
             for i in range(row_count):
                 if active_controller.crossing_signals[i] != None:
                     item = QListWidgetItem()
-                    text = "Crossing " + str(i + 1) # FOR NOW, WILL NEED TO FIGURE OUT HOW TO GET THE SPECIFIC LABEL
+                    text = "Crossing " + str(i + 1)
                     item.setText(text)
                     q_list.addItem(item)
         else:
             raise ValueError(f"Invalid Input. QListWidget Does not match any in the UI.")
-    
+        """
     def show_current_selected_output(self, q_list: QListWidget, label: QLabel):
         """
         Updates the corresponding label on the ui with the output of the list item that is selected
@@ -199,8 +220,9 @@ class WaysideControllerFrontend(QMainWindow):
 
         if index >= 0 and current_item != None:
             if list_name == "switch_list" and label_name == "switch_label":
-                item_name = current_item.text() 
-                value = "Up" if active_controller.switch_positions[index] else "Down"
+                item_name = current_item.text()
+                id = item_name[7:] # extract the block id from the text
+                value = self.collection.switches[id].positions[1] if active_controller.switch_positions[index] else self.collection.switches[id].positions[0] # reference the dictionary since specific to the switch
                 label.setText(item_name + ": " + value)
             elif list_name == "light_list" and label_name == "light_label":
                 item_name = current_item.text()
@@ -252,9 +274,7 @@ class WaysideControllerFrontend(QMainWindow):
 
         if controller_changed: # Perform any ui updates that only happen when the controller changes
             self.ui.menu_bar.setTitle(self.ui.controller_select_combo_box.currentText())
-            self.populate_list(self.ui.switch_list)
-            self.populate_list(self.ui.light_list)
-            self.populate_list(self.ui.crossing_list)
+            self.populate_lists()
         
         self.populate_table(self.ui.block_table) # populate the table with values from the backend regardless, but only after the rows have been updated
         
