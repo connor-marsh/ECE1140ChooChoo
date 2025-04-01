@@ -10,7 +10,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
 
 
-ctc_switch_states = pyqtSignal(list)
+ctc_switch_states = pyqtSignal(str, bool) 
 ctc_exit_blocks = pyqtSignal(list,list,list)
 ctc_dispatch = pyqtSignal()
 ctc_maintenance = pyqtSignal(int, bool)
