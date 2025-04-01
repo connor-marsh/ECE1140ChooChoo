@@ -98,7 +98,8 @@ class TrainModel(QMainWindow):
 
         theta = math.atan(self.grade / 100.0)
         grav_force = self.mass_kg * self.GRAVITY * math.sin(theta)
-        net_force = dyn_force - grav_force
+        air_resistance_constant = 20
+        net_force = dyn_force - grav_force - self.actual_speed*air_resistance_constant #TODO: Make drag code more clean
         a_base = net_force / self.mass_kg if self.mass_kg != 0 else 0.0
 
         if self.emergency_brake:

@@ -79,17 +79,21 @@ class TrainController(QMainWindow):
         # TODO: Check authority and stopping distance and override speed calcs
 
         # Check for invalid power commands
+        new_service_state = False
         if (self.commanded_power < 0):
             self.commanded_power = 0.0
-            self.service_brake = True
-            self.integral_error = 0
+            new_service_state = True
         elif (self.commanded_power > 120000):
             self.commanded_power = 120000.0
-            self.service_brake = False
-        else:
-            self.service_brake = False
+        
+        if not self.manual_mode:
+            self.service_brake=new_service_state
 
         if (self.emergency_brake):
+            self.commanded_power = 0.0 # Kill engine if emergency brake is activated
+            self.integral_error = 0
+
+        if (self.service_brake):
             self.commanded_power = 0.0 # Kill engine if emergency brake is activated
             self.integral_error = 0
 
