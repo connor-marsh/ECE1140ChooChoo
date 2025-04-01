@@ -128,9 +128,11 @@ class TrainModelFrontEnd(QMainWindow):
                 speed_limit = 0.0
             speed_limit_mph = speed_limit * self.current_train.MPS_TO_MPH
             
+            # Convert acceleration from m/s² to ft/s² after receiving it from the backend.
             acceleration_fts2 = self.current_train.current_acceleration * 3.281
             commanded_power = self.current_train.commanded_power
             
+            # Update UI elements with the current values from the backend.
             self.train_ui.AccValue.display(acceleration_fts2)
             self.train_ui.SpeedValue.display(velocity_mph)
             self.train_ui.CommandedSpeedValue.display(cmd_speed_mph)
