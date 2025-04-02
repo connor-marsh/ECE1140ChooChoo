@@ -9,6 +9,7 @@ Description:
 import math
 import os
 import sys
+import time
 from PyQt5.QtWidgets import QMainWindow, QWidget
 from PyQt5.QtCore import QTimer, QTime, QDateTime
 
@@ -81,7 +82,7 @@ class TrainModel(QMainWindow):
         self.prev_time = None
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
-        self.timer.start(100)
+        self.timer.start(self.global_clock.train_dt)
 
         # Ensure a backend attribute exists.
         self.backend = self

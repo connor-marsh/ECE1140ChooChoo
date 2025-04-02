@@ -55,7 +55,7 @@ class Crossing:
 
 @dataclass(frozen=True)
 class Beacon:
-    data: bytearray = 0
+    data: str = ""
 
 
 class TrackData():
