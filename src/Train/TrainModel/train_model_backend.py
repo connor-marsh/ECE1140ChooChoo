@@ -16,6 +16,8 @@ current_dir = os.path.dirname(__file__)
 train_dir = os.path.abspath(os.path.join(current_dir, "../TrainController"))
 sys.path.insert(0, train_dir)
 
+import globals.global_clock as global_clock
+
 class TrainModel(QMainWindow):
     # Conversion factors and constants.
     MPS_TO_MPH  = 2.23694
@@ -70,6 +72,8 @@ class TrainModel(QMainWindow):
         self.signal_failure = False
         self.engine_failure = False
 
+        self.global_clock = global_clock.clock
+
         self.prev_time = None
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
@@ -87,7 +91,7 @@ class TrainModel(QMainWindow):
         if self.prev_time is None:
             self.prev_time = current_time
             return
-        dt = (current_time - self.prev_time) / 1000.0
+        dt = (current_time - self.prev_time) / 1000.0 * self.global_clock.time_multiplier
         self.prev_time = current_time
 
         try:

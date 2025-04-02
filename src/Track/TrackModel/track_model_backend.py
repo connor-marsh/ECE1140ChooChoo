@@ -64,7 +64,7 @@ class DynamicTrack:
         self.occupancies = {}
         self.switch_states = {}
         self.light_states = {}
-        self.crossings = {}
+        self.crossing_states = {}
 
 ###############################################################################
 # Dummy Train Class
@@ -76,31 +76,66 @@ class Train:
         self.dynamic_track = track_model.dynamic_track
         self.train_id = train_id
         self.current_block = initial_block
+        self.current_section = initial_block.id[0] # just a string
+        self.entered_new_section = True
         self.distance_traveled = 0.0
         self.passenger_count = 0
-        self.travel_direction = 0 # CHANGE THIS MOST LIKELY
+        # FIX THIS FOR RED LINE
+        self.travel_direction = self.track_data.sections[self.current_section].increasing # This gets updated when switching sections
         self.train_model = None
 
     def update(self):
+        # print(f"Position: {str(self.train_model.position)} | Block: {self.current_block.id}")
         distance_within_block = self.train_model.position - self.distance_traveled
-        # if distance within block > length of block
-        # then update_location(new_block=bloc, distance_delta=distance_within_block)
         if distance_within_block > self.current_block.length:
-            if self.current_block.switch:
+            self.distance_traveled = self.train_model.position
+            # Move to new block
+            if self.current_block.switch and not self.entered_new_section:
+                print("SWITCH")
                 switch = self.track_data.switches[self.current_block.id]
                 switchState=self.dynamic_track.switch_states[self.current_block.id]
-                self.current_block = self.track_data.blocks[switch.positions[1 if switchState else 0].split("-")[1]-1]
-            elif self.current_block.switch_exit:
-                switch = self.track_data.switches[self.track_data.switch_exits.switch_entrance]
-                switchState=self.dynamic_track.switch_states[self.current_block.id]
+                self.current_block = self.track_data.blocks[int(switch.positions[1 if switchState else 0].split("-")[1])-1]
+            elif self.current_block.switch_exit and not self.entered_new_section:
+                print("SWITCH")
+                switch = self.track_data.switches[self.track_data.switch_exits[self.current_block.id].switch_entrance]
+                switchState=self.dynamic_track.switch_states[self.track_data.switch_exits[self.current_block.id].switch_entrance]
                 switchBlocks = switch.positions[1 if switchState else 0].split("-")
-                if switchBlocks[1] == self.current_block.id:
-                    self.current_block = self.track_data.blocks[switchBlocks[0]-1]
+                if switchBlocks[1] == self.current_block.id[1:]:
+                    self.current_block = self.track_data.blocks[int(switchBlocks[0])-1]
                 else:
                     print("TRAIN CRASH FROM SWITCH POSITION")
+                    print("TRAIN CRASH FROM SWITCH POSITION")
+                    print("TRAIN CRASH FROM SWITCH POSITION")
+                    print("TRAIN CRASH FROM SWITCH POSITION")
+                    print("TRAIN CRASH FROM SWITCH POSITION")
+                    print("TRAIN CRASH FROM SWITCH POSITION")
+                    print("TRAIN CRASH FROM SWITCH POSITION")
+                    print("TRAIN CRASH FROM SWITCH POSITION")
+                    print("TRAIN CRASH FROM SWITCH POSITION")
+                    print("TRAIN CRASH FROM SWITCH POSITION")
+                    print("TRAIN CRASH FROM SWITCH POSITION")
+                    print("TRAIN CRASH FROM SWITCH POSITION")
+                    print("TRAIN CRASH FROM SWITCH POSITION")
+                    print("TRAIN CRASH FROM SWITCH POSITION")
             else:
-                self.current_block = self.track_data.blocks[int(self.current_block.id[1:])+(self.travel_direction*2-1)]
-            # implement still
+                self.current_block = self.track_data.blocks[int(self.current_block.id[1:])+(self.travel_direction*2-1)-1]
+            
+
+            self.entered_new_section = False
+            # Move to new section
+            if self.current_block.id[0] != self.current_section:
+                print("New section")
+                self.entered_new_section = True
+                increasing = self.track_data.sections[self.current_block.id[0]].increasing
+                if increasing == 2:
+                    self.travel_direction = 1 if self.current_block.id[0] > self.current_section else 0
+                else:
+                    self.travel_direction = increasing
+                self.current_section = self.current_block.id[0]
+                if self.current_section == "O":
+                    self.dynamic_track.switch_states["N85"] = True
+                
+            print("BLOCK: " + self.current_block.id)
 
         
     def update_location(self, new_block: str, distance_delta: float):
@@ -125,11 +160,21 @@ class TrackModel(QtWidgets.QMainWindow):
         super().__init__()
         self.name = name
         self.track_data = global_track_data.lines[name]
-        self.dynamic_track = DynamicTrack()
         self.runtime_status = {} # Runtime status of blocks
         self.trains = []  # holds Train instances
         self.train_counter = 0
         self.train_collection = TrainCollection()
+
+        # Populate dynamic track
+        self.dynamic_track = DynamicTrack()
+        for block in self.track_data.blocks:
+            self.dynamic_track.occupancies = 0
+            if block.switch:
+                self.dynamic_track.switch_states[block.id] = False
+            if block.light:
+                self.dynamic_track.light_states[block.id] = False
+            if block.crossing:
+                self.dynamic_track.crossing_states[block.id] = False
 
         self.initialize_train()
 
@@ -141,7 +186,6 @@ class TrackModel(QtWidgets.QMainWindow):
         
 
     def update(self):
-        print(self.trains[0].distance_traveled)
         self.update_train_collection()
 
     # Populating the trains with information sent from train
@@ -150,7 +194,7 @@ class TrackModel(QtWidgets.QMainWindow):
             # data = {self.send_wayside_commanded, self.send_beacon_data, self.block.grade, self.station.passengers} # Need to update wayside func
             # put in wayside speed, wayside authority (only if new value), beacon data (if it exists), grade, passengers
             data = {}
-            data["speed_limit"] = 20
+            data["speed_limit"] = 50
             train.train_model.set_input_data(wayside_data=data)
             train.update()
 
