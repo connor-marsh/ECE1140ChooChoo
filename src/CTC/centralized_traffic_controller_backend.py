@@ -10,18 +10,18 @@ import time
 import queue 
 import pandas as pd
 import openpyxl 
-from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt, pyqtSlot, pyqtSignal
+from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt, QObject, pyqtSlot, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem
 from PyQt5.QtGui import QColor
 
 #from centralized_traffic_controller_ui import Ui_MainWindow as CtcUI
 #from centralized_traffic_controller_test_bench_ui import Ui_ctc_TestBench as CtcTestBenchUI
-import globals.global_clock as global_clock
-import globals.track_data_class as track_data
+import globals.track_data_class as global_track_data
+import globals.global_clock  as global_clock
 import globals.signals as signals
 
 
-class CtcBackEnd():
+class CtcBackEnd(QObject):
 
     #Stations located green line
     G_STATIONS = ("Pioneer", "Edgebrook", "Station", "Whited", "South Bank", "Central", "Inglewood", "Overbrook", "Glenbury", "Dormont", 
@@ -48,12 +48,12 @@ class CtcBackEnd():
         self.wall_clock = global_clock.clock
 
         #Read in signal from Track Model
-        signals.track_tickets.connect(self.update_tickets)  #int
+        signals.communication.track_tickets.connect(self.update_tickets)  #int
 
-        signals.wayside_block_occupancies.connect(self.update_occupancy) #List
-        signals.wayside_switches.connect(self.update_switches()) #List
-        signals.wayside_lights.connect(self.update_lights()) #List
-        signals.wayside_crossings.connect(self.update_crossings()) #List
+        signals.communication.wayside_block_occupancies.connect(self.update_occupancy) #List
+        signals.communication.wayside_switches.connect(self.update_switches()) #List
+        signals.communication.wayside_lights.connect(self.update_lights()) #List
+        signals.communication.wayside_crossings.connect(self.update_crossings()) #List
         
         
         self.suggested_speed = [] #length of track, each block has a suggested speed, speed limit for now
@@ -191,21 +191,21 @@ class CtcBackEnd():
             self.send_dispatch_train() 
  
     def send_dispatch_train(self):
-        signals.ctc_dispatch.emit() # Just signal, no param
+        signals.communication.communication.ctc_dispatch.emit() # Just signal, no param
 
     def send_block_maintenance(self, block_id, maintenance_val):
-        signals.ctc_block_maintenance.emit(block_id, maintenance_val) #int, bool 
+        signals.communication.ctc_block_maintenance.emit(block_id, maintenance_val) #int, bool 
 
     def send_suggestions(self, suggested_speeds, suggested_authorities): 
-        signals.ctc_suggested.emit(suggested_speeds, suggested_authorities) #Dict, Dict
+        signals.communication.ctc_suggested.emit(suggested_speeds, suggested_authorities) #Dict, Dict
 
     def send_exit_blocks(self, exit_blocks):
-        signals.ctc_exit_blocks.emit() #List, Currently Unused
+        signals.communication.ctc_exit_blocks.emit() #List, Currently Unused
 
     def send_switch_states(self, switch_id, switch_state): 
         switch_id = "0" #String to locate switch
         switch_state = False #False for first option, True for second option
-        signals.ctc_switch_maintenance.emit(switch_id, switch_state) #String, bool
+        signals.communication.ctc_switch_maintenance.emit(switch_id, switch_state) #String, bool
 
     
 class DummyTrain:
@@ -253,14 +253,15 @@ class TrackBlocks:
         self.suggested_authority = 0
         self.updated = True
         #May need addition values
-        print("Block ID: ", self.id) #Testing line, remove later
+        print("Block ID: ", self.id, "Switch", self.has_switch) #Testing line, remove later
 
 class Track: 
     def __init__(self, name):
+        self.track_data = global_track_data.lines[name]
         self.name = name
         self.active_trains = {}
         self.blocks = []
-        self.switch_data = track_data.track_data.switches.copy()
+        self.switch_data = self.track_data.switches.copy()
         self.switch_states = []
         self.lights = []
         self.crossings = []
@@ -275,7 +276,7 @@ class Track:
         self.initialize_blocks()
 
     def initialize_blocks(self):
-        self.blocks = [TrackBlocks(block) for block in track_data.track_data.blocks]
+        self.blocks = [TrackBlocks(block) for block in self.track_data.blocks]
 
     def add_active_train(self, train_id, train_route, train_mode):
         #Adds train to active trains list
