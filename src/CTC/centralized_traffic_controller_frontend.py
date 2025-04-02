@@ -14,7 +14,7 @@ from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem
 from PyQt5.QtGui import QColor
 
-from .centralized_traffic_controller_ui import Ui_MainWindow as CtcUI
+from CTC.centralized_traffic_controller_ui import Ui_MainWindow as CtcUI
 #from centralized_traffic_controller_test_bench_ui import Ui_ctc_TestBench as CtcTestBenchUI
 import globals.global_clock as global_clock
 
