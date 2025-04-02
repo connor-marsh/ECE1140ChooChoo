@@ -122,69 +122,89 @@ class CtcFrontEnd(QMainWindow):
         for i in range(1, 150):
             self.ctc_ui.sub_block_number_combo.addItem(str(i))
 
-    #Map Ini - OVERHAUL NEEDED - TRACK CLASS UPDATED
+    #Map Initialization
     def initialize_map(self):
-        self.block_data = self.backend.get_blocks()
-        #update map with block data
+        self.block_data, self.switches, self.stations = self.backend.get_blocks()
+
+        # Update map size 
         self.ctc_ui.main_map_table.setRowCount(len(self.block_data))
 
         for row_index, (block_id, block_info) in enumerate(self.block_data.items()): 
-            #If cell doesnt not have value for column, set color to black, 
+            
 
+            # Set Section and Block ID
             self.ctc_ui.main_map_table.setItem(row_index, 0, QTableWidgetItem(str(block_info['section'])))
             self.ctc_ui.main_map_table.setItem(row_index, 1, QTableWidgetItem(str(block_info['block_id'])))
 
+            # Set Occupancy | All blocks are unoccupied by default
             occupancy_item = QTableWidgetItem()
             occupancy_item.setBackground(QColor("green"))
             self.ctc_ui.main_map_table.setItem(row_index, 2, occupancy_item)
 
+            # Set Station
             station_item = QTableWidgetItem(str(block_info['station']))
-            if block_info['station'] == " ":
+            if not block_info.station:
                 station_item.setBackground(QColor("darkGray"))
-            self.ctc_ui.main_map_table.setItem(row_index, 3, station_item)
+            self.ctc_ui.main_map_table.setItem(row_index, 3, station_item) # NEED TO UPDATE TO DISPLAY STATION NAME
 
-            switch_item = QTableWidgetItem(str(block_info['switch']))
-            if block_info['switch'] == " ":
+            # Set Switch and Position
+            if block_id in self.switches:
+                switch_value = str(self.switches[block_id].position(0)) # May need to update ID check
+            else:
+                switch_value = " "
+            switch_item = QTableWidgetItem(switch_value)
+            if switch_value == " ":
                 switch_item.setBackground(QColor("darkGray"))
             self.ctc_ui.main_map_table.setItem(row_index, 4, switch_item)
 
+            # Set Traffic Light
             traffic_light_item = QTableWidgetItem("")
-            if block_info['traffic_light']:
-                traffic_light_item.setBackground(QColor("green"))
-            else:
-                traffic_light_item.setBackground(QColor("darkGray"))
+            traffic_light_item.setBackground(QColor("green") if block_info.has_light else QColor("darkGray"))
             self.ctc_ui.main_map_table.setItem(row_index, 5, traffic_light_item)
 
+            # Set Crossing
             crossing_item = QTableWidgetItem("")
-            if block_info['crossing']:
-                crossing_item.setBackground(QColor("green"))
-            else:
-                crossing_item.setBackground(QColor("darkGray"))
+            crossing_item.setBackground(QColor("green") if block_info.has_crossing else QColor("darkGray"))
             self.ctc_ui.main_map_table.setItem(row_index, 6, crossing_item)
 
+            # Set Maintenance | All blocks are maintenance free by default
             maintenance_item = QTableWidgetItem()
             maintenance_item.setBackground(QColor("white"))
             self.ctc_ui.main_map_table.setItem(row_index, 7, maintenance_item)
 
+            # Set Transponder
             transponder_item = QTableWidgetItem("")
-            if block_info['transponder']:
-                transponder_item.setBackground(QColor("green"))
-            else:
-                transponder_item.setBackground(QColor("darkGray"))
+            transponder_item.setBackground(QColor("green") if block_info.has_beacon else QColor("darkGray"))
             self.ctc_ui.main_map_table.setItem(row_index, 8, transponder_item)
 
+            # Set Underground
             underground_item = QTableWidgetItem("")
-            if block_info['underground']:
-                underground_item.setBackground(QColor("green"))
-            else:
-                underground_item.setBackground(QColor("darkGray"))
+            underground_item.setBackground(QColor("green") if block_info.underground else QColor("darkGray"))
             self.ctc_ui.main_map_table.setItem(row_index, 9, underground_item)
 
         self.ctc_ui.main_map_table.resizeColumnsToContents()
 
-    def update_map(self):
-        #updates map occupancy, maintenance, switch state, crossing state and light color
-        pass
+    def update_map(self): # Include updated check for block data?? Check effeciency
+        # Updates map with new data (Occupancy, Switch Position, Traffic Light, Crossing Status, and Maintenance | called by update function
+        self.block_data, self.switches, _ = self.backend.get_blocks()
+
+        for row_index, (block_id, block_info) in enumerate(self.block_data.items()): 
+            #Only activates if block data is updated in last tick
+            if block_info.updated:
+
+                # Update Occupancy
+                occupancy_item = QTableWidgetItem()
+                occupancy_item.setBackground(QColor("red") if block_info.occupancy else QColor("green"))
+                self.ctc_ui.main_map_table.setItem(row_index, 2, occupancy_item)
+
+                # Update Switch Position 
+                if block_id in self.switches:
+                    switch_value = str(self.switches[block_id].position(0)) # May need to update ID check
+
+                # Update Light Color
+                traffic_light_item = QTableWidgetItem("Green" if block_info.light_state else "Red")
+                traffic_light_item.setBackground(QColor("green") if block_info.light_state else QColor("darkGray"))
+                self.ctc_ui.main_map_table.setItem(row_index, 5, traffic_light_item)
 
     def update_throughput(self):
         #updates throughput label on UI

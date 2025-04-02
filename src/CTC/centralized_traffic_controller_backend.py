@@ -17,7 +17,7 @@ from PyQt5.QtGui import QColor
 from centralized_traffic_controller_ui import Ui_MainWindow as CtcUI
 from centralized_traffic_controller_test_bench_ui import Ui_ctc_TestBench as CtcTestBenchUI
 import globals.global_clock as global_clock
-import globals.track_data_class as init_track_data
+import globals.track_data_class as track_data
 import globals.signals as signals
 
 
@@ -48,12 +48,12 @@ class CtcBackEnd():
         self.wall_clock = global_clock.clock
 
         #Read in signal from Track Model
-        signals.track_tickets.connect(self.update_tickets) 
+        signals.track_tickets.connect(self.update_tickets)  #int
 
-        signals.wayside_block_occupancies.connect(self.update_occupancy)
-        signals.wayside_switches.connect(self.update_switches())
-        signals.wayside_lights.connect(self.update_lights())
-        signals.wayside_crossings.connect(self.update_crossings())
+        signals.wayside_block_occupancies.connect(self.update_occupancy) #List
+        signals.wayside_switches.connect(self.update_switches()) #List
+        signals.wayside_lights.connect(self.update_lights()) #List
+        signals.wayside_crossings.connect(self.update_crossings()) #List
         
         
         self.suggested_speed = [] #length of track, each block has a suggested speed, speed limit for now
@@ -81,7 +81,7 @@ class CtcBackEnd():
         self.send_suggestions() #Send suggestions to wayside     
         
     def get_blocks(self):
-        return self.active_line.blocks
+        return self.active_line.blocks, self.active_line.switches 
 
     def process_route_data(self, file_data):
         if(file_data is not None):
@@ -143,7 +143,10 @@ class CtcBackEnd():
 
     @pyqtSlot(list)
     def update_occupancy(self, occupancy_list):
-        pass
+        #Updates occupancy list | called by wayside controller
+        for block_id, occupancy in zip(self.active_line.blocks.keys(), occupancy_list):
+            self.active_line.blocks[block_id].occupancy = occupancy
+        
 
     @pyqtSlot(list)
     def update_switches(self, switch_list):
@@ -159,11 +162,11 @@ class CtcBackEnd():
 
     def first_blocks_free(self):
         #Checks if first blocks are free | called by dispatch queue handler
-        block_1 = self.active_line.blocks[self.active_line.entrance_blocks[0]] 
-        block_2 = self.active_line.blocks[self.active_line.entrance_blocks[1]]
-        block_3 = self.active_line.blocks[self.active_line.entrance_blocks[2]]
+        block_1 = self.active_line.blocks[self.active_line.entrance_blocks[0]].occupancy 
+        block_2 = self.active_line.blocks[self.active_line.entrance_blocks[1]].occupancy
+        block_3 = self.active_line.blocks[self.active_line.entrance_blocks[2]].occupancy
 
-        if block_1['occupancy'] == 0 and block_2['occupancy'] == 0 and block_3['occupancy'] == 0: #Needs updated after new track class implemented
+        if not block_1 and not block_2 and not block_3: #Check correctness of this logic
             return True
         else:
             return False
@@ -191,21 +194,21 @@ class CtcBackEnd():
             self.send_dispatch_train() 
  
     def send_dispatch_train(self):
-        signals.ctc_dispatch.emit()
+        signals.ctc_dispatch.emit() # Just signal, no param
 
-    def send_maintenance(self, block_id, maintenance_val):
-        signals.ctc_maintenance.emit(block_id, maintenance_val)
+    def send_block_maintenance(self, block_id, maintenance_val):
+        signals.ctc_block_maintenance.emit(block_id, maintenance_val) #int, bool | should be string, bool??? ASK CONNOR
 
     def send_suggestions(self, suggested_speeds, suggested_authorities):
-        signals.ctc_suggested.emit(suggested_speeds, suggested_authorities)
+        signals.ctc_suggested.emit(suggested_speeds, suggested_authorities) #List, List
 
     def send_exit_blocks(self, exit_blocks):
-        signals.ctc_exit_blocks.emit() #Currently Unused, need for iteration #4
+        signals.ctc_exit_blocks.emit() #List, Currently Unused
 
-    def send_switch_states():
+    def send_switch_states(self, switch_id, switch_state):
         switch_id = "0" #String to locate switch
         switch_state = False #False for first option, True for second option
-        signals.ctc_switch_states.emit(switch_id, switch_state)
+        signals.ctc_switch_maintenance.emit(switch_id, switch_state) #String, bool
 
     
 class DummyTrain:
@@ -230,16 +233,42 @@ class DummyTrain:
     def set_route(self, route):
         self.route = route
 
+    
+class TrackBlocks:
+    def __init__(self, block):
+        self.id = block.id
+        self.length = block.length
+        self.speed_limit = block.speed_limit
+        self.grade = block.grade
+        self.underground = block.underground
+        self.has_station = block.station
+        self.has_switch = block.switch
+        self.has_light = block.light
+        self.has_crossing = block.crossing
+        self.has_beacon = block.beacon
+        self.switch_exit = block.switch_exit
+
+        self.occupancy = False
+        self.maintenance = False
+        self.switch_state = 0 #0 for first option, 1 for second option
+        self.light_state = 0 #0 for red, 1 for green
+        self.suggested_speed = 0
+        self.suggested_authority = 0
+        self.updated = True
+        #May need addition values
+        print("Block ID: ", self.id) #Testing line, remove later
 
 class Track: 
     def __init__(self, name):
-        super().__init__()
         self.name = name
         self.active_trains = {}
-
+        self.blocks = []
+        self.switches = track_data.track_data.switches.copy()
+        self.lights = track_data.track_data.lights.copy()
+        #self.crossings = track_data.track_data.crossings.copy()
 
         if name == "Green":
-            self.entrance_blocks = [62, 63, 64] #Entrance blocks for green line
+            self.entrance_blocks = ["J62", "K63", "K64"] #Entrance blocks for green line
         #elif name == "Red":
         #    self.entrance_blocks = [1, 2, 3] #Entrance blocks for red line
         else:
@@ -247,15 +276,8 @@ class Track:
 
         self.initialize_blocks()
 
-
-
     def initialize_blocks(self):
-        track_data = init_track_data.lines[self.name]
-        self.LINE_NAME = self.name
-        self.blocks = track_data.blocks 
-        self.switches = track_data.switches
-        self.lights = track_data.lights
-        self.crossings = track_data.crossings
+        self.blocks = [TrackBlocks(block) for block in track_data.track_data.blocks]
 
     def add_active_train(self, train_id, train_route, train_mode):
         #Adds train to active trains list

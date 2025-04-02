@@ -14,6 +14,8 @@ from Train.TrainModel.train_model_testbench import TrainModelTestbench
 from Train.TrainController.train_controller_frontend import TrainControllerFrontend
 from Train.TrainController.train_controller_testbench import TrainControllerTestbench
 from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
+from CTC.centralized_traffic_controller_frontend import CentralizedTrafficControllerFrontEnd
+from CTC.centralized_traffic_controller_backend import CentralizedTrafficControllerBackEnd
 
 
 if __name__=="__main__":
@@ -30,7 +32,9 @@ if __name__=="__main__":
     if running_module == "all":
         pass
     elif running_module == "CTC":
-        pass
+        ctc_backend = CentralizedTrafficControllerBackEnd()
+        ctc_frontentd = CentralizedTrafficControllerFrontEnd(ctc_backend)
+        ctc_frontentd.show()
     elif running_module == "WaysideController":
         collection = WaysideControllerCollection("GREEN")
         collection.frontend.show()
