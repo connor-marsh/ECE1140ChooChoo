@@ -24,6 +24,7 @@ class TrainModel(QMainWindow):
     MPS_TO_MPH  = 2.23694
     KG_TO_LBS   = 2.20462
     M_TO_FT     = 3.281
+    M_TO_YARD = 1.09361
 
     MAX_ACCEL         = 100000    # (m/s²)
     GRAVITY           = 9.81      # (m/s²)
@@ -106,7 +107,7 @@ class TrainModel(QMainWindow):
             dyn_force = 1000.0
 
         theta = math.atan(self.grade / 100.0)
-        grav_force = self.mass_kg * self.GRAVITY * math.sin(theta)
+        grav_force = self.mass_kg * self.GRAVITY * math.sin(theta * 3.14159/180)
         
         """Calculate drag force using the drag equation.
             drag_force = 0.5 * rho * A * C_d * v^2 """
@@ -202,7 +203,7 @@ class TrainModel(QMainWindow):
 
         if selected in ["testbench", "track"]:
             self.wayside_speed = selected_data.get("wayside_speed", self.wayside_speed) / self.MPS_TO_MPH
-            self.wayside_authority = selected_data.get("wayside_authority", self.wayside_authority) / self.M_TO_FT
+            self.wayside_authority = selected_data.get("wayside_authority", self.wayside_authority) / self.M_TO_YARD
             self.beacon_data = selected_data.get("beacon_data", self.beacon_data)
             grade = selected_data.get("grade", self.grade)
             if grade > 60:
@@ -236,7 +237,7 @@ class TrainModel(QMainWindow):
         data = {}
         data["actual_speed"] = self.actual_speed * self.MPS_TO_MPH
         data["wayside_speed"] = self.wayside_speed * self.MPS_TO_MPH
-        data["wayside_authority"] = self.wayside_authority * self.M_TO_FT
+        data["wayside_authority"] = self.wayside_authority * self.M_TO_YARD
         data["beacon_data"] = self.beacon_data
         data["actual_temperature"] = (self.actual_temperature * 1.8) + 32
         data["signal_failure"] = self.signal_failure
