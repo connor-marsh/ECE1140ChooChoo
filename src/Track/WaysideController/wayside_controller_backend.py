@@ -8,19 +8,21 @@ import importlib.util
 import sys
 import time
 import os
+from pathlib import Path
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 class WaysideController(QObject):
     """
     Accepts a user created plc program at runtime and executes it.
     """
-    def __init__(self, block_count: int, switch_count: int, light_count: int, crossing_count: int, exit_block_count: int):
+    def __init__(self, block_count: int, switch_count: int, light_count: int, crossing_count: int, exit_block_count: int, filepath=None):
         """
         :param block_count: Nonnegative Integer number of input blocks to the PLC program
         :param switch_count: Nonnegative Integer number of switches controlled by the PLC program
         :param light_count: Nonnegative Integer number of light signals controlled by the PLC program
         :param crossing_count: Nonnegative Integer number of crossing signals controlled by the PLC program
         :param exit_block_count: Nonnegative integer number of exit blocks that the territory of the wayside has
+        :param filename: optional field that lets the collection class automatically set the plc program at runtime
         """
         super().__init__()
         self.plc_filename = "" # The name of the plc file, used by the ui to display the name properly, otherwise not really necessary
@@ -38,11 +40,20 @@ class WaysideController(QObject):
         
 
         self.maintenance_mode = False # A boolean that indicates when the wayside controller is in maintenance mode.
-        self.program = None  # User-defined program
+
+        if filepath == None:
+            self.program = None
+        else:
+            self.load_program(filepath)  # User-defined program
+            Path(filepath).name
+
+
         self.timer = QTimer()
         self.timer.setInterval(1000)
         self.timer.timeout.connect(self.update)
         self.timer.start()
+
+
 
     @pyqtSlot()
     def update(self):

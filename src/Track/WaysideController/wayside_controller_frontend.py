@@ -307,7 +307,7 @@ class WaysideControllerFrontend(QMainWindow):
         active_controller = self.collection.controllers[self.current_controller_index] # get the actively showing controller
 
         while True:
-            program_file_path, _ = QFileDialog.getOpenFileName(self, "Select PLC Program", "", "Python File (*.py);;All Files (*)") # something i don't fully understand
+            program_file_path, _ = QFileDialog.getOpenFileName(self, "Select PLC Program", "", "Python File (*.py)") # something i don't fully understand
             if program_file_path:
                 if active_controller.load_program(program_file_path): # returns true if valid plc program
                     active_controller.plc_filename = Path(program_file_path).name # store the filename in the backend
