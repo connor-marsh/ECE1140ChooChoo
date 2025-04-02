@@ -19,14 +19,14 @@ from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QTableWidget
 class TrackModelFrontEnd(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.red_line = TrackModel("Red")
+        # self.red_line = TrackModel("Red")
         self.green_line = TrackModel("Green")
         self.outside_temp = 70.0
         self.track_heater_status = False
 
     # WIP Uploading a Track Layout with Track Builder
     def upload_track_layout_data(self, file_path):
-        # self.red_line.parse_track_layout_data(file_path)
+        self.red_line.parse_track_layout_data(file_path)
         self.green_line.parse_track_layout_data(file_path)
         print("Successfully loaded and parsed layout for Red and Green lines.")
 

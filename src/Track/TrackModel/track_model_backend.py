@@ -3,7 +3,7 @@ import os
 import random
 import pandas as pd
 from Track.TrackModel.track_model_enums import Occupancy, Failures
-from globals.track_data_class import TrackDataClass
+import globals.track_data_class as global_track_data
 from PyQt5 import QtWidgets, QtCore
 
 # Import the UI files generated from Qt Designer
@@ -43,29 +43,30 @@ os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 # Block Class
 ###############################################################################
 
-class Block:
-    def __init__(self, block_id, length, grade, speed_limit, elevation, cumulative_elevation, infrastructure, station_side):
-        self.block_id = block_id
-        self.length = length
-        self.grade = grade
-        self.speed_limit = speed_limit
-        self.elevation = elevation
-        self.cumulative_elevation = cumulative_elevation
-        self.infrastructure = infrastructure
-        self.station_side = station_side
-        self.occupancy = Occupancy.UNOCCUPIED
-        self.failures = Failures.NONE
-        self.switch_state = False
-        self.railway_signal = False
-        self.traffic_signal = "None"
-        self.beacon_data = None
+# class Block:
+#     def __init__(self, block_id, length, grade, speed_limit, elevation, cumulative_elevation, infrastructure, station_side):
+#         self.block_id = block_id
+#         self.length = length
+#         self.grade = grade
+#         self.speed_limit = speed_limit
+#         self.elevation = elevation
+#         self.cumulative_elevation = cumulative_elevation
+#         self.infrastructure = infrastructure
+#         self.station_side = station_side
+#         self.occupancy = Occupancy.UNOCCUPIED
+#         self.failures = Failures.NONE
+#         self.switch_state = False
+#         self.railway_signal = False
+#         self.traffic_signal = "None"
+#         self.beacon_data = None
 
 ###############################################################################
 # Dummy Train Class
 ###############################################################################
 
 class Train:
-    def __init__(self, train_id, initial_block: str):
+    def __init__(self, train_id, track_data=None, initial_block=None):
+        self.track_data = track_data
         self.train_id = train_id
         self.current_block = initial_block
         self.distance_traveled = 0.0
@@ -77,8 +78,16 @@ class Train:
         distance_within_block = self.train_model.position - self.distance_traveled
         # if distance within block > length of block
         # then update_location(new_block=bloc, distance_delta=distance_within_block)
-        if distance_within_block > self.block.length:
-            pass
+        if distance_within_block > self.current_block.length:
+            if self.current_block.switch:
+                switch = self.track_data.switches[self.current_block.id]
+                print("FIX SWITCH STATE IN TRAIN UPDATE")
+                switchState=True
+                self.current_block = self.track_data.blocks[switch.positions[1 if switchState else 0].split("-")[0]-1]
+            elif self.current_block.switch_exit:
+                pass
+            else:
+                self.current_block = self.track_data.blocks[int(self.current_block.id[1:])+(self.travel_direction*2-1)]
             # implement still
 
         
@@ -103,24 +112,32 @@ class TrackModel(QtWidgets.QMainWindow):
     def __init__(self, name):
         super().__init__()
         self.name = name
+        self.track_data = global_track_data.lines[name]
         self.runtime_status = {} # Runtime status of blocks
-        self.trains = []  # Key: holds Train instances
+        self.trains = []  # holds Train instances
         self.train_counter = 0
         self.train_collection = TrainCollection()
+
+        self.initialize_train()
 
         self.prev_time = None
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.update)
         self.timer.start(100)
 
+        
+
     def update(self):
+        print(self.trains[0].distance_traveled)
         self.update_train_collection()
 
     # Populating the trains with information sent from train
     def update_train_collection(self):
         for train in self.trains:
-            data = {self.send_wayside_commanded, self.send_beacon_data, self.block.grade, self.station.passengers} # Need to update wayside func
+            # data = {self.send_wayside_commanded, self.send_beacon_data, self.block.grade, self.station.passengers} # Need to update wayside func
             # put in wayside speed, wayside authority (only if new value), beacon data (if it exists), grade, passengers
+            data = {}
+            data["speed_limit"] = 20
             train.train_model.set_input_data(wayside_data=data)
             train.update()
 
@@ -129,13 +146,17 @@ class TrackModel(QtWidgets.QMainWindow):
         """
         Loads and parses track layout using the TrackDataClass. - add params
         """
-        self.track_data = TrackDataClass(filepath)
-        print(f"[{self.name}] Loaded layout for {self.track_data.line_name} line.")
-        print(f"  Total Blocks: {len(self.track_data.blocks)}")
-        for territory, blocks in self.track_data.territory_counts.items():
-            devices = self.track_data.device_counts[territory]
-            print(f"  Territory {territory}: {blocks} blocks, {devices['switches']} switches, "
-                f"{devices['lights']} lights, {devices['crossings']} crossings")
+        pass
+        # INCOMPLETE
+        # self.track_data.update(filepath) # ACTUALLY DO
+        # IGNORE
+        # self.track_data = TrackDataClass(filepath)
+        # print(f"[{self.name}] Loaded layout for {self.track_data.line_name} line.")
+        # print(f"  Total Blocks: {len(self.track_data.blocks)}")
+        # for territory, blocks in self.track_data.territory_counts.items():
+        #     devices = self.track_data.device_counts[territory]
+        #     print(f"  Territory {territory}: {blocks} blocks, {devices['switches']} switches, "
+        #         f"{devices['lights']} lights, {devices['crossings']} crossings")
 
     # Updating switches, lights, and railway crossings sent from wayside
     def update_from_wayside_outputs(self, controller_index, switch_states, light_states, crossing_states):
@@ -277,17 +298,17 @@ class TrackModel(QtWidgets.QMainWindow):
     # Initializing a train - somewhat WIP not sure if it works yet
     # Wayside will call when to initialize a train
     def initialize_train(self):
-        start_block = "GreenK63"
+        start_block = self.track_data.blocks[63-1]
         
         # Verify block exists
-        if not any(b.id == start_block for b in self.track_data.blocks):
-            print(f"[Train Init] Block {start_block} not found in static layout.")
-            return
+        # if not any(b.id == start_block for b in self.track_data.blocks):
+        #     print(f"[Train Init] Block {start_block} not found in static layout.")
+        #     return
 
         # Increment and assign new train
         self.train_counter += 1
         train_id = self.train_counter-1
-        new_train = Train(train_id=train_id, current_block=start_block)
+        new_train = Train(train_id=train_id, track_data=self.track_data, initial_block=start_block)
         self.train_collection.createTrain()
         new_train.train_model = self.train_collection.train_list[-1]
 
