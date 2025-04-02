@@ -29,6 +29,11 @@ class TrainModel(QMainWindow):
     EMERGENCY_DECEL   = -2.73     # (m/s²)
     SERVICE_DECEL     = -1.2      # (m/s²)
     MIN_SPEED_NO_BRAKE= 0.1       # (m/s)
+    
+    # Coefficients for drag force calculation.
+    DRAG_COEFFICIENT = 1.2    # Example value; tune based on actual train data.
+    FRONTAL_AREA = 9.06       # Frontal Area calculated from train dimensions --> (Width * Height) in m².
+    AIR_DENSITY = 1.225       # kg/m³ at sea level.
 
     def __init__(self, train_integrated=True):
         super().__init__()
@@ -102,8 +107,14 @@ class TrainModel(QMainWindow):
 
         theta = math.atan(self.grade / 100.0)
         grav_force = self.mass_kg * self.GRAVITY * math.sin(theta)
-        air_resistance_constant = 20
-        net_force = dyn_force - grav_force - self.actual_speed*air_resistance_constant #TODO: Make drag code more clean
+        
+        """Calculate drag force using the drag equation.
+            drag_force = 0.5 * rho * A * C_d * v^2 """
+        # air_resistance_constant = 20
+        velocity_magnitude = math.sqrt(self.actual_speed**2 + self.actual_speed**2) # Calculate velocity magnitude
+        drag_force = 0.5 * self.AIR_DENSITY * self.FRONTAL_AREA * self.DRAG_COEFFICIENT * velocity_magnitude**2
+        # net_force = dyn_force - grav_force * air_resistance_constant
+        net_force = dyn_force - grav_force - drag_force     # TODO: Make drag code more clean
         a_base = net_force / self.mass_kg if self.mass_kg != 0 else 0.0
 
         if self.emergency_brake:

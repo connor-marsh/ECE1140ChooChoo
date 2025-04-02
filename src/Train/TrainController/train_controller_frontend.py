@@ -2,14 +2,12 @@
 Author: Aragya Goyal
 Date: 03-20-2025
 Description:
-
 """
 import sys
 import os
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt5.QtCore import QTimer, QTime
-
 from Train.TrainController.train_controller_ui import Ui_MainWindow as TrainControllerUI
 from Train.TrainController.train_controller_testbench import TrainControllerTestbench
 
@@ -19,14 +17,17 @@ class TrainControllerFrontend(QMainWindow):
     def __init__(self, collection, train_integrated=True):
         super().__init__()
         self.train_integrated = train_integrated
-
         self.collection = collection
         self.current_train = None
 
         self.ui = TrainControllerUI()
         self.ui.setupUi(self)
 
-        # Defaults for the UI
+        # Initialize UI state dictionary (per train) for door toggles only.
+        # Keys: 'door_left', 'door_right'
+        self.ui_states = {}
+
+        # Set up default UI values
         self.ui.cabin_temperature_spin_box.setValue(77)
 
         # Set up buttons to read inputs from UI
@@ -46,13 +47,63 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.door_left_button.toggled.connect(self.handle_left_door)
         self.ui.emergency_button.toggled.connect(self.handle_emergency_button)
 
+        # Connect the train dropdown so that when selection changes, UI state is saved/loaded.
+        self.ui.train_id_dropdown.currentIndexChanged.connect(self.on_train_selection_changed)
+
         # Set up timer for callback/update function
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
         self.timer.start(100)
 
-    def update(self):
+    def get_ui_state(self, train):
+        """Return the UI state dictionary for the given train, initializing with defaults if needed.
+        Only door button states are tracked here.
+        """
+        key = id(train)
+        if key not in self.ui_states:
+            self.ui_states[key] = {
+                'door_left': False,
+                'door_right': False
+            }
+        return self.ui_states[key]
 
+    def save_current_ui_state(self):
+        """Save current door button states and propagate them to the backend for the active train."""
+        if self.current_train is not None:
+            state = self.get_ui_state(self.current_train)
+            state['door_left'] = self.ui.door_left_button.isChecked()
+            state['door_right'] = self.ui.door_right_button.isChecked()
+            self.current_train.door_left = state['door_left']
+            self.current_train.door_right = state['door_right']
+
+    def load_ui_state(self, train):
+        """Load the door button states for the given train and update UI controls and backend accordingly."""
+        state = self.get_ui_state(train)
+        self.ui.door_left_button.setChecked(state['door_left'])
+        self.ui.door_right_button.setChecked(state['door_right'])
+        train.door_left = state['door_left']
+        train.door_right = state['door_right']
+
+    def on_train_selection_changed(self, index):
+        """Handle switching trains from the dropdown."""
+        if self.current_train is not None:
+            self.save_current_ui_state()
+        self.current_train = self.collection.train_list[index]
+        if self.train_integrated:
+            self.current_train = self.current_train.controller
+        self.load_ui_state(self.current_train)
+
+    def update_train_dropdown(self):
+        if self.collection:
+            self.ui.train_id_dropdown.clear()
+            self.ui.train_id_dropdown.addItems([str(i+1) for i in range(len(self.collection.train_list))])
+            if self.current_train is None:
+                self.current_train = self.collection.train_list[0]
+                if self.train_integrated:
+                    self.current_train = self.current_train.controller
+                self.load_ui_state(self.current_train)
+
+    def update(self):
         # Set the display values
         if not self.current_train:
             return
@@ -60,7 +111,7 @@ class TrainControllerFrontend(QMainWindow):
         if self.train_integrated:
             self.current_train = self.current_train.controller
 
-        # Update the clock LCD and the AM/PM label
+        # Update clock
         self.ui.global_clock_lcd.display(self.current_train.global_clock.text)
         self.ui.am_pm_label.setText(self.current_train.global_clock.am_pm)
 
@@ -72,20 +123,24 @@ class TrainControllerFrontend(QMainWindow):
         self.display_target_speed(self.current_train.target_speed)
 
         # Check if auto or manual mode
-        if (self.ui.control_mode_switch.value() == 0):
-            # Auto Mode
+        if self.ui.control_mode_switch.value() == 0:
             self.disable_for_auto()
             self.current_train.manual_mode = False
         else:
-            # Manual Mode
             self.enable_for_manual()
             self.current_train.manual_mode = True
 
-        # Update service brake
-        if (self.current_train.service_brake):
+        # Update service brake lights
+        if self.current_train.service_brake:
             self.activate_service_brake()
         else:
             self.deactivate_service_brake()
+
+        # Update emergency brake state explicitly
+        if self.current_train.emergency_brake:
+            self.activate_emergency_brake()
+        else:
+            self.deactivate_emergency_brake()
         
         # Set Failure Lights and handle emergency brakes
         self.activate_signal_failure() if self.current_train.signal_failure else self.deactivate_signal_failure()
@@ -94,23 +149,17 @@ class TrainControllerFrontend(QMainWindow):
         if self.current_train.emergency_brake:
             self.activate_emergency_brake()
 
-        # Set the Input temperature
+        # Set the input temperature
         self.current_train.desired_temperature = self.ui.cabin_temperature_spin_box.value()
 
-        if (self.current_train.actual_speed > 0):
+        # Disable door buttons if the train is moving
+        if self.current_train.actual_speed > 0:
             self.ui.door_left_button.setEnabled(False)
             self.ui.door_right_button.setEnabled(False)
 
-        # Set next station and on air light
+        # Set next station and on-air light
         self.display_next_station()
 
-    def update_train_dropdown(self):
-        if self.collection:
-            self.ui.train_id_dropdown.clear()  # Clear existing items
-            self.ui.train_id_dropdown.addItems([str(i+1) for i in range(len(self.collection.train_list))])  # Add updated list
-            if self.current_train==None:
-                self.current_train=self.collection.train_list[0]
-                
     def display_next_station(self):
         self.ui.next_station_label.setText(self.current_train.next_station)
 
@@ -165,27 +214,24 @@ class TrainControllerFrontend(QMainWindow):
         self.current_train.emergency_brake = checked
         if not checked:
             self.deactivate_emergency_brake()
-    
+
     def activate_emergency_brake(self):
         self.ui.emergency_button.setChecked(True)
-        
+        self.current_train.emergency_brake = True
+
     def deactivate_emergency_brake(self):
         self.ui.emergency_button.setChecked(False)
+        self.current_train.emergency_brake = False
 
     def handle_right_door(self, checked):
-        if checked:
-            self.current_train.door_right = True
-        else:
-            self.current_train.door_right = False
+        state = self.get_ui_state(self.current_train)
+        state['door_right'] = checked
+        self.current_train.door_right = checked
 
     def handle_left_door(self, checked):
-        if checked:
-            self.current_train.door_left = True
-        else:
-            self.current_train.door_left = False
-
-    def handle_service_brake(self):
-        self.current_train.service_brake = not self.current_train.service_brake
+        state = self.get_ui_state(self.current_train)
+        state['door_left'] = checked
+        self.current_train.door_left = checked
 
     def activate_headlights(self):
         self.current_train.headlights = True
@@ -199,12 +245,8 @@ class TrainControllerFrontend(QMainWindow):
     def deactivate_interior_lights(self):
         self.current_train.interior_lights = False
 
-    def set_k_constants(self):
-        self.Kp = self.to_float(self.ui.kp_line_edit.text(), 1.0)
-        self.Ki = self.to_float(self.ui.ki_line_edit.text(), 1.0)
-        self.ui.control_constants_apply_button.setEnabled(False)
-        self.ui.kp_line_edit.setEnabled(False)
-        self.ui.ki_line_edit.setEnabled(False)
+    def handle_service_brake(self):
+        self.current_train.service_brake = not self.current_train.service_brake
 
     def activate_signal_failure(self):
         self.ui.signal_failure_light.setStyleSheet("background-color: red; font-weight: bold; font-size: 16px;")
@@ -223,9 +265,15 @@ class TrainControllerFrontend(QMainWindow):
 
     def deactivate_engine_failure(self):
         self.ui.engine_failure_light.setStyleSheet("background-color: rgb(255, 170, 170); font-weight: bold; font-size: 16px;")
-    
+
+    def set_k_constants(self):
+        self.Kp = self.to_float(self.ui.kp_line_edit.text(), 1.0)
+        self.Ki = self.to_float(self.ui.ki_line_edit.text(), 1.0)
+        self.ui.control_constants_apply_button.setEnabled(False)
+        self.ui.kp_line_edit.setEnabled(False)
+        self.ui.ki_line_edit.setEnabled(False)
+
     def to_float(self, val_str, default=0.0):
-        # Helper for string->float conversion
         try:
             return float(val_str)
         except ValueError:
