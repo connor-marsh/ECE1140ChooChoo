@@ -89,7 +89,7 @@ class TrackData():
         self.switch_exits = {} # the blocks that the switch
         self.stations = {}
         self.lights = {}
-        self.crossings = {}
+        self.crossings = {} 
         self.beacons = {}
 
         for row in range(len(dictionary["Block Number"])):

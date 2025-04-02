@@ -73,7 +73,7 @@ class WaysideControllerCollection(QObject):
 
         # Initialize the frontend with access to the collection so that it may modify itself or the backend using the data from the backend
         from Track.WaysideController.wayside_controller_frontend import WaysideControllerFrontend # lazy import to avoid circular import (do NOT tell me about design patterns)
-        self.frontend = WaysideControllerFrontend(self)
+        self.frontend = WaysideControllerFrontend(self, True)
         
 
         self.connect_signals()
