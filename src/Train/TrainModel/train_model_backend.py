@@ -9,6 +9,7 @@ Description:
 import math
 import os
 import sys
+import time
 from PyQt5.QtWidgets import QMainWindow, QWidget
 from PyQt5.QtCore import QTimer, QTime, QDateTime
 
@@ -82,7 +83,7 @@ class TrainModel(QMainWindow):
         self.prev_time = None
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
-        self.timer.start(100)
+        self.timer.start(self.global_clock.train_dt)
 
         # Ensure a backend attribute exists.
         self.backend = self
@@ -201,8 +202,8 @@ class TrainModel(QMainWindow):
             selected = "train_controller"
 
         if selected in ["testbench", "track"]:
-            self.wayside_speed = selected_data.get("commanded_speed", self.wayside_speed) / self.MPS_TO_MPH
-            self.wayside_authority = selected_data.get("authority", self.wayside_authority) / self.M_TO_FT
+            self.wayside_speed = selected_data.get("wayside_speed", self.wayside_speed) / self.MPS_TO_MPH
+            self.wayside_authority = selected_data.get("wayside_authority", self.wayside_authority) / self.M_TO_FT
             self.beacon_data = selected_data.get("beacon_data", self.beacon_data)
             grade = selected_data.get("grade", self.grade)
             if grade > 60:

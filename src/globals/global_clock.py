@@ -4,15 +4,20 @@ from PyQt5.QtCore import QTimer, QTime
 class GlobalClock(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.time = QTime(6, 59, 0)
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update)
-        self.timer.start(100)
-        self.time_multiplier = 10
         self.am_pm = "AM"
         self.text = "06:59"
         self.hour = 6
         self.minute = 59
+        
+        # update speeds for the various modules
+        self.time_multiplier = 10
+        self.train_dt=1
+
+        self.time = QTime(6, 59, 0)
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update)
+        self.timer.start(1000)
+        
     def update(self):
         self.time = self.time.addSecs(self.time_multiplier)
         self.hour = self.time.hour()
