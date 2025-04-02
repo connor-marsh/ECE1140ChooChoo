@@ -36,7 +36,6 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     """
     switch_positions[0] = (block_occupancies[0] or block_occupancies[1] or block_occupancies[2]) and not block_occupancies[3]
     switch_positions[1] = block_occupancies[1]
-    switch_positions[2] = not block_occupancies[2]
 
     light_signals[0] = block_occupancies[1]
 

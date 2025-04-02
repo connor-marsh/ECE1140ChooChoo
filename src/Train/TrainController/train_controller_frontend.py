@@ -37,6 +37,7 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.interior_lights_on_button.clicked.connect(self.activate_interior_lights)
         self.ui.interior_lights_off_button.clicked.connect(self.deactivate_interior_lights)
         self.ui.target_speed_apply_button.clicked.connect(self.set_driver_target_speed)
+        self.ui.service_brake_apply_button.clicked.connect(self.handle_service_brake)
 
         # Set up the door and emergency buttons to be toggles
         self.ui.door_right_button.setCheckable(True)
@@ -45,7 +46,6 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.door_right_button.toggled.connect(self.handle_right_door)
         self.ui.door_left_button.toggled.connect(self.handle_left_door)
         self.ui.emergency_button.toggled.connect(self.handle_emergency_button)
-        self.ui.service_brake_apply_button.clicked.connect(self.handle_service_brake)
 
         # Connect the train dropdown so that when selection changes, UI state is saved/loaded.
         self.ui.train_id_dropdown.currentIndexChanged.connect(self.on_train_selection_changed)
@@ -120,6 +120,7 @@ class TrainControllerFrontend(QMainWindow):
         self.display_authority(str(self.current_train.wayside_authority))
         self.display_cabin_temperature(str(int(round(self.current_train.actual_temperature, 2))))
         self.display_commanded_power(self.current_train.commanded_power)
+        self.display_target_speed(self.current_train.target_speed)
 
         # Check if auto or manual mode
         if self.ui.control_mode_switch.value() == 0:
@@ -171,8 +172,7 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.service_brake_off_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
 
     def set_driver_target_speed(self):
-        self.current_train.driver_target_speed = self.ui.target_speed_spin_box.value()  # TODO: convert to m/s as needed
-        self.ui.target_speed_lcd.display(self.current_train.driver_target_speed)
+        self.current_train.driver_target_speed = self.ui.target_speed_spin_box.value()
 
     def display_commanded_power(self, power):
         self.ui.commanded_power_lcd.display(power)
@@ -188,6 +188,9 @@ class TrainControllerFrontend(QMainWindow):
 
     def display_actual_speed(self, speed):
         self.ui.actual_speed_lcd.display(speed)
+
+    def display_target_speed(self, speed):
+        self.ui.target_speed_lcd.display(speed)
 
     def disable_for_auto(self):
         self.ui.target_speed_apply_button.setEnabled(False)
