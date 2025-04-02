@@ -15,6 +15,10 @@ class Section: # has an attribute to help determine the direction of travel
     increasing: int = 0 # 0 is decreasing, 1 is increasing, 2 is bidirectional with regard to the train moving over the blocks
 
 @dataclass(frozen=True) # makes it immutable (values should not change once read from excel)
+class SwitchExit: # the blocks a switch entrance forks out to
+    switch_entrance: str # the block id of the switch entrance (chokepoint) where two ends (friends) meet
+
+@dataclass(frozen=True) # makes it immutable (values should not change once read from excel)
 class Block: # contains unchanging information about blocks
     id: str = "" # A1, B4, C12 etc..
     length: int = 0 # length of the block in yards
@@ -54,7 +58,7 @@ class Beacon:
     data: bytearray = 0
 
 
-class TrackDataClass():
+class TrackData():
     def __init__(self, filepath: str):
         """
         Initialization for the static track data.
@@ -129,7 +133,8 @@ class TrackDataClass():
                 self.beacons[block_id] = beacon_obj
 
             if pd.notna(dictionary["Switch Exit"][row]) == True:
-                self.switch_exits[block_id] = dictionary["Switch Exit"][row]
+                switch_exit_obj = SwitchExit(switch_entrance=dictionary["Switch Exit"][row])
+                self.switch_exits[block_id] = switch_exit_obj
             
 
 
@@ -204,5 +209,5 @@ class TrackDataClass():
 def init():
     global lines 
     lines = {}
-    line = TrackDataClass("src\Track\TrackModel\GreenLine_Layout.xlsx")
+    line = TrackData("src\Track\TrackModel\GreenLine_Layout.xlsx")
     lines[line.line_name] = line
