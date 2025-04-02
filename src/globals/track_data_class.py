@@ -58,7 +58,7 @@ class Beacon:
     data: bytearray = 0
 
 
-class TrackDataClass():
+class TrackData():
     def __init__(self, filepath: str):
         """
         Initialization for the static track data.
@@ -209,5 +209,5 @@ class TrackDataClass():
 def init():
     global lines 
     lines = {}
-    line = TrackDataClass("src\Track\TrackModel\GreenLine_Layout.xlsx")
+    line = TrackData("src\Track\TrackModel\GreenLine_Layout.xlsx")
     lines[line.line_name] = line
