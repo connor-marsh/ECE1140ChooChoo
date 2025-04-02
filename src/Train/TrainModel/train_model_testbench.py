@@ -103,8 +103,8 @@ class TrainModelTestbench(QMainWindow):
                 return default
 
         wayside = {
-            "commanded_speed": to_float(self.ui.WaysideSpeed.text(), 0.0),
-            "authority": to_float(self.ui.WaysideAuthority.text(), 0.0),
+            "wayside_speed": to_float(self.ui.WaysideSpeed.text(), 0.0),
+            "wayside_authority": to_float(self.ui.WaysideAuthority.text(), 0.0),
             "beacon_data": self.ui.BeaconData.text(),
             "grade": to_float(self.ui.GradePercent.text(), 0.0),
             "passenger_count": to_float(self.ui.PassengerCount.text(), 0.0),

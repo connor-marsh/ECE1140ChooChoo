@@ -200,8 +200,8 @@ class TrainModel(QMainWindow):
             selected = "train_controller"
 
         if selected in ["testbench", "track"]:
-            self.wayside_speed = selected_data.get("commanded_speed", self.wayside_speed) / self.MPS_TO_MPH
-            self.wayside_authority = selected_data.get("authority", self.wayside_authority) / self.M_TO_FT
+            self.wayside_speed = selected_data.get("wayside_speed", self.wayside_speed) / self.MPS_TO_MPH
+            self.wayside_authority = selected_data.get("wayside_authority", self.wayside_authority) / self.M_TO_FT
             self.beacon_data = selected_data.get("beacon_data", self.beacon_data)
             grade = selected_data.get("grade", self.grade)
             if grade > 60:
