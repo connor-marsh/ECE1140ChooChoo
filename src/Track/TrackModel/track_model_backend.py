@@ -40,7 +40,7 @@ os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
     # Receive ticket sales
 
 ###############################################################################
-# Block Class
+# Dynamic Track Class
 ###############################################################################
 
 # class Block:
@@ -59,14 +59,21 @@ os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 #         self.railway_signal = False
 #         self.traffic_signal = "None"
 #         self.beacon_data = None
+class DynamicTrack:
+    def __init__(self):
+        self.occupancies = {}
+        self.switch_states = {}
+        self.light_states = {}
+        self.crossings = {}
 
 ###############################################################################
 # Dummy Train Class
 ###############################################################################
 
 class Train:
-    def __init__(self, train_id, track_data=None, initial_block=None):
-        self.track_data = track_data
+    def __init__(self, train_id, track_model=None, initial_block=None):
+        self.track_data = track_model.track_data
+        self.dynamic_track = track_model.dynamic_track
         self.train_id = train_id
         self.current_block = initial_block
         self.distance_traveled = 0.0
@@ -81,11 +88,16 @@ class Train:
         if distance_within_block > self.current_block.length:
             if self.current_block.switch:
                 switch = self.track_data.switches[self.current_block.id]
-                print("FIX SWITCH STATE IN TRAIN UPDATE")
-                switchState=True
-                self.current_block = self.track_data.blocks[switch.positions[1 if switchState else 0].split("-")[0]-1]
+                switchState=self.dynamic_track.switch_states[self.current_block.id]
+                self.current_block = self.track_data.blocks[switch.positions[1 if switchState else 0].split("-")[1]-1]
             elif self.current_block.switch_exit:
-                pass
+                switch = self.track_data.switches[self.track_data.switch_exits.switch_entrance]
+                switchState=self.dynamic_track.switch_states[self.current_block.id]
+                switchBlocks = switch.positions[1 if switchState else 0].split("-")
+                if switchBlocks[1] == self.current_block.id:
+                    self.current_block = self.track_data.blocks[switchBlocks[0]-1]
+                else:
+                    print("TRAIN CRASH FROM SWITCH POSITION")
             else:
                 self.current_block = self.track_data.blocks[int(self.current_block.id[1:])+(self.travel_direction*2-1)]
             # implement still
@@ -113,6 +125,7 @@ class TrackModel(QtWidgets.QMainWindow):
         super().__init__()
         self.name = name
         self.track_data = global_track_data.lines[name]
+        self.dynamic_track = DynamicTrack()
         self.runtime_status = {} # Runtime status of blocks
         self.trains = []  # holds Train instances
         self.train_counter = 0
@@ -308,7 +321,7 @@ class TrackModel(QtWidgets.QMainWindow):
         # Increment and assign new train
         self.train_counter += 1
         train_id = self.train_counter-1
-        new_train = Train(train_id=train_id, track_data=self.track_data, initial_block=start_block)
+        new_train = Train(train_id=train_id, track_model=self, initial_block=start_block)
         self.train_collection.createTrain()
         new_train.train_model = self.train_collection.train_list[-1]
 
