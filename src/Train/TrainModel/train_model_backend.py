@@ -71,7 +71,6 @@ class TrainModel(QMainWindow):
         self.width_m = 2.65
         self.grade = 0.0  # percent
         self.passenger_count = 0 
-        # self.speed_limit = 0.0  # m/s
 
         self.brake_failure = False
         self.signal_failure = False
@@ -169,7 +168,7 @@ class TrainModel(QMainWindow):
         if brake_off and new_velocity < self.MIN_SPEED_NO_BRAKE:
             new_velocity = self.MIN_SPEED_NO_BRAKE
 
-        degrees_per_second = 0.01
+        degrees_per_second = 0.001
         if self.heating and not self.air_conditioning:
             dtemp = degrees_per_second * dt
         elif self.air_conditioning and not self.heating:

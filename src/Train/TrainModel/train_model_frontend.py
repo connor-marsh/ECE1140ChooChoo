@@ -2,9 +2,6 @@
 Author: Iyan Nekib
 Date: 03-20-2025
 Description:
-    This version separates UI–specific state for the failure buttons from the backend train data,
-    while ensuring that changes made in the UI are immediately sent to the backend for physics computations.
-    The emergency brake state is not stored in the per–train UI state dictionary and is propagated directly.
 """
 
 # frontend.py
@@ -170,11 +167,7 @@ class TrainModelFrontEnd(QMainWindow):
             # Dynamic values from backend.
             velocity_mph = self.current_train.actual_speed * self.current_train.MPS_TO_MPH
             cmd_speed_mph = self.current_train.wayside_speed * self.current_train.MPS_TO_MPH
-            # try:
-            #     speed_limit = self.current_train.speed_limit
-            # except AttributeError:
-            #     speed_limit = 0.0
-            # speed_limit_mph = speed_limit * self.current_train.MPS_TO_MPH
+            wayside_authority_ft = self.current_train.wayside_authority * self.current_train.M_TO_FT
             
             acceleration_fts2 = self.current_train.current_acceleration * 3.281
             commanded_power = self.current_train.commanded_power
@@ -182,7 +175,7 @@ class TrainModelFrontEnd(QMainWindow):
             self.train_ui.AccValue.display(acceleration_fts2)
             self.train_ui.SpeedValue.display(velocity_mph)
             self.train_ui.CommandedSpeedValue.display(cmd_speed_mph)
-            # self.train_ui.SpeedLimitValue.display(speed_limit_mph)
+            self.train_ui.SpeedLimitValue.display(wayside_authority_ft)
             self.train_ui.PowerValue.display(commanded_power / 1000.0)
 
             try:

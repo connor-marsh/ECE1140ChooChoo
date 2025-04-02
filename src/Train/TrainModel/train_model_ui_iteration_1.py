@@ -385,12 +385,12 @@ class Ui_MainWindow(object):
 
         self.LiveTrainDataGrid.addWidget(self.MassVehicleLabel, 5, 0, 1, 1)
 
-        # self.SpeedLimitValue = QLCDNumber(self.gridLayoutWidget)
-        # self.SpeedLimitValue.setObjectName(u"SpeedLimitValue")
-        # self.SpeedLimitValue.setFont(font2)
-        # self.SpeedLimitValue.setSegmentStyle(QLCDNumber.Flat)
+        self.SpeedLimitValue = QLCDNumber(self.gridLayoutWidget)
+        self.SpeedLimitValue.setObjectName(u"SpeedLimitValue")
+        self.SpeedLimitValue.setFont(font2)
+        self.SpeedLimitValue.setSegmentStyle(QLCDNumber.Flat)
 
-        # self.LiveTrainDataGrid.addWidget(self.SpeedLimitValue, 1, 1, 1, 1)
+        self.LiveTrainDataGrid.addWidget(self.SpeedLimitValue, 1, 1, 1, 1)
 
         self.LengthVehicleLabel = QLabel(self.gridLayoutWidget)
         self.LengthVehicleLabel.setObjectName(u"LengthVehicleLabel")
@@ -436,13 +436,13 @@ class Ui_MainWindow(object):
 
         self.LiveTrainDataGrid.addWidget(self.CrewCountValue, 7, 1, 1, 1)
 
-        # self.SpeedLimitLabel = QLabel(self.gridLayoutWidget)
-        # self.SpeedLimitLabel.setObjectName(u"SpeedLimitLabel")
-        # self.SpeedLimitLabel.setFont(font7)
-        # self.SpeedLimitLabel.setFrameShape(QFrame.WinPanel)
-        # self.SpeedLimitLabel.setFrameShadow(QFrame.Sunken)
+        self.SpeedLimitLabel = QLabel(self.gridLayoutWidget)
+        self.SpeedLimitLabel.setObjectName(u"SpeedLimitLabel")
+        self.SpeedLimitLabel.setFont(font7)
+        self.SpeedLimitLabel.setFrameShape(QFrame.WinPanel)
+        self.SpeedLimitLabel.setFrameShadow(QFrame.Sunken)
 
-        # self.LiveTrainDataGrid.addWidget(self.SpeedLimitLabel, 1, 0, 1, 1)
+        self.LiveTrainDataGrid.addWidget(self.SpeedLimitLabel, 1, 0, 1, 1)
 
         self.WidthValue = QLCDNumber(self.gridLayoutWidget)
         self.WidthValue.setObjectName(u"WidthValue")
@@ -814,11 +814,10 @@ class Ui_MainWindow(object):
         self.LengthVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Length of \n"
 "Vehicle (ft)", None))
         self.HeightLabel.setText(QCoreApplication.translate("MainWindow", u"Height (ft)", None))
-        # self.SpeedLimitLabel.setText(QCoreApplication.translate("MainWindow", u"Speed Limit \n"
-# "(mph)", None))
+        self.SpeedLimitLabel.setText(QCoreApplication.translate("MainWindow", u"Wayside \nAuthority (ft)", None))
         self.CrewCountLabel.setText(QCoreApplication.translate("MainWindow", u"Crew Count", None))
         self.WidthLabel.setText(QCoreApplication.translate("MainWindow", u"Width (ft)", None))
-        self.CommandedSpeedLabel.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Commanded </p><p>Speed (mph)</p></body></html>", None))
+        self.CommandedSpeedLabel.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Wayside </p><p>Speed (mph)</p></body></html>", None))
         self.PassengerCountLabel.setText(QCoreApplication.translate("MainWindow", u"Passenger \n"
 "Count", None))
         self.GradePercentage.setText(QCoreApplication.translate("MainWindow", u"Grade (%)", None))
