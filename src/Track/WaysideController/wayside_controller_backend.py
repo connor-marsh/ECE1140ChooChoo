@@ -8,8 +8,9 @@ import importlib.util
 import sys
 import time
 import os
+from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
-class WaysideController():
+class WaysideController(QObject):
     """
     Accepts a user created plc program at runtime and executes it.
     """
@@ -22,6 +23,7 @@ class WaysideController():
         :param crossing_count: Nonnegative Integer number of crossing signals controlled by the PLC program
         :param exit_block_count: Nonnegative integer number of exit blocks that the territory of the wayside has
         """
+        super().__init__()
         self.scan_time = scan_time  # PLC scan time
         self.plc_filename = "" # The name of the plc file, used by the ui to display the name properly, otherwise not really necessary
         self.block_occupancies = [False] * block_count  # List of block occupancies [OCCUPIED == True, UNOCCUPIED == False]
