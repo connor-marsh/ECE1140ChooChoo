@@ -38,6 +38,7 @@ class TrainController(QMainWindow):
         self.next_station = ""
         self.announcement = False
         self.manual_mode = False
+        self.target_speed = 0.0
 
         # Default for power calculation
         self.integral_error = 0.0
@@ -60,14 +61,14 @@ class TrainController(QMainWindow):
         
         # Check if auto or manual mode and calculate power
         if self.manual_mode:
-            target_speed = min(self.driver_target_speed, self.speed_limit)
+            self.target_speed = min(self.driver_target_speed, self.speed_limit)
         else:
-            target_speed = min(self.wayside_speed, self.speed_limit)
+            self.target_speed = min(self.wayside_speed, self.speed_limit)
 
-        if (target_speed == self.speed_limit):
-            target_speed = 0.9 * self.speed_limit
+        if (self.target_speed == self.speed_limit):
+            self.target_speed = 0.9 * self.speed_limit
 
-        self.error = target_speed - self.actual_speed
+        self.error = self.target_speed - self.actual_speed
         self.integral_error += self.error * (0.001) # TODO: THIS SHOULD BE A DT CONSTANT THAT CHANGES THE RATE AT WHICH UPDATE FUNCTION ALSO RUNS
         commanded_power_1 = (self.Kp * self.error) + (self.Ki * self.integral_error)
         commanded_power_2 = (self.Kp * self.error) + (self.Ki * self.integral_error)
