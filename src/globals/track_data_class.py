@@ -130,7 +130,7 @@ class TrackDataClass():
         for row in range(len(dictionary2["Section"])):
             section = Section(dictionary2["Increasing"][row])
             self.sections.append(section)
-            print(section.increasing)
+
         
         
     def parse_switch(self, value: str, territory: int):

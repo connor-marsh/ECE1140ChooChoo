@@ -8,7 +8,7 @@ Description: Connects the wayside controller to the testbench or other modules
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject, QTimer
 from src.Track.WaysideController.legacy.wayside_controller import WaysideControllerWindow
-from wayside_controller_testbench import WaysideTestbenchWindow
+from Track.WaysideController.legacy.wayside_controller_testbench import WaysideTestbenchWindow
 import sys
 import wayside_constants
 
