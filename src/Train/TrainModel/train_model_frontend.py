@@ -170,11 +170,11 @@ class TrainModelFrontEnd(QMainWindow):
             # Dynamic values from backend.
             velocity_mph = self.current_train.actual_speed * self.current_train.MPS_TO_MPH
             cmd_speed_mph = self.current_train.wayside_speed * self.current_train.MPS_TO_MPH
-            try:
-                speed_limit = self.current_train.speed_limit
-            except AttributeError:
-                speed_limit = 0.0
-            speed_limit_mph = speed_limit * self.current_train.MPS_TO_MPH
+            # try:
+            #     speed_limit = self.current_train.speed_limit
+            # except AttributeError:
+            #     speed_limit = 0.0
+            # speed_limit_mph = speed_limit * self.current_train.MPS_TO_MPH
             
             acceleration_fts2 = self.current_train.current_acceleration * 3.281
             commanded_power = self.current_train.commanded_power
@@ -182,7 +182,7 @@ class TrainModelFrontEnd(QMainWindow):
             self.train_ui.AccValue.display(acceleration_fts2)
             self.train_ui.SpeedValue.display(velocity_mph)
             self.train_ui.CommandedSpeedValue.display(cmd_speed_mph)
-            self.train_ui.SpeedLimitValue.display(speed_limit_mph)
+            # self.train_ui.SpeedLimitValue.display(speed_limit_mph)
             self.train_ui.PowerValue.display(commanded_power / 1000.0)
 
             try:

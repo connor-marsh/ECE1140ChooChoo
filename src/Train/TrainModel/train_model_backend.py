@@ -71,7 +71,7 @@ class TrainModel(QMainWindow):
         self.width_m = 2.65
         self.grade = 0.0  # percent
         self.passenger_count = 0 
-        self.speed_limit = 0.0  # m/s
+        # self.speed_limit = 0.0  # m/s
 
         self.brake_failure = False
         self.signal_failure = False
@@ -155,6 +155,12 @@ class TrainModel(QMainWindow):
         # Check for overspeed and adjust velocity if necessary.
         if new_velocity < 0:
             new_velocity = 0
+
+        # Clamp the speed to a maximum of 43.49 mph (≈19.44 m/s)
+        max_speed_mps = 43.49 / self.MPS_TO_MPH
+        if new_velocity > max_speed_mps:
+            new_velocity = max_speed_mps
+
         self.previous_acceleration = final_acceleration
         self.actual_speed = new_velocity
         self.current_acceleration = final_acceleration
@@ -181,24 +187,23 @@ class TrainModel(QMainWindow):
             "actual_temperature": display_temp
         }
 
-    def set_input_data(self, testbench_data=None, wayside_data=None, train_controller_data=None):
+    def set_input_data(self, testbench_data=None, track_data=None, train_controller_data=None):
         selected_data = None
         selected = ""
         if testbench_data:
             selected_data = testbench_data
             selected = "testbench"
-        elif wayside_data:
-            selected_data = wayside_data
-            selected = "wayside"
+        elif track_data:
+            selected_data = track_data
+            selected = "track"
         elif train_controller_data:
             selected_data = train_controller_data
             selected = "train_controller"
 
-        if selected in ["testbench", "wayside"]:
+        if selected in ["testbench", "track"]:
             self.wayside_speed = selected_data.get("commanded_speed", self.wayside_speed) / self.MPS_TO_MPH
             self.wayside_authority = selected_data.get("authority", self.wayside_authority) / self.M_TO_FT
             self.beacon_data = selected_data.get("beacon_data", self.beacon_data)
-            self.speed_limit = selected_data.get("speed_limit", self.speed_limit) / self.MPS_TO_MPH
             grade = selected_data.get("grade", self.grade)
             if grade > 60:
                 grade = 60.0
@@ -237,7 +242,6 @@ class TrainModel(QMainWindow):
         data["signal_failure"] = self.signal_failure
         data["brake_failure"] = self.brake_failure
         data["engine_failure"] = self.engine_failure
-        data["speed_limit"] = self.speed_limit * self.MPS_TO_MPH
         data["position"] = self.position * self.M_TO_FT
         if self.send_emergency_brake_signal:
             data["emergency_brake"] = self.emergency_brake
