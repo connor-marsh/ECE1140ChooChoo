@@ -15,10 +15,6 @@ class Section: # has an attribute to help determine the direction of travel
     increasing: int = 0 # 0 is decreasing, 1 is increasing, 2 is bidirectional with regard to the train moving over the blocks
 
 @dataclass(frozen=True) # makes it immutable (values should not change once read from excel)
-class SwitchExit: # the blocks a switch entrance forks out to
-    switch_entrance: str # the block id of the switch entrance (chokepoint) where two ends (friends) meet
-
-@dataclass(frozen=True) # makes it immutable (values should not change once read from excel)
 class Block: # contains unchanging information about blocks
     id: str = "" # A1, B4, C12 etc..
     length: int = 0 # length of the block in yards
@@ -42,6 +38,10 @@ class Station:
 class Switch:
     territory: int = 0 # which wayside it corresponds to
     positions: tuple = ("","") # 0, 1 # tuple of strings containing position if false, true
+
+@dataclass(frozen=True) # makes it immutable (values should not change once read from excel)
+class SwitchExit: # the blocks a switch entrance forks out to
+    switch_entrance: str # the block id of the switch entrance (chokepoint) where two ends (friends) meet
 
 @dataclass(frozen=True)
 class Light:
@@ -138,11 +138,11 @@ class TrackData():
             
 
 
-        self.sections = []
+        self.sections = {}
 
         for row in range(len(dictionary2["Section"])):
             section = Section(dictionary2["Increasing"][row])
-            self.sections.append(section)
+            self.sections[dictionary2["Section"][row]]=section
 
         
         
