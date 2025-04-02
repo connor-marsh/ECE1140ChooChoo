@@ -14,6 +14,7 @@ from Train.TrainModel.train_model_testbench import TrainModelTestbench
 from Train.TrainController.train_controller_frontend import TrainControllerFrontend
 from Train.TrainController.train_controller_testbench import TrainControllerTestbench
 from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
+from Track.TrackModel.track_model_frontend import TrackModelFrontEnd
 
 
 if __name__=="__main__":
@@ -40,7 +41,9 @@ if __name__=="__main__":
         except KeyError as e:
             print(f"\n❌ {e}\nPlease enter a valid line name. \'{line_name}\' is not in the list of imported lines.")
     elif running_module == "TrackModel":
-        pass
+        track_model = TrackModelFrontEnd()
+        # track_model.upload_track_layout_data("GreenLine_Layout.xlsx")
+        track_model.change_temperature(35)
     elif running_module == "Train":
         train_collection = TrainCollection(num_trains=3)
         train_model_testbench = TrainModelTestbench(train_collection, train_integrated=True)    

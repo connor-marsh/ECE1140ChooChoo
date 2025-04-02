@@ -24,6 +24,7 @@ class Block: # contains unchanging information about blocks
     territory: int = 0 # integer that is 1 based indexed for each wayside
     station: bool = False # has a station 
     switch: bool = False # has a switch
+    switch_exit: bool = False # a block that a switch can fork/connect to
     light: bool = False # has a light
     crossing: bool = False # has a crossing
     beacon: bool = False # has a beacon
@@ -37,6 +38,10 @@ class Station:
 class Switch:
     territory: int = 0 # which wayside it corresponds to
     positions: tuple = ("","") # 0, 1 # tuple of strings containing position if false, true
+
+@dataclass(frozen=True) # makes it immutable (values should not change once read from excel)
+class SwitchExit: # the blocks a switch entrance forks out to
+    switch_entrance: str # the block id of the switch entrance (chokepoint) where two ends (friends) meet
 
 @dataclass(frozen=True)
 class Light:
@@ -53,7 +58,7 @@ class Beacon:
     data: bytearray = 0
 
 
-class TrackDataClass():
+class TrackData():
     def __init__(self, filepath: str):
         """
         Initialization for the static track data.
@@ -81,6 +86,7 @@ class TrackDataClass():
         """
         self.blocks = [] # list that contains every block's (a struct) properties indexed 0 - 149 for green line
         self.switches = {} # a dictionary that allows lookup of a switch at a certain block id, if block.switch: switch[block.id].position(0), is equivalent to getting the switches position when plc outputs false
+        self.switch_exits = {} # the blocks that the switch
         self.stations = {}
         self.lights = {}
         self.crossings = {}
@@ -103,6 +109,7 @@ class TrackDataClass():
                 length=dictionary["Block Length (y)"][row],
                 speed_limit=dictionary["Speed Limit (MPH)"][row],
                 territory=territory,
+                switch_exit=pd.notna(dictionary["Switch Exit"][row])
             )
 
             self.blocks.append(block)
@@ -124,12 +131,18 @@ class TrackDataClass():
                 self.stations[block_id] = station_obj
             if beacon_obj:
                 self.beacons[block_id] = beacon_obj
-        
-        self.sections = []
+
+            if pd.notna(dictionary["Switch Exit"][row]) == True:
+                switch_exit_obj = SwitchExit(switch_entrance=dictionary["Switch Exit"][row])
+                self.switch_exits[block_id] = switch_exit_obj
+            
+
+
+        self.sections = {}
 
         for row in range(len(dictionary2["Section"])):
             section = Section(dictionary2["Increasing"][row])
-            self.sections.append(section)
+            self.sections[dictionary2["Section"][row]]=section
 
         
         
@@ -196,5 +209,5 @@ class TrackDataClass():
 def init():
     global lines 
     lines = {}
-    line = TrackDataClass("src\Track\TrackModel\GreenLine_Layout.xlsx")
+    line = TrackData("src\Track\TrackModel\GreenLine_Layout.xlsx")
     lines[line.line_name] = line
