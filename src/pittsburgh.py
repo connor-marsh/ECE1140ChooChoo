@@ -14,13 +14,13 @@ from Train.TrainModel.train_model_testbench import TrainModelTestbench
 from Train.TrainController.train_controller_frontend import TrainControllerFrontend
 from Train.TrainController.train_controller_testbench import TrainControllerTestbench
 from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
-from CTC.centralized_traffic_controller_frontend import CentralizedTrafficControllerFrontEnd
-from CTC.centralized_traffic_controller_backend import CentralizedTrafficControllerBackEnd
+from CTC.centralized_traffic_controller_frontend import CtcFrontEnd
+from CTC.centralized_traffic_controller_backend import CtcBackEnd
 
 
 if __name__=="__main__":
 
-    running_module = "WaysideController" # all, CTC, WaysideController, TrackModel, Train, Train Model, Train Controller
+    running_module = "CTC" # all, CTC, WaysideController, TrackModel, Train, Train Model, Train Controller
     
     # Create App
     app = QApplication(sys.argv)
@@ -32,8 +32,8 @@ if __name__=="__main__":
     if running_module == "all":
         pass
     elif running_module == "CTC":
-        ctc_backend = CentralizedTrafficControllerBackEnd()
-        ctc_frontentd = CentralizedTrafficControllerFrontEnd(ctc_backend)
+        ctc_backend = CtcBackEnd()
+        ctc_frontentd = CtcFrontEnd(ctc_backend)
         ctc_frontentd.show()
     elif running_module == "WaysideController":
         collection = WaysideControllerCollection("GREEN")

@@ -14,9 +14,8 @@ from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem
 from PyQt5.QtGui import QColor
 
-from centralized_traffic_controller_ui import Ui_MainWindow as CtcUI
-from centralized_traffic_controller_backend import CtcBackend
-from centralized_traffic_controller_test_bench_ui import Ui_ctc_TestBench as CtcTestBenchUI
+from .centralized_traffic_controller_ui import Ui_MainWindow as CtcUI
+#from centralized_traffic_controller_test_bench_ui import Ui_ctc_TestBench as CtcTestBenchUI
 import globals.global_clock as global_clock
 
 class CtcFrontEnd(QMainWindow):
@@ -124,7 +123,7 @@ class CtcFrontEnd(QMainWindow):
 
     #Map Initialization
     def initialize_map(self):
-        self.block_data, self.switches, self.stations = self.backend.get_blocks()
+        self.block_data, self.switches, self.stations = self.backend.get_map_data()
 
         # Update map size 
         self.ctc_ui.main_map_table.setRowCount(len(self.block_data))
@@ -186,25 +185,36 @@ class CtcFrontEnd(QMainWindow):
 
     def update_map(self): # Include updated check for block data?? Check effeciency
         # Updates map with new data (Occupancy, Switch Position, Traffic Light, Crossing Status, and Maintenance | called by update function
-        self.block_data, self.switches, _ = self.backend.get_blocks()
+        block_data, switch_data, switch_states, lights, crossings = self.backend.get_map_data()
 
-        for row_index, (block_id, block_info) in enumerate(self.block_data.items()): 
-            #Only activates if block data is updated in last tick
-            if block_info.updated:
+        switch_index, light_index, crossing_index = 0, 0, 0
 
-                # Update Occupancy
-                occupancy_item = QTableWidgetItem()
-                occupancy_item.setBackground(QColor("red") if block_info.occupancy else QColor("green"))
-                self.ctc_ui.main_map_table.setItem(row_index, 2, occupancy_item)
+        for row_index, block in enumerate(block_data):
 
-                # Update Switch Position 
-                if block_id in self.switches:
-                    switch_value = str(self.switches[block_id].position(0)) # May need to update ID check
+            # Update Occupancy
+            occupancy_item = QTableWidgetItem()
+            occupancy_item.setBackground(QColor("red") if block.occupancy else QColor("green"))
+            self.ctc_ui.main_map_table.setItem(row_index, 2, occupancy_item)
 
-                # Update Light Color
-                traffic_light_item = QTableWidgetItem("Green" if block_info.light_state else "Red")
-                traffic_light_item.setBackground(QColor("green") if block_info.light_state else QColor("darkGray"))
-                self.ctc_ui.main_map_table.setItem(row_index, 5, traffic_light_item)
+            if block.has_switch:
+                # Update Switch Position
+                switch_item = QTableWidgetItem(str(switch_states[switch_index])) #Would like to swap to actual blocks, not just 0, 1
+                self.ctc_ui.main_map_table.setItem(row_index, 4, switch_item)
+                switch_index += 1
+
+            if block.has_light:
+                # Update Traffic Light
+                light_item = QTableWidgetItem()
+                light_item.setBackground(QColor("green") if lights[light_index] else QColor("red"))
+                self.ctc_ui.main_map_table.setItem(row_index, 5, light_item)
+                light_index += 1
+
+            if block.has_crossing:
+                # Update Crossing Status
+                crossing_item = QTableWidgetItem()
+                crossing_item.setBackground(QColor("green") if crossings[crossing_index] else QColor("orange"))
+                self.ctc_ui.main_map_table.setItem(row_index, 6, crossing_item)
+                crossing_index += 1
 
     def update_throughput(self):
         #updates throughput label on UI

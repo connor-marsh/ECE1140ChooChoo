@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidget
 from PyQt5.QtGui import QColor
 
 from centralized_traffic_controller_ui import Ui_MainWindow as CtcUI
-from centralized_traffic_controller_test_bench_ui import Ui_ctc_TestBench as CtcTestBenchUI
+#from centralized_traffic_controller_test_bench_ui import Ui_ctc_TestBench as CtcTestBenchUI
 import globals.global_clock as global_clock
 import globals.track_data_class as track_data
 import globals.signals as signals
@@ -80,8 +80,8 @@ class CtcBackEnd():
         self.dispatch_queue_handler() #Dispatch queue handler    
         self.send_suggestions() #Send suggestions to wayside     
         
-    def get_blocks(self):
-        return self.active_line.blocks, self.active_line.switches 
+    def get_map_data(self):
+        return self.active_line.blocks, self.active_line.switch_data, self.active_line.switch_states, self.active_line.lights, self.active_line.crossings
 
     def process_route_data(self, file_data):
         if(file_data is not None):
@@ -132,33 +132,30 @@ class CtcBackEnd():
         override_authority = self.ctc_ui.sub_enter_authority_override.text()
         self.test_bench.print_suggested_authority(override_authority)
 
-
     @pyqtSlot(int)
     def update_tickets(self, num_tickets):
         #Takes tickets sold from track model and updates throughput
         self.total_tickets += num_tickets
         self.throughput = self.total_tickets / (self.elapsed_mins/60) #Tickets per hour
-        #Send throughput to UI
-        self.frontend.update_throughput(self.throughput)
 
     @pyqtSlot(list)
     def update_occupancy(self, occupancy_list):
         #Updates occupancy list | called by wayside controller
-        for block_id, occupancy in zip(self.active_line.blocks.keys(), occupancy_list):
+        for block_id, occupancy in zip(self.active_line.blocks, occupancy_list):
             self.active_line.blocks[block_id].occupancy = occupancy
-        
 
     @pyqtSlot(list)
     def update_switches(self, switch_list):
-        pass
+        self.active_line.switch_states = switch_list
 
     @pyqtSlot(list)
     def update_lights(self, light_list):
-        pass
-
+        #Updates light list | called by wayside controller
+        self.active_line.lights = light_list
+            
     @pyqtSlot(list)
-    def update_crossings(self, block_id, crossing_state):
-        pass
+    def update_crossings(self, crossing_list):
+        self.active_line.crossings = crossing_list
 
     def first_blocks_free(self):
         #Checks if first blocks are free | called by dispatch queue handler
@@ -197,15 +194,15 @@ class CtcBackEnd():
         signals.ctc_dispatch.emit() # Just signal, no param
 
     def send_block_maintenance(self, block_id, maintenance_val):
-        signals.ctc_block_maintenance.emit(block_id, maintenance_val) #int, bool | should be string, bool??? ASK CONNOR
+        signals.ctc_block_maintenance.emit(block_id, maintenance_val) #int, bool 
 
-    def send_suggestions(self, suggested_speeds, suggested_authorities):
-        signals.ctc_suggested.emit(suggested_speeds, suggested_authorities) #List, List
+    def send_suggestions(self, suggested_speeds, suggested_authorities): 
+        signals.ctc_suggested.emit(suggested_speeds, suggested_authorities) #Dict, Dict
 
     def send_exit_blocks(self, exit_blocks):
         signals.ctc_exit_blocks.emit() #List, Currently Unused
 
-    def send_switch_states(self, switch_id, switch_state):
+    def send_switch_states(self, switch_id, switch_state): 
         switch_id = "0" #String to locate switch
         switch_state = False #False for first option, True for second option
         signals.ctc_switch_maintenance.emit(switch_id, switch_state) #String, bool
@@ -263,9 +260,10 @@ class Track:
         self.name = name
         self.active_trains = {}
         self.blocks = []
-        self.switches = track_data.track_data.switches.copy()
-        self.lights = track_data.track_data.lights.copy()
-        #self.crossings = track_data.track_data.crossings.copy()
+        self.switch_data = track_data.track_data.switches.copy()
+        self.switch_states = []
+        self.lights = []
+        self.crossings = []
 
         if name == "Green":
             self.entrance_blocks = ["J62", "K63", "K64"] #Entrance blocks for green line
