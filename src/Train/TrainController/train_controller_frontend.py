@@ -28,6 +28,9 @@ class TrainControllerFrontend(QMainWindow):
 
         # Defaults for the UI
         self.ui.cabin_temperature_spin_box.setValue(77)
+        
+        # Set up the dropdown for train selection
+        # self.set_up_dropdown()
 
         # Set up buttons to read inputs from UI
         self.ui.control_constants_apply_button.clicked.connect(self.set_k_constants)
@@ -92,7 +95,7 @@ class TrainControllerFrontend(QMainWindow):
         self.activate_engine_failure() if self.current_train.engine_failure else self.deactivate_engine_failure()
         if self.current_train.emergency_brake:
             self.activate_emergency_brake()
-
+            
         # Set the Input temperature
         self.current_train.desired_temperature = self.ui.cabin_temperature_spin_box.value()
 
@@ -109,6 +112,39 @@ class TrainControllerFrontend(QMainWindow):
             self.ui.train_id_dropdown.addItems([str(i+1) for i in range(len(self.collection.train_list))])  # Add updated list
             if self.current_train==None:
                 self.current_train=self.collection.train_list[0]
+                
+    # def set_up_dropdown(self):
+    #     self.ui.train_id_dropdown.currentIndexChanged.connect(self.on_train_selection_changed)
+                
+    # def save_current_train_data(self):
+    #     """Save  state from the UI (and emergency brake state) into the current train’s ui_data."""
+    #     data = {
+    #         # "emergency_brake": self.ui.emergency_button.isChecked() if hasattr(self.ui, "emergency_button") else False,
+    #         "left_door" : self.ui.door_left_button.isChecked() if hasattr(self.ui, "door_left") else False,
+    #         "right_door" : self.ui.door_right_button.isChecked() if hasattr(self.ui, "door_right") else False
+    #     }
+    #     if self.current_train is not None:
+    #         self.current_train.ui_data = data
+            
+    # def load_train_data(self):
+    #     """Load saved values from the current train’s ui_data into the UI and update emergency brake state."""
+    #     if self.current_train is None or not hasattr(self.current_train, "ui_data"):
+    #         return
+    #     data = self.current_train.ui_data
+    #     # if hasattr(self.ui, "emergency_button"):
+    #     #     self.ui.emergency_button.setChecked(data.get("emergency_brake", False))
+    #     if hasattr(self.ui, "door_left"):
+    #         self.ui.door_left_button.setChecked(data.get("left_door", False))
+    #     if hasattr(self.ui, "door_right"):
+    #         self.ui.door_right_button.setChecked(data.get("right_door", False))
+        
+    # def on_train_selection_changed(self, index):
+    #     # Save the current train data before switching trains.
+    #     self.save_current_train_data()
+    #     if 0 <= index < len(self.collection.train_list):
+    #         self.current_train = self.collection.train_list[index]
+    #         # Load new train data into the UI.
+    #         self.load_train_data() 
                 
     def display_next_station(self):
         self.ui.next_station_label.setText(self.current_train.next_station)

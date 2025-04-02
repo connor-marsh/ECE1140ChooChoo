@@ -28,6 +28,7 @@ class TrainModelFrontEnd(QMainWindow):
 
         # Use the current_train from the collection.
         self.current_train = None
+        self.ui_data_store = {}  # Frontend store for UI states
         # self.current_train = self.train_collection.current_train
 
         self.train_ui = TrainModelUI()
@@ -94,7 +95,55 @@ class TrainModelFrontEnd(QMainWindow):
         widget_action = QWidgetAction(self)
         widget_action.setDefaultWidget(self.train_dropdown)
         self.train_ui.menuTrain_ID_1.addAction(widget_action)
+        
+    def save_current_train_data(self):
+        """Save UI state from the TestBench into the current train’s ui_data."""
+        # Save the failure state as a boolean: True if the 'Enabled' button is checked.
+        brake_failure = self.train_ui.Enabled1.isChecked() if hasattr(self.train_ui, "Enabled1") else False
+        signal_failure = self.train_ui.Enabled2.isChecked() if hasattr(self.train_ui, "Enabled2") else False
+        engine_failure = self.train_ui.Enabled3.isChecked() if hasattr(self.train_ui, "Enabled3") else False
 
+        data = {
+            # "emergency_brake": self.train_ui.button_emergency.isChecked() if hasattr(self.train_ui, "button_emergency") else False,
+            "brake_failure": brake_failure,
+            "signal_failure": signal_failure,
+            "engine_failure": engine_failure,
+        }
+        if self.current_train is not None:
+            self.current_train.ui_data = data
+
+            # index = self.train_collection.train_list.index(self.current_train)
+            # self.ui_data_store[index] = data
+
+    def load_train_data(self):
+        """Load saved UI state from the current train’s ui_data into the TestBench UI."""
+        if self.current_train is None or not hasattr(self.current_train, "ui_data"):
+            return
+        
+        # index = self.train_collection.train_list.index(self.current_train)
+        # data = self.ui_data_store.get(index, {})
+        data = self.current_train.ui_data
+
+        # if hasattr(self.train_ui, "button_emergency"):
+        #     self.train_ui.button_emergency.setChecked(data.get("emergency_brake", False))
+        
+        # For each failure, check the saved boolean and set the correct button.
+        if hasattr(self.train_ui, "Enabled1") and hasattr(self.train_ui, "Disabled1"):
+            if data.get("brake_failure", False):
+                self.train_ui.Enabled1.setChecked(True)
+            else:
+                self.train_ui.Disabled1.setChecked(True)
+        if hasattr(self.train_ui, "Enabled2") and hasattr(self.train_ui, "Disabled2"):
+            if data.get("signal_failure", False):
+                self.train_ui.Enabled2.setChecked(True)
+            else:
+                self.train_ui.Disabled2.setChecked(True)
+        if hasattr(self.train_ui, "Enabled3") and hasattr(self.train_ui, "Disabled3"):
+            if data.get("engine_failure", False):
+                self.train_ui.Enabled3.setChecked(True)
+            else:
+                self.train_ui.Disabled3.setChecked(True)
+           
     def update_train_dropdown(self):
         if self.train_collection:
             self.train_dropdown.clear()
@@ -103,14 +152,18 @@ class TrainModelFrontEnd(QMainWindow):
             # If we initialize a connection with 0 trains, this makes it so that the first train created automatically gets selected
             # As opposed to needing to select it manually after its created, which would be gross
             if self.current_train==None:
-                self.current_train=self.train_collection.train_list[0]
+                self.current_train=self.train_collection.train_list[0]      
 
     def on_train_selection_changed(self, index):
+        # Save the current train data before switching trains.
+        self.save_current_train_data()
         if 0 <= index < len(self.train_collection.train_list):
             self.current_train = self.train_collection.train_list[index]
             self.train_ui.menuTrain_ID_1.setTitle(f"Train ID {index+1}")
             if hasattr(self.train_ui, "currentTrainLabel"):
-                self.train_ui.currentTrainLabel.setText(f"Selected: {self.train_dropdown.currentText()}")        
+                self.train_ui.currentTrainLabel.setText(f"Selected: {self.train_dropdown.currentText()}") 
+            # Load new train data into the UI.
+            self.load_train_data()            
 
     def update(self): 
         
