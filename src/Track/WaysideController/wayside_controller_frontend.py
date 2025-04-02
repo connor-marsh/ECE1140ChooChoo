@@ -187,6 +187,7 @@ class WaysideControllerFrontend(QMainWindow):
             if list_name == "switch_list" and label_name == "switch_label":
                 item_name = current_item.text()
                 id = item_name[7:] # extract the block id from the text
+                print(index, id)
                 value = self.collection.switches[id].positions[1] if active_controller.switch_positions[index] else self.collection.switches[id].positions[0] # reference the dictionary since specific to the switch
                 label.setText(item_name + ": " + value)
             elif list_name == "light_list" and label_name == "light_label":

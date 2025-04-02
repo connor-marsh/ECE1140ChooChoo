@@ -53,7 +53,7 @@ class WaysideControllerCollection(QObject):
             self.LIGHT_COUNTS.append(light_count)
             self.CROSSING_COUNTS.append(crossing_count)
             self.controllers.append(WaysideController(block_count=block_count,switch_count=switch_count,
-                                                      light_count=light_count,crossing_count=crossing_count,exit_block_count=0,scan_time=0.5))
+                                                      light_count=light_count,crossing_count=crossing_count,exit_block_count=0))
 
         # Get the ranges of each territory, so that indexing the list is easier
         self.BLOCK_RANGES = self.get_ranges(self.BLOCK_COUNTS)

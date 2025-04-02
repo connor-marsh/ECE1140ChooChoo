@@ -14,9 +14,8 @@ class WaysideController(QObject):
     """
     Accepts a user created plc program at runtime and executes it.
     """
-    def __init__(self, block_count: int, switch_count: int, light_count: int, crossing_count: int, exit_block_count: int, scan_time=0.5):
+    def __init__(self, block_count: int, switch_count: int, light_count: int, crossing_count: int, exit_block_count: int):
         """
-        :param scan_time: PLC scan time
         :param block_count: Nonnegative Integer number of input blocks to the PLC program
         :param switch_count: Nonnegative Integer number of switches controlled by the PLC program
         :param light_count: Nonnegative Integer number of light signals controlled by the PLC program
@@ -24,7 +23,6 @@ class WaysideController(QObject):
         :param exit_block_count: Nonnegative integer number of exit blocks that the territory of the wayside has
         """
         super().__init__()
-        self.scan_time = scan_time  # PLC scan time
         self.plc_filename = "" # The name of the plc file, used by the ui to display the name properly, otherwise not really necessary
         self.block_occupancies = [False] * block_count  # List of block occupancies [OCCUPIED == True, UNOCCUPIED == False]
         self.switch_positions = [False] * switch_count  # List of switch positions
@@ -41,6 +39,18 @@ class WaysideController(QObject):
 
         self.maintenance_mode = False # A boolean that indicates when the wayside controller is in maintenance mode.
         self.program = None  # User-defined program
+        self.timer = QTimer()
+        self.timer.setInterval(1000)
+        self.timer.timeout.connect(self.update)
+        self.timer.start()
+
+    @pyqtSlot()
+    def update(self):
+        if self.program != None:
+            self.execute_cycle()
+
+
+
 
     def load_program(self, file_path="Track\WaysideController\example_plc_program.py") -> bool:
         """
@@ -171,7 +181,7 @@ class WaysideController(QObject):
             print(f"  Crossing Signals:     {self.crossing_signals}")
 
             self.previous_occupancies = self.block_occupancies # Update the previous blocks to be the input to the previous cycle
-            time.sleep(self.scan_time)  # Simulate PLC scan time
+
 
 
 if __name__ == "__main__":
