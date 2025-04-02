@@ -16,7 +16,7 @@ class WaysideControllerCollection(QObject):
     A class that contains several wayside controllers and handles interfacing with the other modules such as the Track Model and The CTC.
     The front end that will display information about the currently selected wayside controller is also contained in this class.
     """
-    def __init__(self, track_model=None, line_name="Green"):
+    def __init__(self, track_model=None, line_name="Green", auto_import_programs=True):
         """
         :param track_data: A class that contains the unchanging data imported from the track builder
         """
@@ -73,7 +73,7 @@ class WaysideControllerCollection(QObject):
 
         # Initialize the frontend with access to the collection so that it may modify itself or the backend using the data from the backend
         from Track.WaysideController.wayside_controller_frontend import WaysideControllerFrontend # lazy import to avoid circular import (do NOT tell me about design patterns)
-        self.frontend = WaysideControllerFrontend(self, True)
+        self.frontend = WaysideControllerFrontend(self, auto_import_programs)
         
 
         self.connect_signals()

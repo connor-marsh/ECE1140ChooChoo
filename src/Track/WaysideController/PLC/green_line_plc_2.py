@@ -34,10 +34,12 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     
     :returns switch_positions, light_signals, light_signals crossing_signals, previous_occupancies:
     """
-    train_in_i_j = any(block_occupancies[35:61])
+    train_in_i = any(block_occupancies[15:22])
 
-    switch_positions[0] = not train_in_i_j
+    train_in_j = any(block_occupancies[22:27])
 
-    switch_positions[1] = train_in_i_j
+    switch_positions[0] = not train_in_i
+
+    switch_positions[1] = train_in_j
 
     return switch_positions, light_signals, crossing_signals

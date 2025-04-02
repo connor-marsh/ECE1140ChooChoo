@@ -355,6 +355,13 @@ class WaysideControllerTestbench(QMainWindow):
         self.first_open = True # Used to check to see if the testbench has been open before
         self.block_range = self.collection.BLOCK_RANGES[idx] # this never changes
 
+        # Uncomment this loop to correspond the range to the relative index (writing plc programs)
+        #print(self.controller_index)
+        #relative_index = 0
+        #for absolute_index in range(*self.block_range):
+        #    print(self.collection.blocks[absolute_index].id, absolute_index, relative_index, relative_index + 1)
+        #    relative_index += 1
+
 
         # Used for storing the values input by the user
         self.block_occupancies =     [None] * self.collection.BLOCK_COUNTS[idx]
