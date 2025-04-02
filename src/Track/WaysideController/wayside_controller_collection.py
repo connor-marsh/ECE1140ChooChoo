@@ -16,17 +16,23 @@ class WaysideControllerCollection(QObject):
     A class that contains several wayside controllers and handles interfacing with the other modules such as the Track Model and The CTC.
     The front end that will display information about the currently selected wayside controller is also contained in this class.
     """
-    def __init__(self, line_name="Green"):
+    def __init__(self, track_model=None, line_name="Green"):
         """
         :param track_data: A class that contains the unchanging data imported from the track builder
         """
         super().__init__()
-        if line_name not in init_track_data.lines:
-            raise KeyError
-          
+        if track_model != None:
+            if track_model.name not in init_track_data.lines:
+                raise KeyError
+            self.track_model = track_model
+            self.LINE_NAME = track_model.name
+        else:
+            if line_name not in init_track_data.lines:
+                raise KeyError
+            self.LINE_NAME = line_name
+
         # get references to the data from the corresponding track
-        track_data = init_track_data.lines[line_name]
-        self.LINE_NAME = line_name
+        track_data = init_track_data.lines[self.LINE_NAME]
         self.blocks = track_data.blocks 
         self.switches = track_data.switches # dictionaries don't require sorting duh
         self.lights = track_data.lights

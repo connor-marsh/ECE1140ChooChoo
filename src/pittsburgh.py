@@ -36,7 +36,7 @@ if __name__=="__main__":
     elif running_module == "WaysideController":
         try:
             line_name = "Green"
-            collection = WaysideControllerCollection(line_name=line_name)
+            collection = WaysideControllerCollection(track_model=None,line_name=line_name)
             collection.frontend.show()
         except KeyError as e:
             print(f"\n❌ {e}\nPlease enter a valid line name. \'{line_name}\' is not in the list of imported lines.")
