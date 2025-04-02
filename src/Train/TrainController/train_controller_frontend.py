@@ -44,6 +44,7 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.door_right_button.toggled.connect(self.handle_right_door)
         self.ui.door_left_button.toggled.connect(self.handle_left_door)
         self.ui.emergency_button.toggled.connect(self.handle_emergency_button)
+        self.ui.service_brake_apply_button.clicked.connect(self.handle_service_brake)
 
         # Set up timer for callback/update function
         self.timer = QTimer(self)
@@ -64,9 +65,9 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.am_pm_label.setText(self.current_train.global_clock.am_pm)
 
         self.display_actual_speed(str(round(self.current_train.actual_speed, 8)))
-        self.display_speed_limit(str(self.current_train.speed_limit))
+        self.display_speed_limit(str(round(self.current_train.speed_limit, 8)))
         self.display_authority(str(self.current_train.wayside_authority))
-        self.display_cabin_temperature(str(int(self.current_train.actual_temperature)))
+        self.display_cabin_temperature(str(int(round(self.current_train.actual_temperature, 2))))
         self.display_commanded_power(self.current_train.commanded_power)
 
         # Check if auto or manual mode
@@ -145,6 +146,7 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.interior_lights_off_button.setEnabled(False)
         self.ui.headlights_on_button.setEnabled(False)
         self.ui.headlights_off_button.setEnabled(False)
+        self.ui.service_brake_apply_button.setEnabled(False)
 
     def enable_for_manual(self):
         self.ui.target_speed_apply_button.setEnabled(True)
@@ -154,6 +156,7 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.interior_lights_off_button.setEnabled(True)
         self.ui.headlights_on_button.setEnabled(True)
         self.ui.headlights_off_button.setEnabled(True)
+        self.ui.service_brake_apply_button.setEnabled(True)
 
     def handle_emergency_button(self, checked):
         self.current_train.emergency_brake = checked
@@ -177,6 +180,9 @@ class TrainControllerFrontend(QMainWindow):
             self.current_train.door_left = True
         else:
             self.current_train.door_left = False
+
+    def handle_service_brake(self):
+        self.current_train.service_brake = not self.current_train.service_brake
 
     def activate_headlights(self):
         self.current_train.headlights = True

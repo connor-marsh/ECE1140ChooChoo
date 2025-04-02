@@ -10,4 +10,4 @@ To add a new module, run this command:
 `conda install -c conda-forge [module_name]=[module_version]`
 Then to update the environment.yml file, run this command:
 `conda env export > environment.yml`
-Then remove the prefix line, which is specific to your computer. After that you are good to commit the new environment file.
+***Then remove the prefix line, which is specific to your computer. After that you are good to commit the new environment file.***

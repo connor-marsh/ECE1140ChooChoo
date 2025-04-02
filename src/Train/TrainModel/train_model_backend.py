@@ -98,7 +98,8 @@ class TrainModel(QMainWindow):
 
         theta = math.atan(self.grade / 100.0)
         grav_force = self.mass_kg * self.GRAVITY * math.sin(theta)
-        net_force = dyn_force - grav_force
+        air_resistance_constant = 20
+        net_force = dyn_force - grav_force - self.actual_speed*air_resistance_constant #TODO: Make drag code more clean
         a_base = net_force / self.mass_kg if self.mass_kg != 0 else 0.0
 
         if self.emergency_brake:
@@ -130,10 +131,15 @@ class TrainModel(QMainWindow):
             final_acceleration = -self.MAX_ACCEL
 
         old_velocity = self.actual_speed
+        # Calculate new velocity using the trapezoidal rule.
         new_velocity = old_velocity + (dt / 2.0) * (final_acceleration + self.previous_acceleration)
+        # Calculate new position using the trapezoidal rule.
+        new_position = self.position + (dt / 2.0) * (old_velocity + new_velocity)
+        self.position = new_position
+        
+        # Check for overspeed and adjust velocity if necessary.
         if new_velocity < 0:
             new_velocity = 0
-
         self.previous_acceleration = final_acceleration
         self.actual_speed = new_velocity
         self.current_acceleration = final_acceleration
@@ -142,7 +148,7 @@ class TrainModel(QMainWindow):
         if brake_off and new_velocity < self.MIN_SPEED_NO_BRAKE:
             new_velocity = self.MIN_SPEED_NO_BRAKE
 
-        degrees_per_second = 0.005
+        degrees_per_second = 0.01
         if self.heating and not self.air_conditioning:
             dtemp = degrees_per_second * dt
         elif self.air_conditioning and not self.heating:
@@ -174,9 +180,20 @@ class TrainModel(QMainWindow):
             selected = "train_controller"
 
         if selected in ["testbench", "wayside"]:
-            self.wayside_speed = selected_data["commanded_speed"]
-            self.wayside_authority = selected_data["authority"]
+            self.wayside_speed = selected_data["commanded_speed"] / self.MPS_TO_MPH
+            self.wayside_authority = selected_data["authority"] / self.M_TO_FT
             self.beacon_data = selected_data["beacon_data"]
+            self.speed_limit = selected_data.get("speed_limit", self.speed_limit) / self.MPS_TO_MPH
+            grade = selected_data.get("grade", self.grade)
+            if grade > 60:
+                grade = 60.0
+            elif grade < 0:
+                grade = 0.0
+            self.grade = grade
+            self.passenger_count = selected_data.get("passenger_count", self.passenger_count)
+            self.crew_count = selected_data.get("crew_count", self.crew_count)
+            self.mass_kg = 37103.86 + (self.passenger_count * 70) + (self.crew_count * 70)
+            
         if selected in ["testbench", "train_controller"]:
             commanded_power = selected_data.get("commanded_power", self.commanded_power)
             if commanded_power > 120000:
@@ -194,28 +211,19 @@ class TrainModel(QMainWindow):
             self.announcement = selected_data.get("announcements", self.announcement)
             self.heating = selected_data.get("heating_signal", self.heating)
             self.air_conditioning = selected_data.get("air_conditioning_signal", self.air_conditioning)
-            grade = selected_data.get("grade", self.grade)
-            if grade > 60:
-                grade = 60.0
-            elif grade < 0:
-                grade = 0.0
-            self.grade = grade
-            self.passenger_count = selected_data.get("passenger_count", self.passenger_count)
-            self.crew_count = selected_data.get("crew_count", self.crew_count)
-            self.mass_kg = 37103.86 + (self.passenger_count * 70) + (self.crew_count * 70)
-            self.speed_limit = selected_data.get("speed_limit", self.speed_limit)
 
     def get_output_data(self):
         data = {}
-        data["actual_speed"] = self.actual_speed
-        data["wayside_speed"] = self.wayside_speed
-        data["wayside_authority"] = self.wayside_authority
+        data["actual_speed"] = self.actual_speed * self.MPS_TO_MPH
+        data["wayside_speed"] = self.wayside_speed * self.MPS_TO_MPH
+        data["wayside_authority"] = self.wayside_authority * self.M_TO_FT
         data["beacon_data"] = self.beacon_data
-        data["actual_temperature"] = self.actual_temperature
+        data["actual_temperature"] = (self.actual_temperature * 1.8) + 32
         data["signal_failure"] = self.signal_failure
         data["brake_failure"] = self.brake_failure
         data["engine_failure"] = self.engine_failure
-        data["speed_limit"] = self.speed_limit
+        data["speed_limit"] = self.speed_limit * self.MPS_TO_MPH
+        data["position"] = self.position * self.M_TO_FT
         if self.send_emergency_brake_signal:
             data["emergency_brake"] = self.emergency_brake
             self.send_emergency_brake_signal = False

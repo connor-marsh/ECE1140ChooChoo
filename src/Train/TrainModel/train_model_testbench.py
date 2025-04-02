@@ -106,7 +106,10 @@ class TrainModelTestbench(QMainWindow):
             "commanded_speed": to_float(self.ui.WaysideSpeed.text(), 0.0),
             "authority": to_float(self.ui.WaysideAuthority.text(), 0.0),
             "beacon_data": self.ui.BeaconData.text(),
-            "speed_limit": to_float(self.ui.SpeedLimit.text(), 0.0)
+            "speed_limit": to_float(self.ui.SpeedLimit.text(), 0.0),
+            "grade": to_float(self.ui.GradePercent.text(), 0.0),
+            "passenger_count": to_float(self.ui.PassengerCount.text(), 0.0),
+            "crew_count": to_float(self.ui.CrewCount.text(), 2.0)
         }
         
         lights = {
@@ -124,9 +127,6 @@ class TrainModelTestbench(QMainWindow):
             "service_brake": self.ui.ServiceBrakes.isChecked(),
             "emergency_brake": self.ui.EmergencyStop.isChecked(),
             "actual_speed": to_float(self.ui.ActualVelocity.text(), 0.0),
-            "grade": to_float(self.ui.GradePercent.text(), 0.0),
-            "passenger_count": to_float(self.ui.PassengerCount.text(), 0.0),
-            "crew_count": to_float(self.ui.CrewCount.text(), 2.0),
             "mass_kg": to_float(self.ui.MassVehicle.text(), 37103.86),
             "length_m": to_float(self.ui.LengthVehicle.text(), 32.2),
             "height_m": to_float(self.ui.HeightVehicle.text(), 3.42),
