@@ -64,7 +64,8 @@ class TrainControllerFrontend(QMainWindow):
             self.ui_states[key] = {
                 'door_left': False,
                 'door_right': False,
-                'actual_temperature': self.ui.cabin_temperature_spin_box.value()
+                'actual_temperature': self.ui.cabin_temperature_spin_box.value(),
+                'control_mode': self.ui.control_mode_switch.value()  # Assume 0 for auto, 1 for manual
             }
         return self.ui_states[key]
 
@@ -75,6 +76,7 @@ class TrainControllerFrontend(QMainWindow):
             state['door_left'] = self.ui.door_left_button.isChecked()
             state['door_right'] = self.ui.door_right_button.isChecked()
             state['actual_temperature'] = self.ui.cabin_temperature_spin_box.value()
+            state['control_mode'] = self.ui.control_mode_switch.value()
             self.current_train.door_left = state['door_left']
             self.current_train.door_right = state['door_right']
 
@@ -84,6 +86,7 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.door_left_button.setChecked(state['door_left'])
         self.ui.door_right_button.setChecked(state['door_right'])
         self.ui.cabin_temperature_spin_box.setValue(state['actual_temperature'])
+        state['control_mode'] = self.ui.control_mode_switch.value()
         train.door_left = state['door_left']
         train.door_right = state['door_right']
 
