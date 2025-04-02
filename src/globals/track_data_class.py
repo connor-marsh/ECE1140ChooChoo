@@ -205,7 +205,6 @@ class TrackData():
         self.territory_counts = dict(temp_territory_counts)
         self.device_counts = {k: dict(v) for k, v in temp_device_counts.items()} 
         
-        
 def init():
     global lines 
     lines = {}

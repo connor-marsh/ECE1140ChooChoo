@@ -41,7 +41,7 @@ class WaysideControllerCollection(QObject):
         self.controllers = [] # A collection of wayside has controllers
         self.CONTROLLER_COUNT = len(track_data.territory_counts) # get the number of controllers (CONSTANT)
 
-        self.blocks.sort(key=lambda block: (block.territory, block.id)) # sort blocks by territory then by id since that is most useful for my module
+        self.blocks.sort(key=lambda block: (block.territory, block.id[0], int(block.id[1:]))) # sort blocks by territory then by section then by number
 
         # Will get the number corresponding to each wayside controller below (CONSTANTS)
         self.BLOCK_COUNTS = [] 
