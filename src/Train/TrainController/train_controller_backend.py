@@ -14,7 +14,7 @@ class TrainController(QMainWindow):
 
         # Set up defaults
         self.actual_speed = 0.0
-        self.speed_limit = 0.0
+        self.speed_limit = 20.0
         self.wayside_speed = 0.0
         self.wayside_authority = 0.0
         self.commanded_power = 0.0
@@ -42,16 +42,16 @@ class TrainController(QMainWindow):
 
         # Default for power calculation
         self.integral_error = 0.0
-        self.Kp = 500000.0
-        self.Ki = 300.0
-
-        # Set up timer for callback/update function
-        if not train_integrated:
-            self.timer = QTimer(self)
-            self.timer.timeout.connect(self.update)
-            self.timer.start(100)
+        self.Kp = 20000.0
+        self.Ki = 75.0
 
         self.global_clock = global_clock.clock
+
+        if not train_integrated:
+            # Set up timer for callback/update function
+            self.timer = QTimer(self)
+            self.timer.timeout.connect(self.update)
+            self.timer.start(self.global_clock.train_dt)
 
 
     def update(self):
@@ -61,15 +61,12 @@ class TrainController(QMainWindow):
         
         # Check if auto or manual mode and calculate power
         if self.manual_mode:
-            self.target_speed = min(self.driver_target_speed, self.speed_limit)
+            self.target_speed = min(self.driver_target_speed, self.speed_limit*0.9)
         else:
-            self.target_speed = min(self.wayside_speed, self.speed_limit)
-
-        if (self.target_speed == self.speed_limit):
-            self.target_speed = 0.9 * self.speed_limit
+            self.target_speed = min(self.wayside_speed, self.speed_limit*0.9)
 
         self.error = self.target_speed - self.actual_speed
-        self.integral_error += self.error * (0.001) # TODO: THIS SHOULD BE A DT CONSTANT THAT CHANGES THE RATE AT WHICH UPDATE FUNCTION ALSO RUNS
+        self.integral_error += self.error * self.global_clock.train_dt/1000 * self.global_clock.time_multiplier
         commanded_power_1 = (self.Kp * self.error) + (self.Ki * self.integral_error)
         commanded_power_2 = (self.Kp * self.error) + (self.Ki * self.integral_error)
         commanded_power_3 = (self.Kp * self.error) + (self.Ki * self.integral_error) # TODO: need something for integral wind up
@@ -130,7 +127,6 @@ class TrainController(QMainWindow):
 
         if selected == "testbench" or selected == "train_model":
             self.actual_speed = selected_data["actual_speed"]
-            self.speed_limit = selected_data["speed_limit"]
             self.wayside_speed = selected_data["wayside_speed"]
             self.wayside_authority = selected_data["wayside_authority"]
             self.beacon_data = selected_data["beacon_data"]

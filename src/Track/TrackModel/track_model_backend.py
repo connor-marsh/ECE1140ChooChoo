@@ -65,6 +65,7 @@ class DynamicTrack:
         self.switch_states = {}
         self.light_states = {}
         self.crossing_states = {}
+        self.failures = {}
 
 ###############################################################################
 # Dummy Train Class
@@ -85,10 +86,13 @@ class Train:
         self.train_model = None
 
     def update(self):
-        # print(f"Position: {str(self.train_model.position)} | Block: {self.current_block.id}")
-        distance_within_block = self.train_model.position - self.distance_traveled
+        train_position = self.train_model.get_output_data()["position"]
+        distance_within_block = train_position - self.distance_traveled
         if distance_within_block > self.current_block.length:
-            self.distance_traveled = self.train_model.position
+            self.distance_traveled = train_position
+            self.entered_new_section = False
+            # Set old block to unoccupied
+            self.dynamic_track.occupancies[self.current_block.id]=Occupancy.UNOCCUPIED
             # Move to new block
             if self.current_block.switch and not self.entered_new_section:
                 print("SWITCH")
@@ -120,8 +124,18 @@ class Train:
             else:
                 self.current_block = self.track_data.blocks[int(self.current_block.id[1:])+(self.travel_direction*2-1)-1]
             
+            # Set new block to occupied
+            self.dynamic_track.occupancies[self.current_block.id]=Occupancy.OCCUPIED
 
-            self.entered_new_section = False
+            # Check for beacon data in new block, if its there, send to train model
+            if self.track_data.blocks[self.current_block.id].beacon:
+                send_to_train = {}
+                send_to_train["beacon_data"] = self.track_data.beacons[self.current_block.id].data
+                self.train_model.set_input_data(track_data=send_to_train)
+
+            # Check for station in new block, if its there, add and remove passengers from train
+            # TODO
+
             # Move to new section
             if self.current_block.id[0] != self.current_section:
                 print("New section")
@@ -168,7 +182,7 @@ class TrackModel(QtWidgets.QMainWindow):
         # Populate dynamic track
         self.dynamic_track = DynamicTrack()
         for block in self.track_data.blocks:
-            self.dynamic_track.occupancies = 0
+            self.dynamic_track.occupancies = Occupancy.UNOCCUPIED
             if block.switch:
                 self.dynamic_track.switch_states[block.id] = False
             if block.light:
@@ -186,16 +200,11 @@ class TrackModel(QtWidgets.QMainWindow):
         
 
     def update(self):
-        self.update_train_collection()
+        self.update_trains()
 
     # Populating the trains with information sent from train
-    def update_train_collection(self):
+    def update_trains(self):
         for train in self.trains:
-            # data = {self.send_wayside_commanded, self.send_beacon_data, self.block.grade, self.station.passengers} # Need to update wayside func
-            # put in wayside speed, wayside authority (only if new value), beacon data (if it exists), grade, passengers
-            data = {}
-            data["speed_limit"] = 50
-            train.train_model.set_input_data(wayside_data=data)
             train.update()
 
     # Parsing data sent from main track file
@@ -206,73 +215,54 @@ class TrackModel(QtWidgets.QMainWindow):
         pass
         # INCOMPLETE
         # self.track_data.update(filepath) # ACTUALLY DO
-        # IGNORE
-        # self.track_data = TrackDataClass(filepath)
-        # print(f"[{self.name}] Loaded layout for {self.track_data.line_name} line.")
-        # print(f"  Total Blocks: {len(self.track_data.blocks)}")
-        # for territory, blocks in self.track_data.territory_counts.items():
-        #     devices = self.track_data.device_counts[territory]
-        #     print(f"  Territory {territory}: {blocks} blocks, {devices['switches']} switches, "
-        #         f"{devices['lights']} lights, {devices['crossings']} crossings")
 
     # Updating switches, lights, and railway crossings sent from wayside
-    def update_from_wayside_outputs(self, controller_index, switch_states, light_states, crossing_states):
-        block_ids = self.track_data.controller_territory[controller_index]
+    def update_from_plc_outputs(self, switch_states, light_states, crossing_states):
+        pass
 
-    # Updating switch position , should display the proper next block
-    # XOR with current position list and compare to see if update
-        switch_keys = [bid for bid in block_ids if bid in self.track_data.switches]
+        # Updating switch position , should display the proper next block
+        # XOR with current position list and compare to see if update
+        switch_keys = [block.id for block in self.track_data.blocks if block.switch]
         for i, state in enumerate(switch_states):
             if i < len(switch_keys):
-                block_id = switch_keys[i]
-                direction = "higher-numbered" if state else "lower-numbered"
-                print(f"[Wayside Update] Switch at Block {block_id} set to {direction} connection.")
+                self.dynamic_track.switch_states[switch_keys[i]]=state
+                # direction = "higher-numbered" if state else "lower-numbered"
+                # print(f"[Wayside Update] Switch at Block {switch_keys[i]} set to {self.track_data.switches[switch_keys[i].positions[1 if state else 0]]} connection.")
 
-    # Updating light states, should display green/red
-    # XOR with current position list and compare to see if update
-        light_keys = [bid for bid in block_ids if bid in self.track_data.lights]
+        # Updating light states, should display green/red
+        # XOR with current position list and compare to see if update
+        light_keys = [block.id for block in self.track_data.blocks if block.light]
         for i, state in enumerate(light_states):
             if i < len(light_keys):
-                block_id = light_keys[i]
-                color = "Green" if state else "Red"
-                print(f"[Wayside Update] Light at Block {block_id} turned {color}.")
+                self.dynamic_track.light_states[light_keys[i]]=state
+                # color = "Green" if state else "Red"
+                # print(f"[Wayside Update] Light at Block {light_keys[i]} turned {color}.")
 
-    # Updating railway crossing position, should display if open/closed
-    # XOR with current position list and compare to see if update
-        crossing_keys = [bid for bid in block_ids if bid in self.track_data.crossings]
+        # Updating railway crossing position, should display if open/closed
+        # XOR with current position list and compare to see if update
+        crossing_keys = [block.id for block in self.track_data.blocks if block.crossing]
         for i, state in enumerate(crossing_states):
             if i < len(crossing_keys):
-                block_id = crossing_keys[i]
-                status = "ACTIVE (train approaching)" if state else "INACTIVE (safe for cars)"
-                print(f"[Wayside Update] Crossing at Block {block_id} is now {status}.")
+                self.dynamic_track.crossing_states[crossing_keys[i]]=state
+                # status = "ACTIVE (train approaching)" if state else "INACTIVE (safe for cars)"
+                # print(f"[Wayside Update] Crossing at Block {crossing_keys[i]} is now {status}.")
 
-    # Updating block occupancies, should read if train, maintenance, or failure is there
-    # OR with train, maintenance, and failures
-    # Should dynamically update
-    def update_block_occupancy(self, block_id: str, status: str):
+    def update_from_comms_outputs(self, wayside_speeds={}, wayside_authorities={}, maintenances={}):
+        for train in self.trains:
+            send_to_train = {} # conglomerate in this to prevent calling set_input_data multiple times
+            if train.current_block.id in wayside_speeds:
+                send_to_train["wayside_speed"]=wayside_speeds[train.current_block.id]
+            if train.current_block.id in wayside_speeds:
+                send_to_train["wayside_authority"]=wayside_authorities[train.current_block.id]
+            if len(send_to_train)>0:
+                train.train_model.set_input_data(track_data=send_to_train)
+        for block, maintenance in maintenances.items():
+            if maintenance:
+                self.dynamic_track.occupancies[block]=Occupancy.MAINTENANCE
+            else:
+                self.dynamic_track.occupancies[block]=Occupancy.UNOCCUPIED
 
-        if not any(b.id == block_id for b in self.track_data.blocks):
-            print(f"[Occupancy Update] Block {block_id} not found in static layout.")
-            return
-
-        try:
-            occupancy_enum = Occupancy[status.upper()]
-        except KeyError:
-            print(f"[Occupancy Update] Invalid occupancy status: {status}")
-            return
-
-        self.runtime_status.setdefault(block_id, {})
-        self.runtime_status[block_id]["occupancy"] = occupancy_enum
-
-        failure = self.runtime_status[block_id].get("failure", Failures.NONE)
-        derived_occupied = (
-            occupancy_enum in [Occupancy.OCCUPIED, Occupancy.MAINTENANCE]
-            or failure != Failures.NONE
-        )
-        self.runtime_status[block_id]["is_occupied_display"] = derived_occupied
-
-        print(f"[Occupancy Update] Block {block_id} status = {occupancy_enum.name} -> Display as {'OCCUPIED' if derived_occupied else 'UNOCCUPIED'}")
-
+        
     #  Sends beacon data when a train is on the specific block
     def send_beacon_data(self, block_id: str):
         # Check if a train is on this block
@@ -310,31 +300,6 @@ class TrackModel(QtWidgets.QMainWindow):
 
         print(f"[{self.name}] Section '{section_id}' contains blocks: {section_blocks}")
         return section_blocks
-
-    # Sends block information
-    # Returns the Block for the specified block key
-    def send_block_data(self, block_id_str):
-        block = next((b for b in self.track_data.blocks if b.id == block_id_str), None)
-        if not block:
-            print(f"[{self.name}] Block {block_id_str} not found.")
-            return None
-
-        return {
-            "block_id": block.id,
-            "length": block.length,
-            "grade": block.grade,
-            "speed_limit": block.speed_limit,
-            "underground": block.underground,
-            "station": block.station,
-            "switch": block.switch,
-            "light": block.light,
-            "crossing": block.crossing,
-            "beacon": block.beacon,
-            "occupancy": self.runtime_status.get(block.id, {}).get("occupancy", Occupancy.UNOCCUPIED).name,
-            "failure": self.runtime_status.get(block.id, {}).get("failure", Failures.NONE).name,
-            "is_occupied_display": self.runtime_status.get(block.id, {}).get("is_occupied_display", False),
-        }
-
         
     # Sending Wayside Commanded Speed and Authority to Train
     # Triple redundancy, so send 3 times
@@ -352,7 +317,6 @@ class TrackModel(QtWidgets.QMainWindow):
         else:
             print(f"[{self.name}] Train {train_id} not found.")
 
-    # Initializing a train - somewhat WIP not sure if it works yet
     # Wayside will call when to initialize a train
     def initialize_train(self):
         start_block = self.track_data.blocks[63-1]
@@ -377,43 +341,41 @@ class TrackModel(QtWidgets.QMainWindow):
 
         print(f"[Train Init] Train {train_id} initialized on {start_block}.")
 
-        # WIP should initialize train UI
-
     
     # Ensure the train is travelling the proper direction (ascending or descending)
-    def train_travel_direction(self, train_id, current_section):
-        # Get current section's direction
-        current_direction = current_section.direction
+    # def train_travel_direction(self, train_id, current_section):
+    #     # Get current section's direction
+    #     current_direction = current_section.direction
 
-        # Get previous section from train stored state
-        previous_section = self.previous_section.get(train_id, ) # add variable
+    #     # Get previous section from train stored state
+    #     previous_section = self.previous_section.get(train_id, ) # add variable
 
-        # Decide the proper travel direction
-        if current_direction == 2 and previous_section == 0:
-            travel_direction = 1  # Going descending
-            print(f"Train {train_id} is traveling descending (A -> D).")
+    #     # Decide the proper travel direction
+    #     if current_direction == 2 and previous_section == 0:
+    #         travel_direction = 1  # Going descending
+    #         print(f"Train {train_id} is traveling descending (A -> D).")
 
-        elif current_direction == 2 and previous_section == 1:
-            travel_direction = 0  # Going ascending
-            print(f"Train {train_id} is traveling ascending (Z -> F).")
+    #     elif current_direction == 2 and previous_section == 1:
+    #         travel_direction = 0  # Going ascending
+    #         print(f"Train {train_id} is traveling ascending (Z -> F).")
 
-        elif previous_section == 2 and current_direction == 1:
-            travel_direction = 1  # Continue descending
-            print(f"Train {train_id} is continuing descending.")
+    #     elif previous_section == 2 and current_direction == 1:
+    #         travel_direction = 1  # Continue descending
+    #         print(f"Train {train_id} is continuing descending.")
 
-        elif previous_section == 2 and current_direction == 0:
-            travel_direction = 0  # Continue ascending
-            print(f"Train {train_id} is continuing ascending.")
+    #     elif previous_section == 2 and current_direction == 0:
+    #         travel_direction = 0  # Continue ascending
+    #         print(f"Train {train_id} is continuing ascending.")
 
-        else:
-            # Default: keep going same direction
-            travel_direction = current_direction
-            print(f"Train {train_id} continues in direction {travel_direction}.")
+    #     else:
+    #         # Default: keep going same direction
+    #         travel_direction = current_direction
+    #         print(f"Train {train_id} continues in direction {travel_direction}.")
 
-        # Update the train's previous section
-        self.previous_section[train_id] = current_section
+    #     # Update the train's previous section
+    #     self.previous_section[train_id] = current_section
 
-        return travel_direction
+    #     return travel_direction
     
             
 

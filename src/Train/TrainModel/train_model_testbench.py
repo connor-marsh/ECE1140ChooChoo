@@ -40,7 +40,7 @@ class TrainModelTestbench(QMainWindow):
         self.current_train = self.train_collection.train_model_ui.current_train
         if self.current_train:
             # Read inputs from the testbench UI.
-            wayside_data, lights_data, physical_data = self.read_inputs()
+            track_data, lights_data, physical_data = self.read_inputs()
             
             # Force the emergency flag to True if the backend is already in emergency state.
             if self.train_collection.train_model_ui.current_train.emergency_brake:
@@ -50,14 +50,14 @@ class TrainModelTestbench(QMainWindow):
             
             # Merge dictionaries.
             merged_data = {}
-            merged_data.update(wayside_data)
+            merged_data.update(track_data)
             if not self.train_integrated:
                 merged_data.update(lights_data)
                 merged_data.update(physical_data)
             
             # Update the backend with the merged data.
             # if self.train_integrated:
-            #     self.train_collection.train_model_ui.current_train.backend.set_input_data(wayside_data=merged_data)
+            #     self.train_collection.train_model_ui.current_train.backend.set_input_data(track_data=merged_data)
             # else:
             self.train_collection.train_model_ui.current_train.backend.set_input_data(testbench_data=merged_data)
         
@@ -103,10 +103,9 @@ class TrainModelTestbench(QMainWindow):
                 return default
 
         wayside = {
-            "commanded_speed": to_float(self.ui.WaysideSpeed.text(), 0.0),
-            "authority": to_float(self.ui.WaysideAuthority.text(), 0.0),
+            "wayside_speed": to_float(self.ui.WaysideSpeed.text(), 0.0),
+            "wayside_authority": to_float(self.ui.WaysideAuthority.text(), 0.0),
             "beacon_data": self.ui.BeaconData.text(),
-            "speed_limit": to_float(self.ui.SpeedLimit.text(), 0.0),
             "grade": to_float(self.ui.GradePercent.text(), 0.0),
             "passenger_count": to_float(self.ui.PassengerCount.text(), 0.0),
             "crew_count": to_float(self.ui.CrewCount.text(), 2.0)
@@ -170,18 +169,6 @@ class TrainModelTestbench(QMainWindow):
             self.ui.WaysideAuthority_2.setText(f"{(auth_val * backend.M_TO_FT):.2f}")
         else:
             self.ui.WaysideAuthority_2.setText("Not Displayed")
-
-        speed_str = self.ui.SpeedLimit.text()
-        try:
-            speed_val = float(speed_str)
-        except ValueError:
-            speed_val = 0.0
-        speed_val_mph = speed_val * backend.MPS_TO_MPH
-        model_speed_limit = self.train_collection.train_model_ui.train_ui.SpeedLimitValue.value()
-        if abs(speed_val_mph - model_speed_limit) < 0.0001:
-            self.ui.SpeedLimit_2.setText(f"{speed_val_mph:.2f}")
-        else:
-            self.ui.SpeedLimit_2.setText("Not Displayed")
 
         internal_mph = backend.actual_speed * backend.MPS_TO_MPH
         speed_ui = self.train_collection.train_model_ui.train_ui.SpeedValue.value()

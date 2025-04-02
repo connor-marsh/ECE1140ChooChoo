@@ -814,11 +814,10 @@ class Ui_MainWindow(object):
         self.LengthVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Length of \n"
 "Vehicle (ft)", None))
         self.HeightLabel.setText(QCoreApplication.translate("MainWindow", u"Height (ft)", None))
-        self.SpeedLimitLabel.setText(QCoreApplication.translate("MainWindow", u"Speed Limit \n"
-"(mph)", None))
+        self.SpeedLimitLabel.setText(QCoreApplication.translate("MainWindow", u"Wayside \nAuthority (yard)", None))
         self.CrewCountLabel.setText(QCoreApplication.translate("MainWindow", u"Crew Count", None))
         self.WidthLabel.setText(QCoreApplication.translate("MainWindow", u"Width (ft)", None))
-        self.CommandedSpeedLabel.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Commanded </p><p>Speed (mph)</p></body></html>", None))
+        self.CommandedSpeedLabel.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Wayside </p><p>Speed (mph)</p></body></html>", None))
         self.PassengerCountLabel.setText(QCoreApplication.translate("MainWindow", u"Passenger \n"
 "Count", None))
         self.GradePercentage.setText(QCoreApplication.translate("MainWindow", u"Grade (%)", None))
