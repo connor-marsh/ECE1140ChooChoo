@@ -18,7 +18,7 @@ from Track.WaysideController.wayside_controller_collection import WaysideControl
 
 if __name__=="__main__":
 
-    running_module = "Train" # all, CTC, WaysideController, TrackModel, Train, Train Model, Train Controller
+    running_module = "WaysideController" # all, CTC, WaysideController, TrackModel, Train, Train Model, Train Controller
     
     # Create App
     app = QApplication(sys.argv)

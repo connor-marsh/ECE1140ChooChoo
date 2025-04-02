@@ -23,7 +23,7 @@ class WaysideControllerCollection(QObject):
         super().__init__()
         if line_name not in init_track_data.lines:
             raise KeyError
-        
+          
         # get references to the data from the corresponding track
         track_data = init_track_data.lines[line_name]
         self.LINE_NAME = line_name
