@@ -14,7 +14,7 @@ class TrainController(QMainWindow):
 
         # Set up defaults
         self.actual_speed = 0.0
-        self.speed_limit = 0.0
+        self.speed_limit = 20.0
         self.wayside_speed = 0.0
         self.wayside_authority = 0.0
         self.commanded_power = 0.0
@@ -130,7 +130,6 @@ class TrainController(QMainWindow):
 
         if selected == "testbench" or selected == "train_model":
             self.actual_speed = selected_data["actual_speed"]
-            self.speed_limit = selected_data["speed_limit"]
             self.wayside_speed = selected_data["wayside_speed"]
             self.wayside_authority = selected_data["wayside_authority"]
             self.beacon_data = selected_data["beacon_data"]
