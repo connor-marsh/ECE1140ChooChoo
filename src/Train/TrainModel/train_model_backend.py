@@ -123,7 +123,7 @@ class TrainModel(QMainWindow):
             self.current_acceleration = target_a
         elif self.service_brake:
             target_a = self.SERVICE_DECEL - a_base
-            ramp_rate = 1.0
+            ramp_rate = 10.0
             accel_diff = target_a - self.current_acceleration
             max_delta = ramp_rate * dt
             if abs(accel_diff) < max_delta:
@@ -204,6 +204,11 @@ class TrainModel(QMainWindow):
         if selected in ["testbench", "track"]:
             self.wayside_speed = selected_data.get("wayside_speed", self.wayside_speed) / self.MPS_TO_MPH
             self.wayside_authority = selected_data.get("wayside_authority", self.wayside_authority) / self.M_TO_YARD
+            if "wayside_authority" in selected_data.keys():
+                self.wayside_authority = selected_data["wayside_authority"]
+                authDict = {}
+                authDict["wayside_authority"] = self.wayside_authority * self.M_TO_YARD
+                self.controller.set_input_data(train_model_data=authDict)
             self.beacon_data = selected_data.get("beacon_data", self.beacon_data)
             grade = selected_data.get("grade", self.grade)
             if grade > 60:
@@ -237,13 +242,12 @@ class TrainModel(QMainWindow):
         data = {}
         data["actual_speed"] = self.actual_speed * self.MPS_TO_MPH
         data["wayside_speed"] = self.wayside_speed * self.MPS_TO_MPH
-        data["wayside_authority"] = self.wayside_authority * self.M_TO_YARD
         data["beacon_data"] = self.beacon_data
         data["actual_temperature"] = (self.actual_temperature * 1.8) + 32
         data["signal_failure"] = self.signal_failure
         data["brake_failure"] = self.brake_failure
         data["engine_failure"] = self.engine_failure
-        data["position"] = self.position * self.M_TO_FT
+        data["position"] = self.position * self.M_TO_YARD
         if self.send_emergency_brake_signal:
             data["emergency_brake"] = self.emergency_brake
             self.send_emergency_brake_signal = False

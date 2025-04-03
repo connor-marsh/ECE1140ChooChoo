@@ -92,7 +92,8 @@ class Train:
         train_position = self.train_model.get_output_data()["position"]
         distance_within_block = train_position - self.distance_traveled
         if distance_within_block > self.current_block.length:
-            self.distance_traveled = train_position
+            self.distance_traveled += self.current_block.length
+            self.entered_new_section = False
             # Set old block to unoccupied
             self.dynamic_track.occupancies[self.current_block.id]=Occupancy.UNOCCUPIED
             # Move to new block

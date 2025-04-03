@@ -52,7 +52,7 @@ if __name__=="__main__":
         # track_model.upload_track_layout_data("GreenLine_Layout.xlsx")
         # track_model.change_temperature(35)
     elif running_module == "Train":
-        train_collection = TrainCollection(num_trains=3)
+        train_collection = TrainCollection(num_trains=1)
         train_model_testbench = TrainModelTestbench(train_collection, train_integrated=True)    
         train_model_testbench.show()
     elif running_module == "TrainModel":
