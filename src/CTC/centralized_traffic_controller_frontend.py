@@ -267,7 +267,7 @@ class CtcFrontEnd(QMainWindow):
             
             if block.has_switch:
                 # Update Switch Position
-                print("Block ID: ", block.id, "Switch val", block.switch_state)
+                # print("Block ID: ", block.id, "Switch val", block.switch_state)
                 if block.switch_state == 0:
                     switch_value = str(self.switches[block.id].positions[0]) 
                 elif block.switch_state == 1:
