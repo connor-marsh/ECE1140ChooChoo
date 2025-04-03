@@ -7,14 +7,25 @@ Description:
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt5.QtCore import QTimer, QTime
 import globals.global_clock as global_clock
+import globals.track_data_class as global_track_data
+import math
 
 class TrainController(QMainWindow):
-    def __init__(self, train_integrated=False):
+    MPS_TO_MPH  = 2.23694
+    SERVICE_BRAKE_DECEL = 1.2 # (m/s²)
+    EMERGENCY_BRAKE_DECEL = 2.73 # (m/s²)
+    GRAVITY = 9.81 # (m/s²)
+
+    def __init__(self, train_integrated=False, line_name="Green"):
         super().__init__()
+
+        # Set up static memory
+        self.line_name = line_name
+        self.track_data = global_track_data.lines[self.line_name]
 
         # Set up defaults
         self.actual_speed = 0.0
-        self.speed_limit = 20.0
+        self.speed_limit = 20.0 #TODO: PLEASE MAKE THIS NORMAL
         self.wayside_speed = 0.0
         self.wayside_authority = 0.0
         self.commanded_power = 0.0
@@ -35,10 +46,16 @@ class TrainController(QMainWindow):
         self.driver_target_speed = 0.0
         self.service_brake = False
         self.position = 0.0
-        self.next_station = ""
+        self.block_distance_traveled = 0.0
+        self.next_station = "Edgebrook"
         self.announcement = False
         self.manual_mode = False
         self.target_speed = 0.0
+        
+        #TODO: these defaults should be fixed - currently hard-coded
+        self.current_block = self.track_data.blocks[63-1]
+        self.current_section = self.current_block.id[0]
+        self.travel_direction = self.track_data.sections[self.current_section].increasing
 
         # Default for power calculation
         self.integral_error = 0.0
@@ -55,6 +72,17 @@ class TrainController(QMainWindow):
 
 
     def update(self):
+        # Calculate distance within the block
+        distance_within_block = self.position - self.block_distance_traveled
+        if distance_within_block > self.current_block.length:
+            self.block_distance_traveled += self.current_block.length
+            self.current_block = self.track_data.blocks[int(self.current_block.id[1:])+(self.travel_direction*2-1)-1]
+            if self.current_block.switch:
+                QTimer.singleShot((500/self.global_clock.time_multiplier), self.process_beacon_data())
+            elif self.current_block.switch_exit:
+                switch = self.track_data.switches[self.track_data.switch_exits[self.current_block.id].switch_entrance]
+                self.current_block = switch.positions[0].split("-")[0]
+
         # Check for failures
         if (self.signal_failure or self.brake_failure or self.engine_failure):
             self.emergency_brake = True
@@ -74,7 +102,6 @@ class TrainController(QMainWindow):
             self.commanded_power = commanded_power_1
         else:
             self.commanded_power = 0
-        # TODO: Check authority and stopping distance and override speed calcs
 
         # Check for invalid power commands
         new_service_state = False
@@ -95,6 +122,16 @@ class TrainController(QMainWindow):
             self.commanded_power = 0.0 # Kill engine if emergency brake is activated
             self.integral_error = 0
 
+        # TODO: Check authority and stopping distance and override speed calcs
+        theta = math.atan(self.current_block.grade / 100)
+        service_dist = ((self.actual_speed/self.MPS_TO_MPH) ** 2) / (2 * (self.SERVICE_BRAKE_DECEL + (self.GRAVITY * math.sin(theta * (math.pi/180)))))
+        service_dist *= self.MPS_TO_MPH
+
+        if (self.wayside_authority < service_dist):
+            self.emergency_brake = True
+        elif (self.wayside_authority < (1.5*service_dist)):
+            self.service_brake = True
+
         # Set the HVAC Signals
         self.air_conditioning_signal = self.actual_temperature > self.desired_temperature
         self.heating_signal = self.actual_temperature < self.desired_temperature
@@ -113,6 +150,9 @@ class TrainController(QMainWindow):
 
         # check for stopping at stations/do announcements
         # TODO
+
+    def process_beacon_data(self):
+        pass
 
     def set_input_data(self, testbench_data=None, train_model_data=None):
         selected_data = None
