@@ -20,7 +20,7 @@ from Track.TrackModel.track_model_frontend import TrackModelFrontEnd
 
 if __name__=="__main__":
 
-    running_module = "Train" # all, CTC, WaysideController, TrackModel, Train, TrainModel, TrainController, TrainControllerHW
+    running_module = "TrackWayside" # all, CTC, WaysideController, TrackModel, Train, TrainModel, TrainController, TrainControllerHW
     
     # Create App
     app = QApplication(sys.argv)
