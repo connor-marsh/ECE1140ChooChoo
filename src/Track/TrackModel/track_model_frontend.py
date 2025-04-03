@@ -3,6 +3,8 @@ from PyQt5.QtGui import QBrush, QPen, QColor, QPainter
 from PyQt5.QtCore import Qt, QRectF, QTimer 
 from Track.TrackModel.track_model_ui import Ui_MainWindow
 from Track.TrackModel.track_model_backend import TrackModel
+from Track.TrackModel.track_model_enums import Occupancy
+from Track.TrackModel.track_model_enums import Failures
 
 # HARDCODED LAYOUT DATA: (block_id, x, y, width, height)
 HARDCODED_LAYOUT = [
@@ -219,17 +221,17 @@ class TrackMapCanvas(QGraphicsView):
         if not self.backend:
             return
         for block_id, item in self.block_items.items():
-            occ = self.backend.dynamic_track.occupancies.get(block_id, 0)
-            fail = self.backend.dynamic_track.failures.get(block_id, 0)
-            if fail:
+            occ = self.backend.dynamic_track.occupancies.get(block_id, Occupancy.UNOCCUPIED)
+            fail = self.backend.dynamic_track.failures.get(block_id, Failures.NONE)
+            if fail != Failures.NONE:
                 item.setBrush(QBrush(QColor("yellow")))
-            elif occ == 1:
+            elif occ == Occupancy.OCCUPIED:
                 item.setBrush(QBrush(QColor("green")))
             else:
                 item.setBrush(QBrush(QColor("gray")))
 
 class TrackModelFrontEnd(QMainWindow):
-    def __init__(self):
+    def __init__(self, wayside_integrated=True):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -239,7 +241,8 @@ class TrackModelFrontEnd(QMainWindow):
         self.update_timer.start(100)  # every 100 ms
 
         # Backend Setup
-        self.green_line = TrackModel("Green")
+        #self.red_line
+        self.green_line = TrackModel("Green", wayside_integrated=wayside_integrated)
         self.outside_temp = 70.0
         self.track_heater_status = False
 
@@ -288,3 +291,13 @@ class TrackModelFrontEnd(QMainWindow):
 
     def update_map(self):
         self.map_canvas.update_block_colors()
+
+
+if __name__ == "__main__":
+    import sys
+    from PyQt5.QtWidgets import QApplication
+
+    app = QApplication(sys.argv)
+    window = TrackModelFrontEnd(wayside_integrated=False)
+    window.show()
+    sys.exit(app.exec_())
