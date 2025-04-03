@@ -36,7 +36,7 @@ class CtcBackEnd(QObject):
 
     def __init__(self): 
         super().__init__()
-        self.route_data = {}
+        self.routes= {}
 
         #Controls active track data
         self.green_line = Track("Green")
@@ -95,17 +95,13 @@ class CtcBackEnd(QObject):
             self.initialize_route_table()   
 
     def read_route_file(self, file_data):
-        for index, row in file_data.iterrows():
-            if row['Designation'] != "":
-                designation = row['Designation']
-                total_stops = row['Total # of Stops']
-                all_stops = [int(stop) for stop in row.iloc[2:].dropna().tolist()]
+        for _, row in file_data.iterrows():
+            route_name = row.iloc[0]
+            stations = row[1:].dropna().tolist()
+            self.routes[route_name] = stations
 
-                self.route_data[index] = {
-                    'designation': designation,
-                    'num_stops': total_stops,
-                    'listed_stops': all_stops
-                }
+        #for route, stations in self.routes.items(): #Debug info
+        #    print(f"{route}: {', '.join(stations)}")
 
     def initialize_route_table(self):
 
@@ -143,6 +139,7 @@ class CtcBackEnd(QObject):
         #Updates occupancy list | called by wayside controller
         for block_id, occupancy in zip(self.active_line.blocks, occupancy_list):
             self.active_line.blocks[block_id].occupancy = occupancy
+        self.update_train_location(occupancy_list)
 
     @pyqtSlot(list)
     def update_switches(self, switch_list):
@@ -157,11 +154,18 @@ class CtcBackEnd(QObject):
     def update_crossings(self, crossing_list):
         self.active_line.crossings = crossing_list
 
+    def update_train_location(self, occupancy_list):
+        if len(self.active_line.active_trains) != 0:
+            for i in occupancy_list:
+                if occupancy_list[i] == 1: # HARDCODED, BUT NOT KEY
+                    self.active_line.active_trains[0].current_block = i
+                        
+
     def first_blocks_free(self):
         #Checks if first blocks are free | called by dispatch queue handler
-        block_1 = self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].occupancy 
-
-        if not block_1: #Check correctness of this logic
+        block_1 = self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].occupancy or self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].maintenance
+        print("Block ", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].id, "Occupancy is", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].occupancy, " and has maintenance ", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].maintenance)
+        if not block_1: # Altered from 3 blocks
             return True
         else:
             return False
@@ -217,7 +221,7 @@ class DummyTrain:
         self.train_id = train_id
         self.route = route
         self.mode = mode
-        self.current_block = 62 #Starting block for green line
+        self.current_block = 64 #Starting block for green line
         self.speed = 0
         self.authority = 0
 
@@ -271,7 +275,7 @@ class Track:
         self.crossings = [0,0] #hardcoded
 
         if name == "Green":
-            self.ENTRANCE_BLOCK = 1  #Entrance blocks for green line | Now unique
+            self.ENTRANCE_BLOCK = 62  #Entrance blocks for green line | Should be K63 but is 62 to account for 0-indexing
         #elif name == "Red":
         #    self.entrance_blocks = [1, 2, 3] #Entrance blocks for red line
         else:

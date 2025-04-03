@@ -69,6 +69,7 @@ class CtcFrontEnd(QMainWindow):
         self.update_throughput() #update throughput label
         self.update_map() #update track data table
         self.ctc_ui.active_train_number_label.setText(str(self.backend.train_count))
+        self.update_active_train_table()
 
 
     #Stacked Widget Navigation
@@ -91,13 +92,37 @@ class CtcFrontEnd(QMainWindow):
         if not file_name:
             return None  # If no file is selected, return None
             
-        file_data = pd.read_excel(file_name)
+        file_data = pd.read_excel(file_name, header=None)
         return file_data
     
     def get_train_schedule(self):
         #open file dialog
         route_schedules = self.open_file_dialog()
         self.backend.process_route_data(route_schedules)
+        self.update_route_table()
+
+    def update_route_table(self):
+        self.ctc_ui.sub_dispatch_train_table.setRowCount(len(self.backend.routes))
+        max_stations = max(len(stations) for stations in self.backend.routes.values())
+
+        # Set the number of columns: 1 for ID, 1 for Route Name, then columns for each station
+        self.ctc_ui.sub_dispatch_train_table.setColumnCount(max_stations + 2)
+        self.ctc_ui.sub_dispatch_train_table.setHorizontalHeaderLabels(['ID', 'Route Name'] + [f'Station {i+1}' for i in range(max_stations)])
+
+        for row_idx, (route_name, stations) in enumerate(self.backend.routes.items()):
+            # Add ID column (using row_idx to generate a unique ID for each route)
+            self.ctc_ui.sub_dispatch_train_table.setItem(row_idx, 0, QTableWidgetItem(str(row_idx + 1)))  # IDs start from 1
+
+            # Add Route Name column
+            self.ctc_ui.sub_dispatch_train_table.setItem(row_idx, 1, QTableWidgetItem(route_name))
+
+            # Add Stations columns
+            for col_idx, station in enumerate(stations):
+                self.ctc_ui.sub_dispatch_train_table.setItem(row_idx, col_idx + 2, QTableWidgetItem(station))
+
+            # Fill remaining columns with empty text if route has fewer stations than the max
+            for col_idx in range(len(stations) + 2, self.ctc_ui.sub_dispatch_train_table.columnCount()):
+                self.ctc_ui.sub_dispatch_train_table.setItem(row_idx, col_idx, QTableWidgetItem(''))
 
     def on_map_row_clicked(self, row, column):
         #stores data for clicked block
@@ -124,6 +149,40 @@ class CtcFrontEnd(QMainWindow):
         self.ctc_ui.sub_block_number_combo.clear()
         for i in range(1, 151):
             self.ctc_ui.sub_block_number_combo.addItem(str(i))
+
+    def update_active_train_table(self):
+        active_trains = self.backend.active_line.active_trains
+        if len(active_trains) != 0:
+            self.ctc_ui.main_active_trains_table.setRowCount(len(active_trains)) 
+
+            for row, train in enumerate(active_trains):
+                train_id = str(train.train_id)
+                current_block = str(self.backend.active_line.blocks[train.current_block].id)
+                upcoming_stop = str("Edgebrook") #HARDCODED
+                remaining_stops = str("1")       #HARDCODED
+                current_mode = str(train.mode)
+
+                id_item = QTableWidgetItem(train_id)
+                id_item.setTextAlignment(Qt.AlignCenter)
+                self.ctc_ui.main_active_trains_table.setItem(row, 0, id_item)
+
+                current_block_item = QTableWidgetItem(current_block)
+                current_block_item.setTextAlignment(Qt.AlignCenter)
+                self.ctc_ui.main_active_trains_table.setItem(row, 1, current_block_item)
+
+                upcoming_stop_item = QTableWidgetItem(upcoming_stop)
+                upcoming_stop_item.setTextAlignment(Qt.AlignCenter)
+                self.ctc_ui.main_active_trains_table.setItem(row, 2, upcoming_stop_item)
+
+                remaining_stops_item = QTableWidgetItem(remaining_stops)
+                remaining_stops_item.setTextAlignment(Qt.AlignCenter)
+                self.ctc_ui.main_active_trains_table.setItem(row, 3, remaining_stops_item)
+
+                mode_item = QTableWidgetItem(current_mode)
+                mode_item.setTextAlignment(Qt.AlignCenter)
+                self.ctc_ui.main_active_trains_table.setItem(row, 4, mode_item)
+                
+
 
     #Map Initialization
     def initialize_map(self):
