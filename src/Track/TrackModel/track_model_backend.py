@@ -265,7 +265,8 @@ class TrackModel(QtWidgets.QMainWindow):
             send_to_train = {} # conglomerate in this to prevent calling set_input_data multiple times
             if train.current_block.id in wayside_speeds:
                 send_to_train["wayside_speed"]=wayside_speeds[train.current_block.id]
-            if train.current_block.id in wayside_speeds:
+            if train.current_block.id in wayside_authorities:
+                print("TRACK MODEL SENDS AUTHORITY")
                 send_to_train["wayside_authority"]=wayside_authorities[train.current_block.id]
             if len(send_to_train)>0:
                 train.train_model.set_input_data(track_data=send_to_train)

@@ -31,6 +31,7 @@ class TrainController(QMainWindow):
         self.speed_limit = 0.0
         self.wayside_speed = 0.0
         self.wayside_authority = 0.0
+        self.previous_authority = 0.0
         self.commanded_power = 0.0
         self.beacon_data = ""
         self.actual_temperature = 77.0 # Farenheight
@@ -82,12 +83,12 @@ class TrainController(QMainWindow):
     
     def update(self):
         # Check if auto or manual mode and calculate power
-        self.speed_limit - self.current_block.speed_limit
+        self.speed_limit = self.current_block.speed_limit
         if self.manual_mode:
             self.target_speed = self.driver_target_speed
         else:
             self.target_speed = self.wayside_speed
-        self.target_speed = min(self.target_speed, self.current_block.speed_limit*0.9)
+        self.target_speed = min(self.target_speed, self.speed_limit*0.9)
 
         self.error = self.target_speed - self.actual_speed
         dt = self.global_clock.train_dt/1000 * self.global_clock.time_multiplier
@@ -209,12 +210,13 @@ class TrainController(QMainWindow):
             self.right_doors = False
 
         # check for stopping at stations/do announcements
-        if (self.wayside_authority < 50):
+        if (self.wayside_authority < 50 and self.previous_authority > 50):
             self.stopping = True
+        self.previous_authority = self.wayside_authority
         
         if self.stopping and self.current_block.station:
-            QTimer.singleShot(int(500/self.global_clock.time_multiplier), self.start_dwell)
-            QTimer.singleShot(int(30500/self.global_clock.time_multiplier), self.end_dwell)
+            QTimer.singleShot(int(500.0/self.global_clock.time_multiplier), self.start_dwell)
+            QTimer.singleShot(int(10.0*30500.0/self.global_clock.time_multiplier), self.end_dwell)
         if self.dwell:
             self.service_brake = True
 
@@ -222,9 +224,9 @@ class TrainController(QMainWindow):
         self.dwell = True
         if self.actual_speed == 0.0:
             if not self.manual_mode:
-                if self.track_data.stations[self.current_block].doors == 0:
+                if self.track_data.stations[self.current_block.id].doors == 0:
                     self.left_doors = True
-                elif self.track_data.stations[self.current_block].doors == 1:
+                elif self.track_data.stations[self.current_block.id].doors == 1:
                     self.right_doors = True
                 else:
                     self.left_doors = True
@@ -242,7 +244,11 @@ class TrainController(QMainWindow):
         switch = self.track_data.switches[self.current_block.id]
         switch_block_0 = switch.positions[0].split("-")[1]
         switch_block_1 = switch.positions[1].split("-")[1]
-        if self.beacon_data_recieved:
+        if switch_block_0=="Yard":
+            self.current_block = self.track_data.blocks[int(switch_block_1)-1]
+        elif switch_block_1=="Yard":
+            self.current_block = self.track_data.blocks[int(switch_block_0)-1]
+        elif self.beacon_data_recieved:
             if self.track_data.blocks[int(switch_block_0)-1].beacon:
                 self.current_block = self.track_data.blocks[int(switch_block_0)-1]
             else:

@@ -205,7 +205,6 @@ class TrainModel(QMainWindow):
             self.wayside_speed = selected_data.get("wayside_speed", self.wayside_speed*self.MPS_TO_MPH) / self.MPS_TO_MPH
             self.wayside_authority = selected_data.get("wayside_authority", self.wayside_authority)
             if "wayside_authority" in selected_data.keys():
-                print("SENT TO TRAIN")
                 self.wayside_authority = selected_data["wayside_authority"]
                 authDict = {}
                 authDict["wayside_authority"] = self.wayside_authority

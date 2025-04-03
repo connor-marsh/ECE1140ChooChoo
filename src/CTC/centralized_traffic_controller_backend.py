@@ -87,7 +87,7 @@ class CtcBackEnd(QObject):
                 self.sent62 = True  
         else:
             self.sent62 = False
-        if self.active_line.blocks[9].occupancy:
+        if self.active_line.blocks[8].occupancy:
             if self.sent9 == False:
                 self.suggested_speed = {"C9" : 45}
                 self.suggested_authority = {"C9" : 5959}
