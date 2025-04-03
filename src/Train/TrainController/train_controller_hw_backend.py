@@ -41,9 +41,9 @@ if USING_HARDWARE:
 
 
 # Format for sending data, its a 1d array that just lists out all the important data
-sendDataFormat = ["actual_speed", "wayside_speed", "wayside_authority", "emergency_brake",
-                  "actual_temperature", "brake_failure", "engine_failure", "signal_failure",
-                  "service_brake", "left_doors", "right_doors", "headlights",
+sendDataFormat = ["actual_speed", "wayside_speed", "wayside_authority", "emergency_brake", "kp", "ki",
+                  "actual_temperature", "brake_failure", "engine_failure", "signal_failure", "dt",
+                  "time_string", "time_multiplier", "service_brake", "left_doors", "right_doors", "headlights",
                   "interior_lights", "air_conditioning_signal", "heating_signal", "announcements"]
 
 # Format for receiving data, its a 1d array that just lists out all the important data
@@ -74,9 +74,10 @@ class TrainControllerHW(TrainController):
         # Send data to and retrive data from raspi
         # Raspi does the power calculation, and has a hardware UI, and thats it
         # sendDataFormat = ["actual_speed", "wayside_speed", "wayside_authority", "emergency_brake",
-        #           "actual_temperature", "brake_failure", "engine_failure", "signal_failure",
-        #           "service_brake", "left_doors", "right_doors", "headlights",
+        #           "actual_temperature", "brake_failure", "engine_failure", "signal_failure", "dt",
+        #           "time_string", "time_multiplier", "service_brake", "left_doors", "right_doors", "headlights",
         #           "interior_lights", "air_conditioning_signal", "heating_signal", "announcements"]
+        
         sendData["actual_speed"] = self.actual_speed
         sendData["wayside_speed"] = self.wayside_speed
         sendData["wayside_authority"] = self.wayside_authority
@@ -93,11 +94,17 @@ class TrainControllerHW(TrainController):
         sendData["air_conditioning_signal"] = self.air_conditioning_signal
         sendData["heating_signal"] = self.heating_signal
         sendData["announcements"] = self.next_station
+        sendData["time_string"] = self.global_clock.full_text
+        sendData["time_multiplier"] = self.global_clock.time_multiplier
+        sendData["dt"] = self.global_clock.train_dt
+        sendData["kp"] = self.Kp
+        sendData["ki"] = self.Ki
         stdin.write(json.dumps(sendData)+'\n')
         # This is to flush stdout
         stdout.readline()
         # This reads in what the pi returns
-        readData = json.loads(stdout.readline().rstrip())
+        piOutput = stdout.readline().rstrip()
+        readData = json.loads(piOutput)
 
         # readDataFormat = ["commanded_power", "emergency_brake",
         #           "service_brake", "left_doors", "right_doors", "headlights",

@@ -153,14 +153,14 @@ class TrainControllerFrontend(QMainWindow):
                 self.ui.groupBox_3.hide()
                 self.ui.groupBox_4.hide()
                 self.ui.groupBox_5.hide()
-                self.ui.groupBox_6.hide()
+                # self.ui.groupBox_6.hide()
             else:
                 self.ui.groupBox.show()
                 self.ui.groupBox_2.show()
                 self.ui.groupBox_3.show()
                 self.ui.groupBox_4.show()
                 self.ui.groupBox_5.show()
-                self.ui.groupBox_6.show()
+                # self.ui.groupBox_6.show()
 
         # Update clock
         self.ui.global_clock_lcd.display(self.current_train.global_clock.text)
