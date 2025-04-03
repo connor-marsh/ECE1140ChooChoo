@@ -41,7 +41,7 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     # Has X Lights
     # Has 1 Crossing
 
-    train_in_o_p_q = any(block_occupancies[17::33])
+    train_in_o_p_q = any(block_occupancies[17:33])
     train_in_n = any(block_occupancies[8:17])
     train_in_m = any(block_occupancies[5:8])
                     

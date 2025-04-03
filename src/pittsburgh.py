@@ -19,7 +19,7 @@ from Track.TrackModel.track_model_frontend import TrackModelFrontEnd
 
 if __name__=="__main__":
 
-    running_module = "WaysideController" # all, CTC, WaysideController, TrackModel, Train, Train Model, Train Controller
+    running_module = "TrackWayside" # all, CTC, WaysideController, TrackModel, TrackWayside, Train, Train Model, Train Controller
     
     # Create App
     app = QApplication(sys.argv)
@@ -33,6 +33,10 @@ if __name__=="__main__":
         pass
     elif running_module == "CTC":
         pass
+    elif running_module == "TrackWayside":
+        track_model = TrackModelFrontEnd()
+        # track_model.upload_track_layout_data("GreenLine_Layout.xlsx")
+        track_model.change_temperature(35)
     elif running_module == "WaysideController":
         try:
             line_name = "Green"
@@ -41,7 +45,7 @@ if __name__=="__main__":
         except KeyError as e:
             print(f"\n❌ {e}\nPlease enter a valid line name. \'{line_name}\' is not in the list of imported lines.")
     elif running_module == "TrackModel":
-        track_model = TrackModelFrontEnd()
+        track_model = TrackModelFrontEnd(wayside_integrated=False)
         # track_model.upload_track_layout_data("GreenLine_Layout.xlsx")
         track_model.change_temperature(35)
     elif running_module == "Train":
