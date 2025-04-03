@@ -1,5 +1,5 @@
 """
-Author: Aragya Goyal
+Author: Aragya Goyal and Connor Marsh
 Date: 03-20-2025
 Description:
 """
@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt5.QtCore import QTimer, QTime
 from Train.TrainController.train_controller_ui import Ui_MainWindow as TrainControllerUI
 from Train.TrainController.train_controller_testbench import TrainControllerTestbench
+from Train.TrainController.train_controller_hw_backend import TrainControllerHW
 
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
@@ -24,7 +25,7 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.setupUi(self)
 
         # Initialize UI state dictionary (per train) for door toggles only.
-        # Keys: 'door_left', 'door_right'
+        # Keys: 'left_doors', 'right_doors'
         self.ui_states = {}
 
         # Set up default UI values
@@ -62,8 +63,8 @@ class TrainControllerFrontend(QMainWindow):
         key = id(train)
         if key not in self.ui_states:
             self.ui_states[key] = {
-                'door_left': False,
-                'door_right': False,
+                'left_doors': False,
+                'right_doors': False,
                 'actual_temperature': self.ui.cabin_temperature_spin_box.value()
             }
         return self.ui_states[key]
@@ -72,20 +73,20 @@ class TrainControllerFrontend(QMainWindow):
         """Save current door button states and propagate them to the backend for the active train."""
         if self.current_train is not None:
             state = self.get_ui_state(self.current_train)
-            state['door_left'] = self.ui.door_left_button.isChecked()
-            state['door_right'] = self.ui.door_right_button.isChecked()
+            state['left_doors'] = self.ui.door_left_button.isChecked()
+            state['right_doors'] = self.ui.door_right_button.isChecked()
             state['actual_temperature'] = self.ui.cabin_temperature_spin_box.value()
-            self.current_train.door_left = state['door_left']
-            self.current_train.door_right = state['door_right']
+            self.current_train.left_doors = state['left_doors']
+            self.current_train.right_doors = state['right_doors']
 
     def load_ui_state(self, train):
         """Load the door button states for the given train and update UI controls and backend accordingly."""
         state = self.get_ui_state(train)
-        self.ui.door_left_button.setChecked(state['door_left'])
-        self.ui.door_right_button.setChecked(state['door_right'])
+        self.ui.door_left_button.setChecked(state['left_doors'])
+        self.ui.door_right_button.setChecked(state['right_doors'])
         self.ui.cabin_temperature_spin_box.setValue(state['actual_temperature'])
-        train.door_left = state['door_left']
-        train.door_right = state['door_right']
+        train.left_doors = state['left_doors']
+        train.right_doors = state['right_doors']
 
     def on_train_selection_changed(self, index):
         """Handle switching trains from the dropdown."""
@@ -108,11 +109,26 @@ class TrainControllerFrontend(QMainWindow):
 
     def update(self):
         # Set the display values
-        if not self.current_train:
+        if len(self.collection.train_list)>0:
+            self.current_train = self.collection.train_list[int(self.ui.train_id_dropdown.currentText())-1]
+        if self.current_train == None:
             return
-        self.current_train = self.collection.train_list[int(self.ui.train_id_dropdown.currentText())-1]
         if self.train_integrated:
             self.current_train = self.current_train.controller
+            if type(self.current_train)==TrainControllerHW:
+                self.ui.groupBox.hide()
+                self.ui.groupBox_2.hide()
+                self.ui.groupBox_3.hide()
+                self.ui.groupBox_4.hide()
+                self.ui.groupBox_5.hide()
+                self.ui.groupBox_6.hide()
+            else:
+                self.ui.groupBox.show()
+                self.ui.groupBox_2.show()
+                self.ui.groupBox_3.show()
+                self.ui.groupBox_4.show()
+                self.ui.groupBox_5.show()
+                self.ui.groupBox_6.show()
 
         # Update clock
         self.ui.global_clock_lcd.display(self.current_train.global_clock.text)
@@ -228,13 +244,13 @@ class TrainControllerFrontend(QMainWindow):
 
     def handle_right_door(self, checked):
         state = self.get_ui_state(self.current_train)
-        state['door_right'] = checked
-        self.current_train.door_right = checked
+        state['right_doors'] = checked
+        self.current_train.right_doors = checked
 
     def handle_left_door(self, checked):
         state = self.get_ui_state(self.current_train)
-        state['door_left'] = checked
-        self.current_train.door_left = checked
+        state['left_doors'] = checked
+        self.current_train.left_doors = checked
 
     def activate_headlights(self):
         self.current_train.headlights = True
