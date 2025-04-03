@@ -182,7 +182,7 @@ class TrackModel(QtWidgets.QMainWindow):
         # Populate dynamic track
         self.dynamic_track = DynamicTrack()
         for block in self.track_data.blocks:
-            self.dynamic_track.occupancies = Occupancy.UNOCCUPIED
+            self.dynamic_track.occupancies[block.id] = Occupancy.UNOCCUPIED
             if block.switch:
                 self.dynamic_track.switch_states[block.id] = False
             if block.light:
@@ -337,7 +337,8 @@ class TrackModel(QtWidgets.QMainWindow):
         self.trains.append(new_train)
 
         # Mark the block as occupied
-        self.update_block_occupancy(start_block, "Occupied")
+        self.dynamic_track.occupancies[start_block.id] = Occupancy.OCCUPIED
+
 
         print(f"[Train Init] Train {train_id} initialized on {start_block}.")
 
