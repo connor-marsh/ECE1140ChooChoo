@@ -169,9 +169,9 @@ class WaysideControllerCollection(QObject):
                 occupancy = occupancies.get(block.id, Occupancy.UNOCCUPIED) # read from the dictionary
 
                 if occupancy == Occupancy.UNOCCUPIED:
-                    self.sorted_occupancies.append(False)
+                    sorted_occupancies.append(False)
                 else:
-                    self.sorted_occupancies.append(True)
+                    sorted_occupancies.append(True)
 
             for i, controller in enumerate(self.controllers):
                 controller.block_occupancies = sorted_occupancies[slice(*self.BLOCK_RANGES[i])] # goofy slice combined with unpacking operator but I like it
@@ -202,7 +202,7 @@ class WaysideControllerCollection(QObject):
         Called when the ctc dispatches a train. Verifies that it is safe to dispatch the train
         """
         if self.track_model != None:
-            if self.track_model.occupancies["K63"] == Occupancy.UNOCCUPIED:
+            if self.track_model.dynamic_track.occupancies["K63"] == Occupancy.UNOCCUPIED:
                 self.track_model.initialize_train()
         print("In collection handler for dispatch")
     @pyqtSlot(str, bool)
@@ -235,7 +235,7 @@ class WaysideControllerCollection(QObject):
             authority = authorities.get(block.id, None)
             
             controller_index = block.territory - 1 # find which controller this block is in
-            relative_block_index = block_index + self.BLOCK_RANGES[controller_index][0] # find the relative block index to the controller
+            relative_block_index = block_index - self.BLOCK_RANGES[controller_index][0] # find the relative block index to the controller
             
             if speed == None: # no value means just use the previous
                 speed = self.controllers[controller_index].suggested_speeds[relative_block_index] # set the speed to its previous value since no change detected
@@ -244,7 +244,7 @@ class WaysideControllerCollection(QObject):
                 authority = self.controllers[controller_index].suggested_authorities[relative_block_index]
 
             if speed != None:
-                speed = speed if speed <= block.speed_limit else 0 # basic clamp for speeds
+                speed = speed if speed <= block.speed_limit else block.speed_limit # basic clamp for speeds
 
             # put in lists for next loop that sends it to each backend controller
             sorted_speeds.append(speed)

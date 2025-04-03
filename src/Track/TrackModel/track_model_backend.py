@@ -191,7 +191,7 @@ class TrackModel(QtWidgets.QMainWindow):
         self.train_collection = TrainCollection()
         self.wayside_integrated = wayside_integrated
         if wayside_integrated:
-            self.wayside_collection = WaysideControllerCollection(self, auto_import_programs=False)
+            self.wayside_collection = WaysideControllerCollection(self)
             self.wayside_collection.frontend.show()
 
         # Populate dynamic track
@@ -204,8 +204,6 @@ class TrackModel(QtWidgets.QMainWindow):
                 self.dynamic_track.light_states[block.id] = False
             if block.crossing:
                 self.dynamic_track.crossing_states[block.id] = False
-
-        self.initialize_train()
 
         self.prev_time = None
         self.timer = QtCore.QTimer(self)
