@@ -51,6 +51,7 @@ class TrainController(QMainWindow):
         self.announcement = False
         self.manual_mode = False
         self.target_speed = 0.0
+        self.beacon_data_recieved = False
         
         #TODO: these defaults should be fixed - currently hard-coded
         self.current_block = self.track_data.blocks[63-1]
@@ -152,7 +153,20 @@ class TrainController(QMainWindow):
         # TODO
 
     def process_beacon_data(self):
-        pass
+        switch = self.track_data.switches[self.track_data.switch_exits[self.current_block.id].switch_entrance]
+        switch_block_0 = switch.positions[0].split("-")[1]
+        switch_block_1 = switch.positions[1].split("-")[1]
+        if self.beacon_data_recieved:
+            if self.track_data.blocks[int(switch_block_0)-1].beacon:
+                self.current_block = self.track_data.blocks[int(switch_block_0)-1]
+            else:
+                self.current_block = self.track_data.blocks[int(switch_block_1)-1]
+            self.beacon_data_recieved = False
+        else:
+            if not self.track_data.blocks[int(switch_block_0)].beacon:
+                self.current_block = self.track_data.blocks[int(switch_block_0)-1]
+            else:
+                self.current_block = self.track_data.blocks[int(switch_block_1)-1]
 
     def set_input_data(self, testbench_data=None, train_model_data=None):
         selected_data = None
@@ -169,8 +183,11 @@ class TrainController(QMainWindow):
             self.actual_speed = selected_data["actual_speed"]
             self.wayside_speed = selected_data["wayside_speed"]
             self.wayside_authority = selected_data["wayside_authority"]
-            self.beacon_data = selected_data["beacon_data"]
             self.position = selected_data.get("position", self.position)
+
+            if self.beacon_data != selected_data["beacon_data"]:
+                self.beacon_data = selected_data["beacon data"]
+                self.beacon_data_recieved = True
 
             # Passengers can turn on the ebrake but not turn it off
             self.emergency_brake = selected_data.get("emergency_brake", self.emergency_brake)
