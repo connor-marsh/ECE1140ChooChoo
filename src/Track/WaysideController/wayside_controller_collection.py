@@ -141,7 +141,7 @@ class WaysideControllerCollection(QObject):
             self.track_model.update_from_plc_outputs(self.blocks, switch_states, light_states, crossing_states)
 
             # call the update in the track model
-            if self.one_shot_suggested:
+            if self.one_shot_suggested or True:
                 self.track_model.update_from_comms_outputs(wayside_speeds=commanded_speeds, wayside_authorities=commanded_authorities, maintenances=maintenances)
                 self.one_shot_suggested=False
 

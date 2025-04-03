@@ -33,6 +33,7 @@ class TrainController(QMainWindow):
         self.wayside_authority = 0.0
         self.previous_authority = 0.0
         self.commanded_power = 0.0
+        self.unramped_commanded_power=0.0
         self.beacon_data = ""
         self.actual_temperature = 77.0 # Farenheight
         self.desired_temperature = 77.0 # Farenheight
@@ -133,6 +134,11 @@ class TrainController(QMainWindow):
                 self.travel_direction = increasing
             self.current_section = self.current_block.id[0]
 
+        if self.current_block.id=="C10":
+            self.global_clock.time_multiplier=1
+        if self.current_block.id=="C8":
+            self.global_clock.time_multiplier=20
+
 
     def update_safety(self):
         # Ramp up power for passenger comfort
@@ -215,8 +221,9 @@ class TrainController(QMainWindow):
         self.previous_authority = self.wayside_authority
         
         if self.stopping and self.current_block.station:
-            QTimer.singleShot(int(500.0/self.global_clock.time_multiplier), self.start_dwell)
-            QTimer.singleShot(int(10.0*30500.0/self.global_clock.time_multiplier), self.end_dwell)
+            self.start_dwell()
+            QTimer.singleShot(int(30500.0/self.global_clock.time_multiplier), self.end_dwell)
+            self.stopping=False
         if self.dwell:
             self.service_brake = True
 

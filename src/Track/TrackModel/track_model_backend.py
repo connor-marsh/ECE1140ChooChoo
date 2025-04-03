@@ -107,6 +107,7 @@ class Train:
                 if nextBlock == "Yard":
                     self.track_model.remove_train(self.train_id)
                     self.dynamic_track.occupancies[self.current_block.id]=Occupancy.UNOCCUPIED
+                    return
                 else:
                     self.current_block = self.track_data.blocks[int(nextBlock)-1]
             elif self.current_block.switch_exit and not self.previous_switch_entrance:
@@ -186,13 +187,16 @@ class TrackModel(QtWidgets.QMainWindow):
         self.name = name
         self.track_data = global_track_data.lines[name]
         self.runtime_status = {} # Runtime status of blocks
-        self.trains = []  # holds Train instances
-        self.train_counter = 0
-        self.train_collection = TrainCollection()
+
         self.wayside_integrated = wayside_integrated
         if wayside_integrated:
             self.wayside_collection = WaysideControllerCollection(self)
             self.wayside_collection.frontend.show()
+
+        self.trains = []  # holds Train instances
+        self.train_counter = 0
+        self.train_collection = TrainCollection()
+        
 
         # Populate dynamic track
         self.dynamic_track = DynamicTrack()
@@ -266,7 +270,6 @@ class TrackModel(QtWidgets.QMainWindow):
             if train.current_block.id in wayside_speeds:
                 send_to_train["wayside_speed"]=wayside_speeds[train.current_block.id]
             if train.current_block.id in wayside_authorities:
-                print("TRACK MODEL SENDS AUTHORITY")
                 send_to_train["wayside_authority"]=wayside_authorities[train.current_block.id]
             if len(send_to_train)>0:
                 train.train_model.set_input_data(track_data=send_to_train)
