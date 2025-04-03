@@ -22,6 +22,7 @@ class TrainModel(QMainWindow):
     MPS_TO_MPH  = 2.23694
     KG_TO_LBS   = 2.20462
     M_TO_FT     = 3.281
+    M_TO_YARD = 1.09361
 
     MAX_ACCEL         = 100000    # (m/s²)
     GRAVITY           = 9.81      # (m/s²)
@@ -106,7 +107,7 @@ class TrainModel(QMainWindow):
             dyn_force = 1000.0
 
         theta = math.atan(self.grade / 100.0)
-        grav_force = self.mass_kg * self.GRAVITY * math.sin(theta)
+        grav_force = self.mass_kg * self.GRAVITY * math.sin(theta * 3.14159/180)
         
         """Calculate drag force using the drag equation.
             drag_force = 0.5 * rho * A * C_d * v^2 """
@@ -114,14 +115,14 @@ class TrainModel(QMainWindow):
         velocity_magnitude = math.sqrt(self.actual_speed**2 + self.actual_speed**2) # Calculate velocity magnitude
         drag_force = 0.5 * self.AIR_DENSITY * self.FRONTAL_AREA * self.DRAG_COEFFICIENT * velocity_magnitude**2
         # net_force = dyn_force - grav_force * air_resistance_constant
-        net_force = dyn_force - grav_force - drag_force     # TODO: Make drag code more clean
+        net_force = dyn_force - grav_force - drag_force
         a_base = net_force / self.mass_kg if self.mass_kg != 0 else 0.0
 
         if self.emergency_brake:
-            target_a = self.EMERGENCY_DECEL - self.GRAVITY * math.sin(theta)
+            target_a = self.EMERGENCY_DECEL - a_base
             self.current_acceleration = target_a
         elif self.service_brake:
-            target_a = self.SERVICE_DECEL - self.GRAVITY * math.sin(theta)
+            target_a = self.SERVICE_DECEL - a_base
             ramp_rate = 1.0
             accel_diff = target_a - self.current_acceleration
             max_delta = ramp_rate * dt
@@ -169,7 +170,7 @@ class TrainModel(QMainWindow):
         if brake_off and new_velocity < self.MIN_SPEED_NO_BRAKE:
             new_velocity = self.MIN_SPEED_NO_BRAKE
 
-        degrees_per_second = 0.001
+        degrees_per_second = 0.01
         if self.heating and not self.air_conditioning:
             dtemp = degrees_per_second * dt
         elif self.air_conditioning and not self.heating:
@@ -202,7 +203,7 @@ class TrainModel(QMainWindow):
 
         if selected in ["testbench", "track"]:
             self.wayside_speed = selected_data.get("wayside_speed", self.wayside_speed) / self.MPS_TO_MPH
-            self.wayside_authority = selected_data.get("wayside_authority", self.wayside_authority) / self.M_TO_FT
+            self.wayside_authority = selected_data.get("wayside_authority", self.wayside_authority) / self.M_TO_YARD
             self.beacon_data = selected_data.get("beacon_data", self.beacon_data)
             grade = selected_data.get("grade", self.grade)
             if grade > 60:
@@ -236,7 +237,7 @@ class TrainModel(QMainWindow):
         data = {}
         data["actual_speed"] = self.actual_speed * self.MPS_TO_MPH
         data["wayside_speed"] = self.wayside_speed * self.MPS_TO_MPH
-        data["wayside_authority"] = self.wayside_authority * self.M_TO_FT
+        data["wayside_authority"] = self.wayside_authority * self.M_TO_YARD
         data["beacon_data"] = self.beacon_data
         data["actual_temperature"] = (self.actual_temperature * 1.8) + 32
         data["signal_failure"] = self.signal_failure

@@ -393,7 +393,7 @@ class Ui_TestMainWindow(object):
         self.TemperatureLabel.setText(QCoreApplication.translate("MainWindow", "Temperature", None))
         # Inputs translations
         self.WaysideSpeedLabel.setText(QCoreApplication.translate("MainWindow", "Wayside Speed (mph)", None))
-        self.WaysideAuthorityLabel.setText(QCoreApplication.translate("MainWindow", "Wayside Authority (ft)", None))
+        self.WaysideAuthorityLabel.setText(QCoreApplication.translate("MainWindow", "Wayside Authority (yard)", None))
         self.CommandedPowerLabel.setText(QCoreApplication.translate("MainWindow", "Commanded Power (W)", None))
         # self.SpeedLimitLabel.setText(QCoreApplication.translate("MainWindow", "Speed Limit (mph)", None))
         self.BeaconDataLabel.setText(QCoreApplication.translate("MainWindow", "Beacon Data (128 Bytes)", None))

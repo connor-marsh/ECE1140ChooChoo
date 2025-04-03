@@ -48,15 +48,20 @@ class TrainCollection:
             self.train_controller_ui.show()
             self.train_list = []
             for _ in range(num_trains):
-                self.createTrain()
+                self.create_train()
 
-    def createTrain(self):
+    def create_train(self):
         # Create a new TrainModel and append it to the list.
         if USING_HARDWARE and not self.hardware_active and len(self.train_list)>0:
             self.train_list.append(TrainModel(hardware_controller=True))
             self.hardware_active = True
         else:
             self.train_list.append(TrainModel())
+        self.train_model_ui.update_train_dropdown()
+        self.train_controller_ui.update_train_dropdown()
+    
+    def remove_train(self, idx):
+        self.train_list.pop(idx)
         self.train_model_ui.update_train_dropdown()
         self.train_controller_ui.update_train_dropdown()
 

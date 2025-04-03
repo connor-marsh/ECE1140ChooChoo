@@ -31,7 +31,8 @@ class TrainModelFrontEnd(QMainWindow):
         self.train_ui = TrainModelUI()
         self.train_ui.setupUi(self)
         
-        # UI state dictionary to hold frontend-specific failure states (keyed by train id)
+        # UI state dictionary to hold frontend-specific failure states and announcements (keyed by train id in dropdown)
+        # Keys: Failure states, Announcement
         self.ui_states = {}
         
         # Setup dropdown for selecting a train model.
@@ -88,38 +89,47 @@ class TrainModelFrontEnd(QMainWindow):
         widget_action = QWidgetAction(self)
         widget_action.setDefaultWidget(self.train_dropdown)
         self.train_ui.menuTrain_ID_1.addAction(widget_action)
+        self.update_train_dropdown()
 
     def update_train_dropdown(self):
         if self.train_collection:
             self.train_dropdown.clear()
             for idx, train in enumerate(self.train_collection.train_list):
                 self.train_dropdown.addItem(getattr(train, "name", f"Train ID {idx+1}"))
-            if self.current_train is None:
-                self.current_train = self.train_collection.train_list[0]
-                # Load UI state for the first train.
-                self.load_ui_state(self.current_train)
+            if len(self.train_collection.train_list)==0:
+                self.current_train=None
+                self.train_ui.Main.hide()
+            else:
+                self.train_ui.Main.show()
+                if self.current_train is None :
+                    self.current_train = self.train_collection.train_list[0]
+                    # Load UI state for the first train.
+                    self.load_ui_state(self.current_train)
 
     def get_ui_state(self, train):
         """Returns the UI state dict for a given train. Initialize if not present.
-        Only the failure states are stored.
+        Only the failure states and announcements are stored.
         """
         key = id(train)
         if key not in self.ui_states:
-            # Defaults: all failure states disabled.
+            # Defaults: all failure states disabled and empty announcement.
             self.ui_states[key] = {
                 'BrakeFailure': False,
                 'SignalFailure': False,
-                'EngineFailure': False
+                'EngineFailure': False,
+                'announcement': ""
             }
         return self.ui_states[key]
 
     def save_current_ui_state(self):
-        """Saves the current UI failure states for the active train and propagates them to the backend."""
+        """Saves the current UI failure states and announcement for the active train and propagates failure states to the backend."""
         if self.current_train is not None:
             state = self.get_ui_state(self.current_train)
             state['BrakeFailure'] = self.train_ui.Enabled1.isChecked()
             state['SignalFailure'] = self.train_ui.Enabled2.isChecked()
             state['EngineFailure'] = self.train_ui.Enabled3.isChecked()
+            if hasattr(self.train_ui, "Announcement_2"):
+                state['announcement'] = self.train_ui.Announcement_2.text()
             
             # Propagate failure states to backend:
             self.current_train.brake_failure = state['BrakeFailure']
@@ -127,7 +137,7 @@ class TrainModelFrontEnd(QMainWindow):
             self.current_train.engine_failure = state['EngineFailure']
 
     def load_ui_state(self, train):
-        """Loads the UI failure state for the given train, updates UI elements and propagates to backend."""
+        """Loads the UI failure state and announcement for the given train, updates UI elements and propagates to backend."""
         state = self.get_ui_state(train)
         if state['BrakeFailure']:
             self.train_ui.Enabled1.setChecked(True)
@@ -146,6 +156,9 @@ class TrainModelFrontEnd(QMainWindow):
         else:
             self.train_ui.Disabled3.setChecked(True)
         self.current_train.engine_failure = state['EngineFailure']
+        
+        if hasattr(self.train_ui, "Announcement_2"):
+            self.train_ui.Announcement_2.setText(state.get('announcement', ""))
 
     def on_train_selection_changed(self, index):
         # Save current UI state before switching trains.
