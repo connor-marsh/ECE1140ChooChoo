@@ -229,8 +229,9 @@ class TrackMapCanvas(QGraphicsView):
                 item.setBrush(QBrush(QColor("gray")))
 
 class TrackModelFrontEnd(QMainWindow):
-    def __init__(self):
+    def __init__(self, wayside_integrated=True):
         super().__init__()
+<<<<<<< HEAD
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -240,6 +241,10 @@ class TrackModelFrontEnd(QMainWindow):
 
         # Backend Setup
         self.green_line = TrackModel("Green")
+=======
+        # self.red_line = TrackModel("Red")
+        self.green_line = TrackModel("Green", wayside_integrated=wayside_integrated)
+>>>>>>> fab8dbfc9ab86da94043a7321283fe4571d50cf7
         self.outside_temp = 70.0
         self.track_heater_status = False
 

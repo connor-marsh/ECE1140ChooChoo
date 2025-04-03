@@ -89,7 +89,7 @@ class TrackData():
         self.switch_exits = {} # the blocks that the switch
         self.stations = {}
         self.lights = {}
-        self.crossings = {}
+        self.crossings = {} 
         self.beacons = {}
 
         for row in range(len(dictionary["Block Number"])):
@@ -204,7 +204,6 @@ class TrackData():
         # convert back to regular dictionaries
         self.territory_counts = dict(temp_territory_counts)
         self.device_counts = {k: dict(v) for k, v in temp_device_counts.items()} 
-        
         
 def init():
     global lines 

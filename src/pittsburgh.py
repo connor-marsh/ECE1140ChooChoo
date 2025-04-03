@@ -13,13 +13,14 @@ from Train.TrainModel.train_model_frontend import TrainModelFrontEnd
 from Train.TrainModel.train_model_testbench import TrainModelTestbench
 from Train.TrainController.train_controller_frontend import TrainControllerFrontend
 from Train.TrainController.train_controller_testbench import TrainControllerTestbench
+from Train.TrainController.train_controller_hw_backend import TrainControllerHW
 from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
 from Track.TrackModel.track_model_frontend import TrackModelFrontEnd
 
 
 if __name__=="__main__":
 
-    running_module = "TrackModel" # all, CTC, WaysideController, TrackModel, Train, Train Model, Train Controller
+    running_module = "TrackModel" # all, CTC, WaysideController, TrackModel, Train, TrainModel, TrainController, TrainControllerHW
     
     # Create App
     app = QApplication(sys.argv)
@@ -32,12 +33,21 @@ if __name__=="__main__":
         pass
     elif running_module == "CTC":
         pass
+    elif running_module == "TrackWayside":
+        track_model = TrackModelFrontEnd()
+        # track_model.upload_track_layout_data("GreenLine_Layout.xlsx")
+        track_model.change_temperature(35)
     elif running_module == "WaysideController":
-        collection = WaysideControllerCollection("GREEN")
-        collection.frontend.show()
+        try:
+            line_name = "Green"
+            collection = WaysideControllerCollection(track_model=None,line_name=line_name,auto_import_programs=True)
+            collection.frontend.show()
+        except KeyError as e:
+            print(f"\n❌ {e}\nPlease enter a valid line name. \'{line_name}\' is not in the list of imported lines.")
     elif running_module == "TrackModel":
-        track_model_ui = TrackModelFrontEnd()
-        track_model_ui.show()
+        track_model = TrackModelFrontEnd(wayside_integrated=False)
+        # track_model.upload_track_layout_data("GreenLine_Layout.xlsx")
+        track_model.change_temperature(35)
     elif running_module == "Train":
         train_collection = TrainCollection(num_trains=3)
         train_model_testbench = TrainModelTestbench(train_collection, train_integrated=True)    
@@ -60,6 +70,10 @@ if __name__=="__main__":
         train_controller_frontend.current_train = collection.train_list[0]
         train_controller_frontend.show()
 
-        train_controller_testbench = TrainControllerTestbench(collection)
+        train_controller_testbench = TrainControllerTestbench(collection=collection)
+        train_controller_testbench.show()
+    elif running_module == "TrainControllerHW":
+        train_controller_hw = TrainControllerHW(train_integrated=False)
+        train_controller_testbench = TrainControllerTestbench(hardware_train=train_controller_hw)
         train_controller_testbench.show()
     sys.exit(app.exec_())
