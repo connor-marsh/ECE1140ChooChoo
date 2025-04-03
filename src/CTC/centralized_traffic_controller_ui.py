@@ -12,12 +12,11 @@ from PyQt5.QtCore import *  # type: ignore
 from PyQt5.QtGui import *  # type: ignore
 from PyQt5.QtWidgets import *  # type: ignore
 
-
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(666, 590)
+        MainWindow.resize(798, 564)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout_4 = QVBoxLayout(self.centralwidget)
@@ -115,7 +114,27 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_2.addWidget(self.frame)
 
-        self.groupBox_4 = QGroupBox(self.centralwidget)
+        self.frame_2 = QFrame(self.centralwidget)
+        self.frame_2.setObjectName(u"frame_2")
+        sizePolicy.setHeightForWidth(self.frame_2.sizePolicy().hasHeightForWidth())
+        self.frame_2.setSizePolicy(sizePolicy)
+        self.frame_2.setFrameShape(QFrame.StyledPanel)
+        self.frame_2.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout_2 = QHBoxLayout(self.frame_2)
+        self.horizontalLayout_2.setSpacing(10)
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.frame_3 = QFrame(self.frame_2)
+        self.frame_3.setObjectName(u"frame_3")
+        self.frame_3.setFrameShape(QFrame.StyledPanel)
+        self.frame_3.setFrameShadow(QFrame.Plain)
+        self.frame_3.setLineWidth(2)
+        self.verticalLayout_3 = QVBoxLayout(self.frame_3)
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout = QVBoxLayout()
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.groupBox_4 = QGroupBox(self.frame_3)
         self.groupBox_4.setObjectName(u"groupBox_4")
         self.horizontalLayout_6 = QHBoxLayout(self.groupBox_4)
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
@@ -150,7 +169,7 @@ class Ui_MainWindow(object):
         self.main_map_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.main_map_table.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
         self.main_map_table.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.main_map_table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.main_map_table.setSelectionBehavior(QAbstractItemView.SelectItems)
         self.main_map_table.setTextElideMode(Qt.ElideMiddle)
         self.main_map_table.horizontalHeader().setVisible(True)
         self.main_map_table.verticalHeader().setVisible(False)
@@ -162,47 +181,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_6.addLayout(self.horizontalLayout_5)
 
 
-        self.verticalLayout_2.addWidget(self.groupBox_4)
-
-        self.frame_2 = QFrame(self.centralwidget)
-        self.frame_2.setObjectName(u"frame_2")
-        sizePolicy.setHeightForWidth(self.frame_2.sizePolicy().hasHeightForWidth())
-        self.frame_2.setSizePolicy(sizePolicy)
-        self.frame_2.setFrameShape(QFrame.StyledPanel)
-        self.frame_2.setFrameShadow(QFrame.Raised)
-        self.horizontalLayout_2 = QHBoxLayout(self.frame_2)
-        self.horizontalLayout_2.setSpacing(10)
-        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.frame_3 = QFrame(self.frame_2)
-        self.frame_3.setObjectName(u"frame_3")
-        self.frame_3.setFrameShape(QFrame.StyledPanel)
-        self.frame_3.setFrameShadow(QFrame.Plain)
-        self.frame_3.setLineWidth(2)
-        self.verticalLayout_3 = QVBoxLayout(self.frame_3)
-        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
-        self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout = QVBoxLayout()
-        self.verticalLayout.setObjectName(u"verticalLayout")
-        self.groupBox_41 = QGroupBox(self.frame_3)
-        self.groupBox_41.setObjectName(u"groupBox_41")
-        self.horizontalLayout_7 = QHBoxLayout(self.groupBox_41)
-        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
-        self.horizontalLayout_7.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_5 = QVBoxLayout()
-        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
-        self.main_key = QLabel(self.groupBox_41)
-        self.main_key.setObjectName(u"main_key")
-        self.main_key.setPixmap(QPixmap(u"../../../.designer/backup/key3.PNG"))
-        self.main_key.setScaledContents(True)
-
-        self.verticalLayout_5.addWidget(self.main_key)
-
-
-        self.horizontalLayout_7.addLayout(self.verticalLayout_5)
-
-
-        self.verticalLayout.addWidget(self.groupBox_41)
+        self.verticalLayout.addWidget(self.groupBox_4)
 
         self.frame_4 = QFrame(self.frame_3)
         self.frame_4.setObjectName(u"frame_4")
@@ -223,6 +202,7 @@ class Ui_MainWindow(object):
         self.main_throughput_label = QLabel(self.frame_4)
         self.main_throughput_label.setObjectName(u"main_throughput_label")
         self.main_throughput_label.setFrameShape(QFrame.Panel)
+        self.main_throughput_label.setAlignment(Qt.AlignCenter)
 
         self.horizontalLayout_11.addWidget(self.main_throughput_label)
 
@@ -335,9 +315,8 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.groupBox_3)
 
-        self.verticalLayout.setStretch(0, 4)
-        self.verticalLayout.setStretch(1, 1)
-        self.verticalLayout.setStretch(2, 5)
+        self.verticalLayout.setStretch(0, 51)
+        self.verticalLayout.setStretch(1, 5)
 
         self.verticalLayout_3.addLayout(self.verticalLayout)
 
@@ -351,9 +330,16 @@ class Ui_MainWindow(object):
         self.page.setObjectName(u"page")
         self.verticalLayout_9 = QVBoxLayout(self.page)
         self.verticalLayout_9.setObjectName(u"verticalLayout_9")
-        self.main_active_trains_table = QTableWidget(self.page)
-        if (self.main_active_trains_table.columnCount() < 4):
-            self.main_active_trains_table.setColumnCount(4)
+        self.groupBox = QGroupBox(self.page)
+        self.groupBox.setObjectName(u"groupBox")
+        self.verticalLayout_16 = QVBoxLayout(self.groupBox)
+        self.verticalLayout_16.setObjectName(u"verticalLayout_16")
+        self.verticalLayout_16.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout_5 = QVBoxLayout()
+        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
+        self.main_active_trains_table = QTableWidget(self.groupBox)
+        if (self.main_active_trains_table.columnCount() < 5):
+            self.main_active_trains_table.setColumnCount(5)
         __qtablewidgetitem10 = QTableWidgetItem()
         self.main_active_trains_table.setHorizontalHeaderItem(0, __qtablewidgetitem10)
         __qtablewidgetitem11 = QTableWidgetItem()
@@ -362,13 +348,23 @@ class Ui_MainWindow(object):
         self.main_active_trains_table.setHorizontalHeaderItem(2, __qtablewidgetitem12)
         __qtablewidgetitem13 = QTableWidgetItem()
         self.main_active_trains_table.setHorizontalHeaderItem(3, __qtablewidgetitem13)
+        __qtablewidgetitem14 = QTableWidgetItem()
+        self.main_active_trains_table.setHorizontalHeaderItem(4, __qtablewidgetitem14)
         self.main_active_trains_table.setObjectName(u"main_active_trains_table")
-        self.main_active_trains_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.main_active_trains_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.main_active_trains_table.setSizeAdjustPolicy(QAbstractScrollArea.AdjustIgnored)
         self.main_active_trains_table.setSelectionMode(QAbstractItemView.SingleSelection)
         self.main_active_trains_table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.main_active_trains_table.horizontalHeader().setVisible(True)
+        self.main_active_trains_table.verticalHeader().setVisible(False)
 
-        self.verticalLayout_9.addWidget(self.main_active_trains_table)
+        self.verticalLayout_5.addWidget(self.main_active_trains_table)
+
+
+        self.verticalLayout_16.addLayout(self.verticalLayout_5)
+
+
+        self.verticalLayout_9.addWidget(self.groupBox)
 
         self.verticalLayout_8 = QVBoxLayout()
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
@@ -475,13 +471,15 @@ class Ui_MainWindow(object):
         self.sub_dispatch_train_table = QTableWidget(self.page_2)
         if (self.sub_dispatch_train_table.columnCount() < 3):
             self.sub_dispatch_train_table.setColumnCount(3)
-        __qtablewidgetitem14 = QTableWidgetItem()
-        self.sub_dispatch_train_table.setHorizontalHeaderItem(0, __qtablewidgetitem14)
         __qtablewidgetitem15 = QTableWidgetItem()
-        self.sub_dispatch_train_table.setHorizontalHeaderItem(1, __qtablewidgetitem15)
+        self.sub_dispatch_train_table.setHorizontalHeaderItem(0, __qtablewidgetitem15)
         __qtablewidgetitem16 = QTableWidgetItem()
-        self.sub_dispatch_train_table.setHorizontalHeaderItem(2, __qtablewidgetitem16)
+        self.sub_dispatch_train_table.setHorizontalHeaderItem(1, __qtablewidgetitem16)
+        __qtablewidgetitem17 = QTableWidgetItem()
+        self.sub_dispatch_train_table.setHorizontalHeaderItem(2, __qtablewidgetitem17)
         self.sub_dispatch_train_table.setObjectName(u"sub_dispatch_train_table")
+        self.sub_dispatch_train_table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.sub_dispatch_train_table.verticalHeader().setVisible(False)
 
         self.verticalLayout_10.addWidget(self.sub_dispatch_train_table)
 
@@ -718,12 +716,12 @@ class Ui_MainWindow(object):
         self.sub_active_trains_table = QTableWidget(self.page_3)
         if (self.sub_active_trains_table.columnCount() < 3):
             self.sub_active_trains_table.setColumnCount(3)
-        __qtablewidgetitem17 = QTableWidgetItem()
-        self.sub_active_trains_table.setHorizontalHeaderItem(0, __qtablewidgetitem17)
         __qtablewidgetitem18 = QTableWidgetItem()
-        self.sub_active_trains_table.setHorizontalHeaderItem(1, __qtablewidgetitem18)
+        self.sub_active_trains_table.setHorizontalHeaderItem(0, __qtablewidgetitem18)
         __qtablewidgetitem19 = QTableWidgetItem()
-        self.sub_active_trains_table.setHorizontalHeaderItem(2, __qtablewidgetitem19)
+        self.sub_active_trains_table.setHorizontalHeaderItem(1, __qtablewidgetitem19)
+        __qtablewidgetitem20 = QTableWidgetItem()
+        self.sub_active_trains_table.setHorizontalHeaderItem(2, __qtablewidgetitem20)
         self.sub_active_trains_table.setObjectName(u"sub_active_trains_table")
 
         self.verticalLayout_12.addWidget(self.sub_active_trains_table)
@@ -737,12 +735,14 @@ class Ui_MainWindow(object):
         self.sub_current_speed = QLabel(self.groupBox_7)
         self.sub_current_speed.setObjectName(u"sub_current_speed")
         self.sub_current_speed.setFrameShape(QFrame.Box)
+        self.sub_current_speed.setAlignment(Qt.AlignCenter)
 
         self.gridLayout_5.addWidget(self.sub_current_speed, 0, 1, 1, 1)
 
         self.sub_current_authority = QLabel(self.groupBox_7)
         self.sub_current_authority.setObjectName(u"sub_current_authority")
         self.sub_current_authority.setFrameShape(QFrame.Box)
+        self.sub_current_authority.setAlignment(Qt.AlignCenter)
 
         self.gridLayout_5.addWidget(self.sub_current_authority, 1, 1, 1, 1)
 
@@ -927,8 +927,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addWidget(self.frame_2)
 
         self.verticalLayout_2.setStretch(0, 1)
-        self.verticalLayout_2.setStretch(1, 9)
-        self.verticalLayout_2.setStretch(2, 10)
+        self.verticalLayout_2.setStretch(1, 10)
 
         self.verticalLayout_4.addLayout(self.verticalLayout_2)
 
@@ -939,7 +938,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.multiPageWidget.setCurrentIndex(0)
+        self.multiPageWidget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -974,18 +973,17 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem8.setText(QCoreApplication.translate("MainWindow", u"Transponder", None));
         ___qtablewidgetitem9 = self.main_map_table.horizontalHeaderItem(9)
         ___qtablewidgetitem9.setText(QCoreApplication.translate("MainWindow", u"Underground", None));
-        self.groupBox_41.setTitle(QCoreApplication.translate("MainWindow", u"Key", None))
-        self.main_key.setText("")
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Throughput", None))
-        self.main_throughput_label.setText("")
+        self.main_throughput_label.setText(QCoreApplication.translate("MainWindow", u"0", None))
         self.groupBox_3.setTitle(QCoreApplication.translate("MainWindow", u"Block Data", None))
-        self.main_active_block_id.setText(QCoreApplication.translate("MainWindow", u"ID #", None))
-        self.main_active_block_length.setText(QCoreApplication.translate("MainWindow", u"yd", None))
-        self.main_active_block_speed_limit.setText(QCoreApplication.translate("MainWindow", u"MPH", None))
-        self.label_10.setText(QCoreApplication.translate("MainWindow", u"Block Length", None))
-        self.label_11.setText(QCoreApplication.translate("MainWindow", u"Speed Limit", None))
+        self.main_active_block_id.setText("")
+        self.main_active_block_length.setText("")
+        self.main_active_block_speed_limit.setText("")
+        self.label_10.setText(QCoreApplication.translate("MainWindow", u"Block Length | Yd", None))
+        self.label_11.setText(QCoreApplication.translate("MainWindow", u"Speed Limit | MPH", None))
         self.label_9.setText(QCoreApplication.translate("MainWindow", u"Block ID:", None))
         self.label_15.setText(QCoreApplication.translate("MainWindow", u"Left Track | AUTO | Right Track", None))
+        self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"Active Trains", None))
         ___qtablewidgetitem10 = self.main_active_trains_table.horizontalHeaderItem(0)
         ___qtablewidgetitem10.setText(QCoreApplication.translate("MainWindow", u"Designation", None));
         ___qtablewidgetitem11 = self.main_active_trains_table.horizontalHeaderItem(1)
@@ -994,6 +992,8 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem12.setText(QCoreApplication.translate("MainWindow", u"Upcoming Stop", None));
         ___qtablewidgetitem13 = self.main_active_trains_table.horizontalHeaderItem(3)
         ___qtablewidgetitem13.setText(QCoreApplication.translate("MainWindow", u"Remaining Stops", None));
+        ___qtablewidgetitem14 = self.main_active_trains_table.horizontalHeaderItem(4)
+        ___qtablewidgetitem14.setText(QCoreApplication.translate("MainWindow", u"Control Mode", None));
         self.main_switch_to_upload_button.setText(QCoreApplication.translate("MainWindow", u"Upload Schedule File", None))
         self.main_switch_to_maintenance_button.setText(QCoreApplication.translate("MainWindow", u"Maintenance", None))
         self.main_switch_to_dispatch_button.setText(QCoreApplication.translate("MainWindow", u"Dispatch Train", None))
@@ -1001,12 +1001,12 @@ class Ui_MainWindow(object):
         self.sub_return_button.setText(QCoreApplication.translate("MainWindow", u"<- Back", None))
         self.label_17.setText(QCoreApplication.translate("MainWindow", u"Dispatch Train", None))
         self.sub_dispatch_manual_radio.setText(QCoreApplication.translate("MainWindow", u"Manual", None))
-        ___qtablewidgetitem14 = self.sub_dispatch_train_table.horizontalHeaderItem(0)
-        ___qtablewidgetitem14.setText(QCoreApplication.translate("MainWindow", u"Designator", None));
-        ___qtablewidgetitem15 = self.sub_dispatch_train_table.horizontalHeaderItem(1)
-        ___qtablewidgetitem15.setText(QCoreApplication.translate("MainWindow", u"Stop #1", None));
-        ___qtablewidgetitem16 = self.sub_dispatch_train_table.horizontalHeaderItem(2)
-        ___qtablewidgetitem16.setText(QCoreApplication.translate("MainWindow", u"Stop #n", None));
+        ___qtablewidgetitem15 = self.sub_dispatch_train_table.horizontalHeaderItem(0)
+        ___qtablewidgetitem15.setText(QCoreApplication.translate("MainWindow", u"Designator", None));
+        ___qtablewidgetitem16 = self.sub_dispatch_train_table.horizontalHeaderItem(1)
+        ___qtablewidgetitem16.setText(QCoreApplication.translate("MainWindow", u"Stop #1", None));
+        ___qtablewidgetitem17 = self.sub_dispatch_train_table.horizontalHeaderItem(2)
+        ___qtablewidgetitem17.setText(QCoreApplication.translate("MainWindow", u"Stop #n", None));
         self.sub_manual_override_box.setTitle(QCoreApplication.translate("MainWindow", u"Manual Override", None))
         self.label_5.setText("")
         self.sub_dispatch_overide_new_radio.setText(QCoreApplication.translate("MainWindow", u"Send new train to block:", None))
@@ -1042,19 +1042,19 @@ class Ui_MainWindow(object):
         self.sub_return_button2.setText(QCoreApplication.translate("MainWindow", u"<- Back", None))
         self.label_18.setText(QCoreApplication.translate("MainWindow", u"Select Train", None))
         self.sub_select_manual_radio.setText(QCoreApplication.translate("MainWindow", u"Manual", None))
-        ___qtablewidgetitem17 = self.sub_active_trains_table.horizontalHeaderItem(0)
-        ___qtablewidgetitem17.setText(QCoreApplication.translate("MainWindow", u"Train ID", None));
-        ___qtablewidgetitem18 = self.sub_active_trains_table.horizontalHeaderItem(1)
-        ___qtablewidgetitem18.setText(QCoreApplication.translate("MainWindow", u"Current Block", None));
-        ___qtablewidgetitem19 = self.sub_active_trains_table.horizontalHeaderItem(2)
-        ___qtablewidgetitem19.setText(QCoreApplication.translate("MainWindow", u"Route", None));
+        ___qtablewidgetitem18 = self.sub_active_trains_table.horizontalHeaderItem(0)
+        ___qtablewidgetitem18.setText(QCoreApplication.translate("MainWindow", u"Train ID", None));
+        ___qtablewidgetitem19 = self.sub_active_trains_table.horizontalHeaderItem(1)
+        ___qtablewidgetitem19.setText(QCoreApplication.translate("MainWindow", u"Current Block", None));
+        ___qtablewidgetitem20 = self.sub_active_trains_table.horizontalHeaderItem(2)
+        ___qtablewidgetitem20.setText(QCoreApplication.translate("MainWindow", u"Route", None));
         self.groupBox_7.setTitle(QCoreApplication.translate("MainWindow", u"Manual Override", None))
-        self.sub_current_speed.setText(QCoreApplication.translate("MainWindow", u"MPH", None))
-        self.sub_current_authority.setText(QCoreApplication.translate("MainWindow", u"MI", None))
+        self.sub_current_speed.setText("")
+        self.sub_current_authority.setText("")
         self.label_27.setText(QCoreApplication.translate("MainWindow", u"Enter Suggested Authority", None))
-        self.label_19.setText(QCoreApplication.translate("MainWindow", u"Current Speed", None))
+        self.label_19.setText(QCoreApplication.translate("MainWindow", u"Current Speed | MPH", None))
         self.label_26.setText(QCoreApplication.translate("MainWindow", u"Enter Suggested Speed", None))
-        self.label_20.setText(QCoreApplication.translate("MainWindow", u"Current Authority", None))
+        self.label_20.setText(QCoreApplication.translate("MainWindow", u"Current Authority | Yd", None))
         self.sub_confirm_override_button.setText(QCoreApplication.translate("MainWindow", u"Confirm", None))
         self.sub_return_button3.setText(QCoreApplication.translate("MainWindow", u"<- Back", None))
         self.label_23.setText(QCoreApplication.translate("MainWindow", u"Maintenance", None))
@@ -1063,5 +1063,3 @@ class Ui_MainWindow(object):
         self.sub_activate_maintenance_button.setText(QCoreApplication.translate("MainWindow", u"Start Maintenance", None))
         self.sub_end_maintenance_button.setText(QCoreApplication.translate("MainWindow", u"End Maintenance", None))
     # retranslateUi
-
-
