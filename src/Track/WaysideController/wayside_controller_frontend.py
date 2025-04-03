@@ -138,9 +138,8 @@ class WaysideControllerFrontend(QMainWindow):
                 active_controller.commanded_speeds,
                 active_controller.commanded_authorities]
         
-        for col in range(table.columnCount()): # Each Column in the table is one of the lists in the matrix above
-            row = 0
-            for value in data[col]: 
+        for col in range(table.columnCount()): # loop through each column except for commanded speed and authority
+            for row, value in enumerate(data[col]): 
                 if value != None: # Skip items that don't need to be written
                     item = QTableWidgetItem() # Create an item to go in the table
                     unit = " yards" if col % 2 == 0 else " mph" # Figure out what the unit should be depending on the position in the table
@@ -150,7 +149,7 @@ class WaysideControllerFrontend(QMainWindow):
                         text = "Occupied" if value else "Unoccupied"
                     item.setText(text) # set the items text attribute
                     table.setItem(row, col, item) # put the item in the table
-                row += 1
+
     
     def populate_lists(self):
         """
@@ -500,8 +499,8 @@ class WaysideControllerTestbench(QMainWindow):
         
         # Reset the values set to the wayside
         active_controller.block_occupancies =     [False] * len(active_controller.block_occupancies)
-        active_controller.suggested_speeds =      [0] * len(active_controller.suggested_speeds)
-        active_controller.suggested_authorities = [0] * len(active_controller.suggested_authorities)
+        active_controller.suggested_speeds =      [None] * len(active_controller.suggested_speeds)
+        active_controller.suggested_authorities = [None] * len(active_controller.suggested_authorities)
 
         # Reset UI elements
         self.ui.block_occupancy_combo_box.setCurrentIndex(-1)
