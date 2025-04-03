@@ -16,6 +16,7 @@ class WaysideControllerCollection(QObject):
     A class that contains several wayside controllers and handles interfacing with the other modules such as the Track Model and The CTC.
     The front end that will display information about the currently selected wayside controller is also contained in this class.
     """
+
     def __init__(self, track_model=None, line_name="Green", auto_import_programs=True):
         """
         :param track_data: A class that contains the unchanging data imported from the track builder
@@ -26,6 +27,9 @@ class WaysideControllerCollection(QObject):
                 raise KeyError
             self.track_model = track_model
             self.LINE_NAME = track_model.name
+            self.timer = QTimer()
+            self.timer.setInterval(100)
+            self.timer.timeout.connect(self.update_track_model)
         else:
             if line_name not in init_track_data.lines:
                 raise KeyError
@@ -127,6 +131,26 @@ class WaysideControllerCollection(QObject):
             start_index = end_index + 1  # Move start index to next range
         return ranges
 
+    @pyqtSignal()
+    def update_track_model(self):
+        """
+        Sends the outputs of each controller's plc program upon the collection's timer timing outs
+        """
+
+        switch_states = []
+        light_states = []
+        crossing_states = []
+
+        # append each controller's outputs
+        for controller in self.collection.controllers:
+            switch_states = switch_states + controller.switch_positions
+            light_states = light_states + controller.light_signals
+            crossing_states = crossing_states + controller.crossing_signals
+
+        # send the outputs along with the sorted block struct so that they can interpret the values
+        self.track_model.update_from_plc_outputs(self.blocks, switch_states, light_states, crossing_states)
+
+
     @pyqtSlot(str, bool)
     def handle_switch_maintenance(block_id, position):
         """
@@ -145,14 +169,14 @@ class WaysideControllerCollection(QObject):
         :param current_exit_blocks: A list of vectors per wayside controller indicating the active exit block
         """
 
-
-       
     @pyqtSlot()
     def handle_dispatch():
         """
         Called when the ctc dispatches a train. Verifies that it is safe to dispatch the train
         """
-    
+        # check if it is safe to dispatch the train
+        # call track model's method for creating a new train
+
     @pyqtSlot(int, bool)
     def handle_block_maintenance(block_number, state):
         """
