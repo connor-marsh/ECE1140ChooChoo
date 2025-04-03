@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>619</width>
-    <height>762</height>
+    <width>600</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,10 +20,10 @@
    <widget class="QGroupBox" name="group_block_data">
     <property name="geometry">
      <rect>
-      <x>310</x>
-      <y>70</y>
-      <width>275</width>
-      <height>330</height>
+      <x>10</x>
+      <y>490</y>
+      <width>200</width>
+      <height>210</height>
      </rect>
     </property>
     <property name="title">
@@ -59,7 +59,7 @@
       <rect>
        <x>140</x>
        <y>30</y>
-       <width>120</width>
+       <width>50</width>
        <height>20</height>
       </rect>
      </property>
@@ -67,7 +67,7 @@
       <enum>QFrame::Shape::Box</enum>
      </property>
      <property name="text">
-      <string>A3</string>
+      <string>Z150</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -86,7 +86,7 @@
       <enum>QFrame::Shape::Box</enum>
      </property>
      <property name="text">
-      <string>Block Length (ft)</string>
+      <string>Block Length (yd)</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -111,30 +111,11 @@
       <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="block_occupied_display">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>120</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>Block Occupied</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
     <widget class="QLabel" name="underground_display">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>150</y>
+       <y>120</y>
        <width>120</width>
        <height>20</height>
       </rect>
@@ -149,7 +130,26 @@
       <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="station_display">
+    <widget class="QLabel" name="elevation_display">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>150</y>
+       <width>120</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::Box</enum>
+     </property>
+     <property name="text">
+      <string>Elevation (yd)</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="sum_elevation_display">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -162,83 +162,7 @@
       <enum>QFrame::Shape::Box</enum>
      </property>
      <property name="text">
-      <string>Station</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="railway_crossing_display">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>210</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>Railway Crossing</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="traffic_signal_display">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>240</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>Traffic Signal</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="elevation_display">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>270</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>Elevation (ft)</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="sum_elevation_display">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>300</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>Sum. Elevation (ft)</string>
+      <string>Sum. Elevation (yd)</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -249,7 +173,7 @@
       <rect>
        <x>140</x>
        <y>60</y>
-       <width>120</width>
+       <width>50</width>
        <height>20</height>
       </rect>
      </property>
@@ -268,7 +192,7 @@
       <rect>
        <x>140</x>
        <y>90</y>
-       <width>120</width>
+       <width>50</width>
        <height>20</height>
       </rect>
      </property>
@@ -282,31 +206,12 @@
       <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="block_occupied_value">
-     <property name="geometry">
-      <rect>
-       <x>140</x>
-       <y>120</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>No</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
     <widget class="QLabel" name="underground_value">
      <property name="geometry">
       <rect>
        <x>140</x>
-       <y>150</y>
-       <width>120</width>
+       <y>120</y>
+       <width>50</width>
        <height>20</height>
       </rect>
      </property>
@@ -315,63 +220,6 @@
      </property>
      <property name="text">
       <string>No</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="station_value">
-     <property name="geometry">
-      <rect>
-       <x>140</x>
-       <y>180</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>None</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="railway_crossing_value">
-     <property name="geometry">
-      <rect>
-       <x>140</x>
-       <y>210</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>None</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="traffic_signal_value">
-     <property name="geometry">
-      <rect>
-       <x>140</x>
-       <y>240</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>None</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -381,8 +229,8 @@
      <property name="geometry">
       <rect>
        <x>140</x>
-       <y>270</y>
-       <width>120</width>
+       <y>150</y>
+       <width>50</width>
        <height>20</height>
       </rect>
      </property>
@@ -400,8 +248,8 @@
      <property name="geometry">
       <rect>
        <x>140</x>
-       <y>300</y>
-       <width>120</width>
+       <y>180</y>
+       <width>50</width>
        <height>20</height>
       </rect>
      </property>
@@ -421,7 +269,7 @@
      <rect>
       <x>15</x>
       <y>25</y>
-      <width>275</width>
+      <width>281</width>
       <height>32</height>
      </rect>
     </property>
@@ -443,7 +291,7 @@
       <x>310</x>
       <y>25</y>
       <width>275</width>
-      <height>32</height>
+      <height>60</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -453,493 +301,35 @@
      <string>Clock:</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="block_section_selected">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>60</y>
-      <width>71</width>
-      <height>32</height>
-     </rect>
-    </property>
-    <item>
-     <property name="text">
-      <string>A</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>B</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>C</string>
-     </property>
-    </item>
-   </widget>
-   <widget class="QGroupBox" name="group_train_data">
-    <property name="geometry">
-     <rect>
-      <x>310</x>
-      <y>400</y>
-      <width>275</width>
-      <height>111</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Train Data:</string>
-    </property>
-    <widget class="QTableWidget" name="train_data_table">
-     <property name="geometry">
-      <rect>
-       <x>-5</x>
-       <y>21</y>
-       <width>281</width>
-       <height>91</height>
-      </rect>
-     </property>
-     <property name="editTriggers">
-      <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
-     </property>
-     <row>
-      <property name="text">
-       <string>Train 1</string>
-      </property>
-     </row>
-     <column>
-      <property name="text">
-       <string>Current Location</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Passenger Count</string>
-      </property>
-     </column>
-     <item row="0" column="0">
-      <property name="text">
-       <string>None</string>
-      </property>
-     </item>
-     <item row="0" column="1">
-      <property name="text">
-       <string>0</string>
-      </property>
-     </item>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="group_station_data">
-    <property name="geometry">
-     <rect>
-      <x>310</x>
-      <y>510</y>
-      <width>275</width>
-      <height>181</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Station Data</string>
-    </property>
-    <widget class="QLabel" name="station_selected_display">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>Station Selected</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="boarding_side_display">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>60</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>Boarding Side</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="ticket_sales_display">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>90</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>Tickets Sales</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="boarding_count_display">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>120</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>Boarding Count</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="departing_count_display">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>150</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>Departing Count</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="select_station">
-     <property name="geometry">
-      <rect>
-       <x>130</x>
-       <y>20</y>
-       <width>141</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <item>
-      <property name="text">
-       <string>Station B</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Station C</string>
-      </property>
-     </item>
-    </widget>
-    <widget class="QLabel" name="boarding_side_value">
-     <property name="geometry">
-      <rect>
-       <x>140</x>
-       <y>60</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>Left</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="ticket_sales_value">
-     <property name="geometry">
-      <rect>
-       <x>140</x>
-       <y>90</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>20</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="boarding_count_value">
-     <property name="geometry">
-      <rect>
-       <x>140</x>
-       <y>120</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>20</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="departing_count_value">
-     <property name="geometry">
-      <rect>
-       <x>140</x>
-       <y>150</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::Shape::Box</enum>
-     </property>
-     <property name="text">
-      <string>None</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignmentFlag::AlignCenter</set>
-     </property>
-    </widget>
-   </widget>
    <widget class="QGroupBox" name="track_layout_map">
     <property name="geometry">
      <rect>
       <x>15</x>
       <y>90</y>
-      <width>275</width>
+      <width>570</width>
       <height>400</height>
      </rect>
     </property>
     <property name="title">
      <string>Track Layout Map</string>
     </property>
-    <widget class="QGraphicsView" name="trac_map_display">
+    <widget class="QGraphicsView" name="track_map_display">
      <property name="geometry">
       <rect>
        <x>0</x>
        <y>18</y>
-       <width>280</width>
-       <height>382</height>
+       <width>570</width>
+       <height>400</height>
       </rect>
      </property>
-    </widget>
-    <widget class="QTableWidget" name="track_table_display">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>20</y>
-       <width>281</width>
-       <height>381</height>
-      </rect>
-     </property>
-     <property name="editTriggers">
-      <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
-     </property>
-     <row>
-      <property name="text">
-       <string>A1</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>A2</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>A3</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>A4</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>A5</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>B6</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>B7</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>B8</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>B9</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>B10</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>C11</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>C12</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>C13</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>C14</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>C15</string>
-      </property>
-     </row>
-     <column>
-      <property name="text">
-       <string>Occupied</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Infrastructure</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Failures</string>
-      </property>
-     </column>
-     <item row="0" column="0">
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
-     <item row="1" column="0">
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
-     <item row="2" column="0">
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
-     <item row="3" column="0">
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
-     <item row="4" column="0">
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
-     <item row="5" column="0">
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
-     <item row="6" column="0">
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
-     <item row="7" column="0">
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
-     <item row="8" column="0">
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
-     <item row="9" column="0">
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
-     <item row="10" column="0">
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
-     <item row="11" column="0">
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
-     <item row="12" column="0">
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
-     <item row="13" column="0">
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
-     <item row="14" column="0">
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
     </widget>
    </widget>
    <widget class="QGroupBox" name="group_failure_modes">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>620</y>
-      <width>275</width>
+      <x>370</x>
+      <y>490</y>
+      <width>210</width>
       <height>145</height>
      </rect>
     </property>
@@ -951,7 +341,7 @@
       <rect>
        <x>10</x>
        <y>120</y>
-       <width>150</width>
+       <width>130</width>
        <height>20</height>
       </rect>
      </property>
@@ -970,7 +360,7 @@
       <rect>
        <x>10</x>
        <y>60</y>
-       <width>150</width>
+       <width>130</width>
        <height>20</height>
       </rect>
      </property>
@@ -989,7 +379,7 @@
       <rect>
        <x>10</x>
        <y>90</y>
-       <width>150</width>
+       <width>130</width>
        <height>20</height>
       </rect>
      </property>
@@ -1006,40 +396,40 @@
     <widget class="QPushButton" name="track_circuit_failure_toggle">
      <property name="geometry">
       <rect>
-       <x>170</x>
+       <x>150</x>
        <y>55</y>
-       <width>100</width>
+       <width>45</width>
        <height>30</height>
       </rect>
      </property>
      <property name="text">
-      <string>Toggle</string>
+      <string>Edit</string>
      </property>
     </widget>
     <widget class="QPushButton" name="broken_rail_failure_toggle">
      <property name="geometry">
       <rect>
-       <x>170</x>
+       <x>150</x>
        <y>85</y>
-       <width>100</width>
+       <width>45</width>
        <height>30</height>
       </rect>
      </property>
      <property name="text">
-      <string>Toggle</string>
+      <string>Edit</string>
      </property>
     </widget>
     <widget class="QPushButton" name="power_failure_toggle">
      <property name="geometry">
       <rect>
-       <x>170</x>
+       <x>150</x>
        <y>115</y>
-       <width>100</width>
+       <width>45</width>
        <height>30</height>
       </rect>
      </property>
      <property name="text">
-      <string>Toggle</string>
+      <string>Edit</string>
      </property>
     </widget>
     <widget class="QPushButton" name="reset_errors_button">
@@ -1047,7 +437,7 @@
       <rect>
        <x>9</x>
        <y>25</y>
-       <width>261</width>
+       <width>185</width>
        <height>30</height>
       </rect>
      </property>
@@ -1056,13 +446,892 @@
      </property>
     </widget>
    </widget>
-   <widget class="QGroupBox" name="group_map_key">
+   <widget class="QLabel" name="track_heater_value">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>740</y>
+      <width>100</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string>Disabled</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="track_heater_display">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>740</y>
+      <width>230</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string>Track Heaters</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="track_temperature_value">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>710</y>
+      <width>100</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string>4</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="track_temperature_display">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>710</y>
+      <width>230</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::Box</enum>
+    </property>
+    <property name="text">
+     <string>Track Temperature (°F)</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="track_line_selected">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>60</y>
+      <width>121</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Green Line</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Red Line</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QComboBox" name="block_number_selected">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>484</y>
-      <width>275</width>
-      <height>131</height>
+      <y>60</y>
+      <width>171</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>1</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>2</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>3</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>4</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>5</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>6</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>7</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>8</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>9</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>10</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>11</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>12</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>13</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>14</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>15</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>16</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>17</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>18</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>19</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>20</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>21</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>22</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>23</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>24</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>25</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>26</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>27</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>28</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>29</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>30</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>31</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>32</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>33</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>34</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>35</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>36</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>37</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>38</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>39</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>40</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>41</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>42</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>43</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>44</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>45</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>46</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>47</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>48</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>49</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>50</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>51</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>52</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>53</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>54</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>55</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>56</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>57</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>58</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>59</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>60</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>61</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>62</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>63</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>64</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>65</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>66</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>67</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>68</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>69</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>70</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>71</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>72</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>73</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>74</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>75</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>76</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>77</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>78</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>79</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>80</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>81</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>82</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>83</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>84</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>85</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>86</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>87</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>88</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>89</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>90</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>91</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>92</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>93</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>94</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>95</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>96</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>97</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>98</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>99</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>100</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>101</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>102</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>103</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>104</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>105</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>106</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>107</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>108</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>109</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>110</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>111</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>112</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>113</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>114</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>115</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>116</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>117</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>118</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>119</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>120</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>121</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>122</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>123</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>124</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>125</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>126</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>127</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>128</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>129</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>130</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>131</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>132</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>133</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>134</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>135</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>136</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>137</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>138</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>139</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>140</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>141</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>142</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>143</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>144</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>145</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>146</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>147</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>148</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>149</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>150</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLCDNumber" name="clock_display_value">
+    <property name="geometry">
+     <rect>
+      <x>360</x>
+      <y>40</y>
+      <width>91</width>
+      <height>30</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="clock_am_display">
+    <property name="geometry">
+     <rect>
+      <x>550</x>
+      <y>45</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>PM</string>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="group_map_key">
+    <property name="geometry">
+     <rect>
+      <x>220</x>
+      <y>490</y>
+      <width>140</width>
+      <height>210</height>
      </rect>
     </property>
     <property name="title">
@@ -1086,7 +1355,7 @@
       <enum>QFrame::Shape::Box</enum>
      </property>
      <property name="text">
-      <string>Occupied</string>
+      <string>Train</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1191,8 +1460,8 @@
     <widget class="QLabel" name="key_maintenance_display">
      <property name="geometry">
       <rect>
-       <x>140</x>
-       <y>30</y>
+       <x>10</x>
+       <y>130</y>
        <width>101</width>
        <height>16</height>
       </rect>
@@ -1215,8 +1484,8 @@
     <widget class="QLabel" name="key_track_circuit_failure_display">
      <property name="geometry">
       <rect>
-       <x>140</x>
-       <y>50</y>
+       <x>10</x>
+       <y>150</y>
        <width>101</width>
        <height>16</height>
       </rect>
@@ -1239,8 +1508,8 @@
     <widget class="QLabel" name="key_power_failure_display">
      <property name="geometry">
       <rect>
-       <x>140</x>
-       <y>90</y>
+       <x>10</x>
+       <y>190</y>
        <width>101</width>
        <height>16</height>
       </rect>
@@ -1263,8 +1532,8 @@
     <widget class="QLabel" name="key_broken_rail_failure_display">
      <property name="geometry">
       <rect>
-       <x>140</x>
-       <y>70</y>
+       <x>10</x>
+       <y>170</y>
        <width>101</width>
        <height>16</height>
       </rect>
@@ -1284,10 +1553,10 @@
       <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="occupied_icon">
+    <widget class="QLabel" name="train_icon">
      <property name="geometry">
       <rect>
-       <x>115</x>
+       <x>117</x>
        <y>30</y>
        <width>16</width>
        <height>16</height>
@@ -1300,7 +1569,7 @@
     <widget class="QLabel" name="station_icon">
      <property name="geometry">
       <rect>
-       <x>115</x>
+       <x>117</x>
        <y>50</y>
        <width>16</width>
        <height>16</height>
@@ -1313,7 +1582,7 @@
     <widget class="QLabel" name="switch_icon">
      <property name="geometry">
       <rect>
-       <x>115</x>
+       <x>117</x>
        <y>70</y>
        <width>16</width>
        <height>16</height>
@@ -1326,7 +1595,7 @@
     <widget class="QLabel" name="traffic_signal_icon">
      <property name="geometry">
       <rect>
-       <x>115</x>
+       <x>117</x>
        <y>90</y>
        <width>16</width>
        <height>16</height>
@@ -1339,7 +1608,7 @@
     <widget class="QLabel" name="railway_crossing_icon">
      <property name="geometry">
       <rect>
-       <x>115</x>
+       <x>117</x>
        <y>110</y>
        <width>16</width>
        <height>16</height>
@@ -1352,8 +1621,8 @@
     <widget class="QLabel" name="maintenance_icon">
      <property name="geometry">
       <rect>
-       <x>245</x>
-       <y>30</y>
+       <x>117</x>
+       <y>130</y>
        <width>16</width>
        <height>16</height>
       </rect>
@@ -1365,8 +1634,8 @@
     <widget class="QLabel" name="track_circuit_failure_icon">
      <property name="geometry">
       <rect>
-       <x>245</x>
-       <y>50</y>
+       <x>117</x>
+       <y>150</y>
        <width>16</width>
        <height>16</height>
       </rect>
@@ -1378,8 +1647,8 @@
     <widget class="QLabel" name="broken_rail_failure_icon">
      <property name="geometry">
       <rect>
-       <x>245</x>
-       <y>70</y>
+       <x>117</x>
+       <y>170</y>
        <width>16</width>
        <height>16</height>
       </rect>
@@ -1391,8 +1660,8 @@
     <widget class="QLabel" name="power_failure_icon">
      <property name="geometry">
       <rect>
-       <x>245</x>
-       <y>90</y>
+       <x>117</x>
+       <y>190</y>
        <width>16</width>
        <height>16</height>
       </rect>
@@ -1402,203 +1671,17 @@
      </property>
     </widget>
    </widget>
-   <widget class="QLabel" name="track_heater_value">
+   <widget class="QGroupBox" name="group_infrasturcture">
     <property name="geometry">
      <rect>
-      <x>480</x>
-      <y>740</y>
-      <width>90</width>
-      <height>20</height>
+      <x>370</x>
+      <y>640</y>
+      <width>210</width>
+      <height>121</height>
      </rect>
     </property>
-    <property name="frameShape">
-     <enum>QFrame::Shape::Box</enum>
-    </property>
-    <property name="text">
-     <string>Enabled</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignmentFlag::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="track_heater_display">
-    <property name="geometry">
-     <rect>
-      <x>320</x>
-      <y>740</y>
-      <width>150</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::Shape::Box</enum>
-    </property>
-    <property name="text">
-     <string>Track Heaters</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignmentFlag::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="track_temperature_value">
-    <property name="geometry">
-     <rect>
-      <x>480</x>
-      <y>710</y>
-      <width>90</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::Shape::Box</enum>
-    </property>
-    <property name="text">
-     <string>4</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignmentFlag::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="track_temperature_display">
-    <property name="geometry">
-     <rect>
-      <x>320</x>
-      <y>710</y>
-      <width>150</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::Shape::Box</enum>
-    </property>
-    <property name="text">
-     <string>Track Temperature (°F)</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignmentFlag::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="track_line_selected">
-    <property name="geometry">
-     <rect>
-      <x>179</x>
-      <y>60</y>
-      <width>111</width>
-      <height>32</height>
-     </rect>
-    </property>
-    <item>
-     <property name="text">
-      <string>Blue Line</string>
-     </property>
-    </item>
-   </widget>
-   <widget class="QComboBox" name="block_number_selected">
-    <property name="geometry">
-     <rect>
-      <x>90</x>
-      <y>60</y>
-      <width>71</width>
-      <height>32</height>
-     </rect>
-    </property>
-    <item>
-     <property name="text">
-      <string>1</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>2</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>3</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>4</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>5</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>6</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>7</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>8</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>9</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>10</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>11</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>12</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>13</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>14</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>15</string>
-     </property>
-    </item>
-   </widget>
-   <widget class="QLCDNumber" name="clock_display_value">
-    <property name="geometry">
-     <rect>
-      <x>360</x>
-      <y>30</y>
-      <width>91</width>
-      <height>23</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="clock_am_display">
-    <property name="geometry">
-     <rect>
-      <x>560</x>
-      <y>30</y>
-      <width>21</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>PM</string>
+    <property name="title">
+     <string>Infrastructure</string>
     </property>
    </widget>
   </widget>

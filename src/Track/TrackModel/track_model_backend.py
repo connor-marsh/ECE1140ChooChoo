@@ -106,6 +106,7 @@ class Train:
                 nextBlock = switch.positions[1 if switchState else 0].split("-")[1]
                 if nextBlock == "Yard":
                     self.track_model.remove_train(self.train_id)
+                    self.dynamic_track.occupancies[self.current_block.id]=Occupancy.UNOCCUPIED
                 else:
                     self.current_block = self.track_data.blocks[int(nextBlock)-1]
             elif self.current_block.switch_exit and not self.previous_switch_entrance:
@@ -190,7 +191,7 @@ class TrackModel(QtWidgets.QMainWindow):
         self.train_collection = TrainCollection()
         self.wayside_integrated = wayside_integrated
         if wayside_integrated:
-            self.wayside_collection = WaysideControllerCollection(self)
+            self.wayside_collection = WaysideControllerCollection(self, auto_import_programs=False)
             self.wayside_collection.frontend.show()
 
         # Populate dynamic track
