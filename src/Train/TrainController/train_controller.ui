@@ -39,7 +39,7 @@
          <item row="1" column="1">
           <widget class="QLineEdit" name="ki_line_edit">
            <property name="placeholderText">
-            <string>Default = 1.0</string>
+            <string>Default = 75</string>
            </property>
           </widget>
          </item>
@@ -73,7 +73,7 @@
          <item row="0" column="1">
           <widget class="QLineEdit" name="kp_line_edit">
            <property name="placeholderText">
-            <string>Default = 1.0</string>
+            <string>Default = 20000</string>
            </property>
           </widget>
          </item>
@@ -894,7 +894,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Authority (ft)</string>
+            <string>Authority (yards)</string>
            </property>
           </widget>
          </item>

@@ -28,6 +28,7 @@ class TrainController(QMainWindow):
 
         # Set up defaults
         self.actual_speed = 0.0
+        self.speed_limit = 0.0
         self.wayside_speed = 0.0
         self.wayside_authority = 0.0
         self.commanded_power = 0.0
@@ -66,6 +67,10 @@ class TrainController(QMainWindow):
         self.Kp = 20000.0
         self.Ki = 75.0
 
+        # For Dwelling
+        self.stopping = False
+        self.dwell = False
+
         self.global_clock = global_clock.clock
 
         if not train_integrated:
@@ -76,6 +81,7 @@ class TrainController(QMainWindow):
     
     def update(self):
         # Check if auto or manual mode and calculate power
+        self.speed_limit - self.current_block.speed_limit
         if self.manual_mode:
             self.target_speed = self.driver_target_speed
         else:
@@ -198,7 +204,32 @@ class TrainController(QMainWindow):
             self.right_doors = False
 
         # check for stopping at stations/do announcements
-        # TODO
+        if (self.wayside_authority < 50):
+            self.stopping = True
+        
+        if self.stopping and self.current_block.station:
+            QTimer.singleShot(int(500/self.global_clock.time_multiplier), self.start_dwell)
+            QTimer.singleShot(int(30500/self.global_clock.time_multiplier), self.end_dwell)
+        if self.dwell:
+            self.service_brake = True
+
+    def start_dwell(self):
+        self.dwell = True
+        if self.actual_speed == 0.0:
+            if not self.manual_mode:
+                if self.track_data.stations[self.current_block].doors == 0:
+                    self.left_doors = True
+                elif self.track_data.stations[self.current_block].doors == 1:
+                    self.right_doors = True
+                else:
+                    self.left_doors = True
+                    self.right_doors = True
+
+    def end_dwell(self):
+        self.left_doors = False
+        self.right_doors = False
+        self.dwell = False
+        self.stopping = False
 
     def process_beacon_data(self):
         self.previous_switch_entrance = True
