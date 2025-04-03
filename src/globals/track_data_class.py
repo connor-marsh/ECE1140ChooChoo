@@ -101,7 +101,7 @@ class TrackData():
                 id=block_id,
                 switch=pd.notna(dictionary["Switch"][row]),
                 station=pd.notna(dictionary["Station"][row]),
-                beacon=dictionary["Transponder"][row] == 1,
+                beacon=dictionary["Beacon"][row] == 1,
                 light=dictionary["Light"][row] == 1,
                 crossing=dictionary["Crossing"][row] == 1,
                 underground=dictionary["Underground"][row] == 1,
@@ -118,7 +118,7 @@ class TrackData():
             switch_obj = self.parse_switch(dictionary["Switch"][row], territory)
             light_obj = Light(territory=territory) if dictionary["Light"][row] == 1 else None
             crossing_obj = Crossing(territory=territory) if dictionary["Crossing"][row] else None
-            beacon_obj = Beacon() if dictionary["Transponder"][row] else None
+            beacon_obj = Beacon(data=dictionary["Beacon Data"][row]) if dictionary["Beacon"][row] else None
             station_obj = self.parse_station(dictionary["Station"][row], dictionary["Station Side"][row])
             
             if switch_obj:

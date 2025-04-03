@@ -4,16 +4,18 @@ Train Controller Testbench
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt5.QtCore import QTimer, QTime
-from train_controller_testbench_ui import Ui_TestBenchWindow as TrainControllerTestbenchUI
+from Train.TrainController.train_controller_testbench_ui import Ui_TestBenchWindow as TrainControllerTestbenchUI
 
 class TrainControllerTestbench(QMainWindow):
-    def __init__(self, collection):
+    def __init__(self, collection=None, hardware_train=None):
         super().__init__()
         self.ui = TrainControllerTestbenchUI()
         self.ui.setupUi(self)
 
         self.collection = collection
         self.current_train = None
+        if hardware_train:
+            self.current_train = hardware_train
 
         # Set up timer for callback/update function
         self.timer = QTimer(self)
@@ -24,7 +26,8 @@ class TrainControllerTestbench(QMainWindow):
         self.ui.tb_input_apply_button.clicked.connect(self.update_train_controller)
 
     def update_train_controller(self):
-        self.current_train = self.collection.train_controller_ui.current_train
+        if self.collection:
+            self.current_train = self.collection.train_controller_ui.current_train
         if self.current_train:
             data = {}
             data["actual_speed"] = self.to_float(self.ui.tb_actual_speed_line_edit.text())
@@ -42,7 +45,8 @@ class TrainControllerTestbench(QMainWindow):
             self.current_train.set_input_data(testbench_data=data)
 
     def update(self):
-        self.current_train = self.collection.train_controller_ui.current_train
+        if self.collection:
+            self.current_train = self.collection.train_controller_ui.current_train
         if (self.current_train):
             self.display_air_conditioning()
             self.display_heating()
@@ -110,14 +114,14 @@ class TrainControllerTestbench(QMainWindow):
             self.ui.tb_heating_signal_off_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
 
     def display_doors(self):
-        if (self.current_train.door_right):
+        if (self.current_train.right_doors):
             self.ui.tb_right_door_open_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
             self.ui.tb_right_door_close_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
         else:
             self.ui.tb_right_door_open_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
             self.ui.tb_right_door_close_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
 
-        if (self.current_train.door_left):
+        if (self.current_train.left_doors):
             self.ui.tb_left_door_open_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
             self.ui.tb_left_door_close_light.setStyleSheet("background-color: transparent; font-weight: bold; font-size: 16px;")
         else:

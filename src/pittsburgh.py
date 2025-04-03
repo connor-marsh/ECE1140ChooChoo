@@ -13,13 +13,14 @@ from Train.TrainModel.train_model_frontend import TrainModelFrontEnd
 from Train.TrainModel.train_model_testbench import TrainModelTestbench
 from Train.TrainController.train_controller_frontend import TrainControllerFrontend
 from Train.TrainController.train_controller_testbench import TrainControllerTestbench
+from Train.TrainController.train_controller_hw_backend import TrainControllerHW
 from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
 from Track.TrackModel.track_model_frontend import TrackModelFrontEnd
 
 
 if __name__=="__main__":
 
-    running_module = "TrackWayside" # all, CTC, WaysideController, TrackModel, TrackWayside, Train, Train Model, Train Controller
+    running_module = "TrackWayside" # all, CTC, WaysideController, TrackModel, Train, TrainModel, TrainController, TrainControllerHW
     
     # Create App
     app = QApplication(sys.argv)
@@ -70,6 +71,10 @@ if __name__=="__main__":
         train_controller_frontend.current_train = collection.train_list[0]
         train_controller_frontend.show()
 
-        train_controller_testbench = TrainControllerTestbench(collection)
+        train_controller_testbench = TrainControllerTestbench(collection=collection)
+        train_controller_testbench.show()
+    elif running_module == "TrainControllerHW":
+        train_controller_hw = TrainControllerHW(train_integrated=False)
+        train_controller_testbench = TrainControllerTestbench(hardware_train=train_controller_hw)
         train_controller_testbench.show()
     sys.exit(app.exec_())
