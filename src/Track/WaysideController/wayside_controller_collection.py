@@ -81,39 +81,6 @@ class WaysideControllerCollection(QObject):
         
 
         self.connect_signals()
-
-    def get_plc_outputs(self, controller_index : int) -> tuple[list[bool], list[bool], list[bool]]:
-        """
-        This function returns a tuple containing 3 lists of booleans containing the switch postions, light signals, crossing signals
-
-        :param controller_index: The index to the controller 
-
-        :return plc_outputs: tuple containing 3 lists of booleans containing each of the corresponding outputs of the select controller's plc
-        """
-        if controller_index < len(self.controllers) and controller_index >= 0: # check to see that the controller exists
-            controller = self.controllers[controller_index]
-            switches = controller.switch_positions
-            lights = controller.light_signals
-            crossings = controller.crossing_signals
-            return (switches,lights,crossings) # TRIPLE REDUNDANCY?
-        else:
-            raise IndexError(f"The input index to the Wayside Controller is not in range")
-
-    def get_wayside_commanded(self, controller_index : int) -> tuple[list[float], list[float]]:
-        """
-        This function returns a tuple containing 2 lists of floats, Commanded Authority and Commanded Speed
-
-        :param controller_index: The index to the controller 
-
-        :return commanded_values: Tuple containing 2 lists of booleans for each of the corresponding outputs of the select controller's plc
-        """
-        if controller_index < len(self.controllers) and controller_index >= 0: # check to see that the controller exists
-            controller = self.controllers[controller_index]
-            authorities = controller.commanded_authorities
-            speeds = controller.commanded_speeds
-            return (authorities, speeds) # TRIPLE REDUNDANCY?
-        else:
-            raise IndexError(f"The input index to the Wayside Controller is not in range")
     
     def get_ranges(self, counts): # THIS FUNCTION COULD BE MOVED TO THE TRACK DATA CLASS BUT THIS KINDA FITS MORE WITH WHAT I HAVE TO DO (ONLY USED FOR INIT)
         """
