@@ -19,7 +19,7 @@ from Track.TrackModel.track_model_frontend import TrackModelFrontEnd
 
 if __name__=="__main__":
 
-    running_module = "Train" # all, CTC, WaysideController, TrackModel, Train, Train Model, Train Controller
+    running_module = "WaysideController" # all, CTC, WaysideController, TrackModel, Train, Train Model, Train Controller
     
     # Create App
     app = QApplication(sys.argv)
@@ -36,7 +36,7 @@ if __name__=="__main__":
     elif running_module == "WaysideController":
         try:
             line_name = "Green"
-            collection = WaysideControllerCollection(line_name=line_name)
+            collection = WaysideControllerCollection(track_model=None,line_name=line_name,auto_import_programs=True)
             collection.frontend.show()
         except KeyError as e:
             print(f"\n❌ {e}\nPlease enter a valid line name. \'{line_name}\' is not in the list of imported lines.")
