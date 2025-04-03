@@ -28,6 +28,7 @@ if __name__=="__main__":
     # Setup global objects
     global_clock.init()
     track_data.init()
+    signals.init()
     # Instatiate Modules
     if running_module == "all":
         pass
@@ -35,6 +36,7 @@ if __name__=="__main__":
         pass
     elif running_module == "TrackWayside":
         track_model = TrackModelFrontEnd()
+        track_model.show()
         # track_model.upload_track_layout_data("GreenLine_Layout.xlsx")
         # track_model.change_temperature(35)
     elif running_module == "WaysideController":
