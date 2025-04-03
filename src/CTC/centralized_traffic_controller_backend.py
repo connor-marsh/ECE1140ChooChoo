@@ -80,7 +80,7 @@ class CtcBackEnd(QObject):
         self.dispatch_queue_handler() #Dispatch queue handler  
 
         if self.active_line.blocks[62].occupancy:
-            if self.sent62 == False # not sent
+            if self.sent62 == False: # not sent
                 self.suggested_speed = {"K63" : 70}
                 self.suggested_authority = {"K63" : 16134}
                 self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside
