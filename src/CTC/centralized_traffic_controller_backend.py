@@ -36,6 +36,8 @@ class CtcBackEnd(QObject):
 
     def __init__(self): 
         super().__init__()
+        self.sent62 = False # These are temporary fixes that allow the ctc to only send authorities/speeds one time per occupancy update
+        self.sent9 = False
         self.routes= {}
 
         #Controls active track data
@@ -75,15 +77,25 @@ class CtcBackEnd(QObject):
             self.elapsed_mins += 1
             self.last_minute = self.wall_clock.minute
         #print("Elapsed Time", self.elapsed_mins)
-        self.dispatch_queue_handler() #Dispatch queue handler    
+        self.dispatch_queue_handler() #Dispatch queue handler  
+
         if self.active_line.blocks[62].occupancy:
-            self.suggested_speed = {"K63" : 70}
-            self.suggested_authority = {"K63" : 16134}
-            self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside  
+            if self.sent62 == False # not sent
+                self.suggested_speed = {"K63" : 70}
+                self.suggested_authority = {"K63" : 16134}
+                self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside
+                self.sent62 = True  
+        else:
+            self.sent62 = False
         if self.active_line.blocks[9].occupancy:
-            self.suggested_speed = {"C9" : 45}
-            self.suggested_authority = {"C9" : 5959}
-            self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside  
+            if self.sent9 == False:
+                self.suggested_speed = {"C9" : 45}
+                self.suggested_authority = {"C9" : 5959}
+                self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside 
+                self.sent9 = True
+        else:
+            self.sent9 = False
+
             
         
     def get_map_data(self):
@@ -200,7 +212,7 @@ class CtcBackEnd(QObject):
         print("TRAIN DISPATCHED")
 
     def send_block_maintenance(self, block_id, maintenance_val):
-        signals.communication.ctc_block_maintenance.emit(block_id, maintenance_val) #int, bool 
+        signals.communication.ctc_block_maintenance.emit(self.active_line.blocks[block_id].id, maintenance_val) #int, bool 
         print("Set Block ", block_id, " Maintenance value to ", maintenance_val)
         print("Stored Block value: ", self.active_line.blocks[block_id].id, " ", self.active_line.blocks[block_id].maintenance)
     def send_suggestions(self, suggested_speeds, suggested_authorities): 
