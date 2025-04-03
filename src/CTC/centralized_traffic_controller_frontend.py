@@ -219,6 +219,7 @@ class CtcFrontEnd(QMainWindow):
 
                 self.ctc_ui.main_map_table.setItem(row_index, 4, switch_item)
             '''
+            '''
             if block.has_light:
                 # Update Traffic Light
                 light_item = QTableWidgetItem()
@@ -232,7 +233,7 @@ class CtcFrontEnd(QMainWindow):
                 crossing_item.setBackground(QColor("green") if crossings[crossing_index] else QColor("orange"))
                 self.ctc_ui.main_map_table.setItem(row_index, 6, crossing_item)
                 crossing_index += 1
-
+            '''
     def update_throughput(self):
         #updates throughput label on UI
         self.ctc_ui.main_throughput_label.setText(str(self.backend.throughput))

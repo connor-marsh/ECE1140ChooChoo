@@ -17,10 +17,10 @@ class Signals(QObject):
     ctc_suggested = pyqtSignal(dict,dict)
 
 
-    wayside_block_occupancies = pyqtSignal(list)
-    wayside_switches = pyqtSignal(list)
-    wayside_lights = pyqtSignal(list)
-    wayside_crossings = pyqtSignal(list)
+    wayside_block_occupancies = pyqtSignal(dict)
+    wayside_switches = pyqtSignal(dict)
+    wayside_lights = pyqtSignal(dict)
+    wayside_crossings = pyqtSignal(dict)
 
     track_tickets = pyqtSignal(int)
 

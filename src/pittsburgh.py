@@ -16,11 +16,13 @@ from Train.TrainController.train_controller_testbench import TrainControllerTest
 from Train.TrainController.train_controller_hw_backend import TrainControllerHW
 from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
 from Track.TrackModel.track_model_frontend import TrackModelFrontEnd
+from CTC.centralized_traffic_controller_frontend import CtcFrontEnd
+from CTC.centralized_traffic_controller_backend import CtcBackEnd
 
 
 if __name__=="__main__":
 
-    running_module = "TrackWayside" # all, CTC, WaysideController, TrackModel, Train, TrainModel, TrainController, TrainControllerHW
+    running_module = "CtcWayside" # all, CTC, WaysideController, TrackModel, Train, TrackWayside TrainModel, TrainController, TrainControllerHW, CtcWayside
     
     # Create App
     app = QApplication(sys.argv)
@@ -33,7 +35,20 @@ if __name__=="__main__":
     if running_module == "all":
         pass
     elif running_module == "CTC":
-        pass
+        ctc_backend = CtcBackEnd()
+        ctc_frontend = CtcFrontEnd(ctc_backend)
+        ctc_frontend.show()
+        
+    elif running_module == "CtcWayside":
+        ctc_backend = CtcBackEnd()
+        ctc_frontend = CtcFrontEnd(ctc_backend)
+        ctc_frontend.show()
+        try:
+            line_name = "Green"
+            collection = WaysideControllerCollection(track_model=None,line_name=line_name,auto_import_programs=True)
+            collection.frontend.show()
+        except KeyError as e:
+            print(f"\n❌ {e}\nPlease enter a valid line name. \'{line_name}\' is not in the list of imported lines.")
     elif running_module == "TrackWayside":
         track_model = TrackModelFrontEnd()
         track_model.show()
