@@ -13,10 +13,8 @@ import time
 from PyQt5.QtWidgets import QMainWindow, QWidget
 from PyQt5.QtCore import QTimer, QTime, QDateTime
 
-current_dir = os.path.dirname(__file__)
-train_dir = os.path.abspath(os.path.join(current_dir, "../TrainController"))
-sys.path.insert(0, train_dir)
-
+from Train.TrainController.train_controller_backend import TrainController
+from Train.TrainController.train_controller_hw_backend import TrainControllerHW
 import globals.global_clock as global_clock
 
 class TrainModel(QMainWindow):
@@ -37,11 +35,13 @@ class TrainModel(QMainWindow):
     FRONTAL_AREA = 9.06       # Frontal Area calculated from train dimensions --> (Width * Height) in m².
     AIR_DENSITY = 1.225       # kg/m³ at sea level.
 
-    def __init__(self, train_integrated=True):
+    def __init__(self, train_integrated=True, hardware_controller=False):
         super().__init__()
         if train_integrated:
-            from Train.TrainController.train_controller_backend import TrainController
-            self.controller = TrainController()
+            if hardware_controller:
+                self.controller = TrainControllerHW()
+            else:
+                self.controller = TrainController()
         else:
             self.controller = None
         self.position = 0.0

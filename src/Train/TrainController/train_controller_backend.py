@@ -1,15 +1,15 @@
 """
-Author: Aragya Goyal
+Author: Aragya Goyal and Connor Marsh
 Date: 03-20-2025
 Description:
 
 """
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
-from PyQt5.QtCore import QTimer, QTime
+from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtCore import QTimer
 import globals.global_clock as global_clock
 
 class TrainController(QMainWindow):
-    def __init__(self, train_integrated=False):
+    def __init__(self, train_integrated=True):
         super().__init__()
 
         # Set up defaults
@@ -18,7 +18,6 @@ class TrainController(QMainWindow):
         self.wayside_speed = 0.0
         self.wayside_authority = 0.0
         self.commanded_power = 0.0
-        self.passenger_emergency_stop = False
         self.beacon_data = ""
         self.actual_temperature = 77.0 # Farenheight
         self.desired_temperature = 77.0 # Farenheight
@@ -29,8 +28,8 @@ class TrainController(QMainWindow):
         self.heating_signal = False
         self.headlights = False
         self.interior_lights = False
-        self.door_right = False # Closed default state
-        self.door_left = False # Close default state
+        self.right_doors = False # Closed default state
+        self.left_doors = False # Close default state
         self.emergency_brake = False
         self.driver_target_speed = 0.0
         self.service_brake = False
@@ -55,30 +54,38 @@ class TrainController(QMainWindow):
 
 
     def update(self):
-        # Check for failures
-        if (self.signal_failure or self.brake_failure or self.engine_failure):
-            self.emergency_brake = True
-        
+        self.update_power()
+        self.update_safety()
+        self.update_auxiliary()
+
+    def update_power(self):
         # Check if auto or manual mode and calculate power
         if self.manual_mode:
-            self.target_speed = min(self.driver_target_speed, self.speed_limit*0.9)
+            self.target_speed = self.driver_target_speed
         else:
-            self.target_speed = min(self.wayside_speed, self.speed_limit*0.9)
+            self.target_speed = self.wayside_speed
+        self.target_speed = min(self.target_speed, self.speed_limit*0.9)
 
         self.error = self.target_speed - self.actual_speed
         self.integral_error += self.error * self.global_clock.train_dt/1000 * self.global_clock.time_multiplier
         commanded_power_1 = (self.Kp * self.error) + (self.Ki * self.integral_error)
         commanded_power_2 = (self.Kp * self.error) + (self.Ki * self.integral_error)
-        commanded_power_3 = (self.Kp * self.error) + (self.Ki * self.integral_error) # TODO: need something for integral wind up
+        commanded_power_3 = (self.Kp * self.error) + (self.Ki * self.integral_error)
         if (commanded_power_1 == commanded_power_2 and commanded_power_1 == commanded_power_3 and commanded_power_2 == commanded_power_3):
             self.commanded_power = commanded_power_1
         else:
             self.commanded_power = 0
+    def update_safety(self):
+
+        # Check for failures
+        if (self.signal_failure or self.brake_failure or self.engine_failure):
+            self.emergency_brake = True
+
         # TODO: Check authority and stopping distance and override speed calcs
 
         # Check for invalid power commands
         new_service_state = False
-        if (self.commanded_power < 0):
+        if (self.commanded_power <= 0):
             self.commanded_power = 0.0
             new_service_state = True
         elif (self.commanded_power > 120000):
@@ -94,7 +101,7 @@ class TrainController(QMainWindow):
         if (self.service_brake):
             self.commanded_power = 0.0 # Kill engine if emergency brake is activated
             self.integral_error = 0
-
+    def update_auxiliary(self):
         # Set the HVAC Signals
         self.air_conditioning_signal = self.actual_temperature > self.desired_temperature
         self.heating_signal = self.actual_temperature < self.desired_temperature
@@ -107,6 +114,11 @@ class TrainController(QMainWindow):
             else:
                 self.interior_lights = False
                 self.headlights = False
+
+        # Close doors if we are moving
+        if (self.actual_speed > 0):
+            self.left_doors = False
+            self.right_doors = False
 
         # check underground for lights
         # TODO
@@ -132,7 +144,9 @@ class TrainController(QMainWindow):
             self.beacon_data = selected_data["beacon_data"]
 
             # Passengers can turn on the ebrake but not turn it off
-            self.emergency_brake = selected_data.get("emergency_brake", self.emergency_brake)
+            passengerEbrake = selected_data.get("emergency_brake", False)
+            if passengerEbrake:
+                self.emergency_brake = True
 
             self.actual_temperature = selected_data["actual_temperature"]
             self.signal_failure = selected_data["signal_failure"]
@@ -144,8 +158,8 @@ class TrainController(QMainWindow):
         data["commanded_power"] = self.commanded_power
         data["service_brake"] = self.service_brake
         data["emergency_brake"] = self.emergency_brake
-        data["left_doors"] = self.door_left
-        data["right_doors"] = self.door_right
+        data["left_doors"] = self.left_doors
+        data["right_doors"] = self.right_doors
         data["interior_lights"] = self.interior_lights
         data["headlights"] = self.headlights
         data["heating_signal"] = self.heating_signal

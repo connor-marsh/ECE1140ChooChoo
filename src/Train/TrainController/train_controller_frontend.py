@@ -1,5 +1,5 @@
 """
-Author: Aragya Goyal
+Author: Aragya Goyal and Connor Marsh
 Date: 03-20-2025
 Description:
 """
@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt5.QtCore import QTimer, QTime
 from Train.TrainController.train_controller_ui import Ui_MainWindow as TrainControllerUI
 from Train.TrainController.train_controller_testbench import TrainControllerTestbench
+from Train.TrainController.train_controller_hw_backend import TrainControllerHW
 
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
@@ -140,8 +141,26 @@ class TrainControllerFrontend(QMainWindow):
 
     def update(self):
         # Set the display values
-        if not self.current_train:
+        if len(self.collection.train_list)>0:
+            self.current_train = self.collection.train_list[int(self.ui.train_id_dropdown.currentText())-1]
+        if self.current_train == None:
             return
+        if self.train_integrated:
+            self.current_train = self.current_train.controller
+            if type(self.current_train)==TrainControllerHW:
+                self.ui.groupBox.hide()
+                self.ui.groupBox_2.hide()
+                self.ui.groupBox_3.hide()
+                self.ui.groupBox_4.hide()
+                self.ui.groupBox_5.hide()
+                # self.ui.groupBox_6.hide()
+            else:
+                self.ui.groupBox.show()
+                self.ui.groupBox_2.show()
+                self.ui.groupBox_3.show()
+                self.ui.groupBox_4.show()
+                self.ui.groupBox_5.show()
+                # self.ui.groupBox_6.show()
 
         # Update clock
         self.ui.global_clock_lcd.display(self.current_train.global_clock.text)
@@ -257,13 +276,13 @@ class TrainControllerFrontend(QMainWindow):
 
     def handle_right_door(self, checked):
         state = self.get_ui_state(self.current_train)
-        state['door_right'] = checked
-        self.current_train.door_right = checked
+        state['right_doors'] = checked
+        self.current_train.right_doors = checked
 
     def handle_left_door(self, checked):
         state = self.get_ui_state(self.current_train)
-        state['door_left'] = checked
-        self.current_train.door_left = checked
+        state['left_doors'] = checked
+        self.current_train.left_doors = checked
 
     def activate_headlights(self):
         self.current_train.headlights = True
