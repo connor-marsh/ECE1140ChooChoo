@@ -350,13 +350,9 @@ class TrackModel(QtWidgets.QMainWindow):
         self.trains.append(new_train)
 
         # Mark the block as occupied
-<<<<<<< HEAD
-        self.dynamic_track.occupancies[start_block.id] = Occupancy.OCCUPIED
 
-=======
         self.dynamic_track.occupancies[start_block.id]=Occupancy.OCCUPIED
         # self.update_block_occupancy(start_block, "Occupied")
->>>>>>> fab8dbfc9ab86da94043a7321283fe4571d50cf7
 
         print(f"[Train Init] Train {train_id} initialized on {start_block}.")
     def remove_train(self, train_id):
@@ -400,9 +396,7 @@ class TrackModel(QtWidgets.QMainWindow):
 
     #     # Update the train's previous section
     #     self.previous_section[train_id] = current_section
-
-    #     return travel_direction
-    
+    #     return travel_direction    
             
 
 ###############################################################################
