@@ -28,7 +28,6 @@ class TrainController(QMainWindow):
 
         # Set up defaults
         self.actual_speed = 0.0
-        self.speed_limit = 20.0 #TODO: PLEASE MAKE THIS NORMAL
         self.wayside_speed = 0.0
         self.wayside_authority = 0.0
         self.commanded_power = 0.0
@@ -81,7 +80,7 @@ class TrainController(QMainWindow):
             self.target_speed = self.driver_target_speed
         else:
             self.target_speed = self.wayside_speed
-        self.target_speed = min(self.target_speed, self.speed_limit*0.9)
+        self.target_speed = min(self.target_speed, self.current_block.speed_limit*0.9)
 
         self.error = self.target_speed - self.actual_speed
         dt = self.global_clock.train_dt/1000 * self.global_clock.time_multiplier
@@ -127,9 +126,7 @@ class TrainController(QMainWindow):
             self.current_section = self.current_block.id[0]
 
     def update_safety(self):
-
         # Ramp up power for passenger comfort
-        
         if self.unramped_commanded_power > self.commanded_power:
             ramp_rate = 10000.0
             power_diff = self.unramped_commanded_power - self.commanded_power
@@ -157,9 +154,7 @@ class TrainController(QMainWindow):
         if not self.manual_mode:
             self.service_brake=new_service_state
 
-        
-
-        # TODO: Check authority and stopping distance and override speed calcs
+        # Check authority and stopping distance and override speed calcs
         self.wayside_authority -= (self.actual_speed/self.MPS_TO_MPH * self.global_clock.train_dt/1000*self.global_clock.time_multiplier)*self.M_TO_YARDS
 
         theta = math.atan(self.current_block.grade / 100)
