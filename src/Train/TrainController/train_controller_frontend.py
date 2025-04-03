@@ -294,8 +294,8 @@ class TrainControllerFrontend(QMainWindow):
         self.ui.engine_failure_light.setStyleSheet("background-color: rgb(255, 170, 170); font-weight: bold; font-size: 16px;")
 
     def set_k_constants(self):
-        self.Kp = self.to_float(self.ui.kp_line_edit.text(), 1.0)
-        self.Ki = self.to_float(self.ui.ki_line_edit.text(), 1.0)
+        self.current_train.Kp = self.to_float(self.ui.kp_line_edit.text(), 20000.0)
+        self.current_train.Ki = self.to_float(self.ui.ki_line_edit.text(), 75.0)
         self.ui.control_constants_apply_button.setEnabled(False)
         self.ui.kp_line_edit.setEnabled(False)
         self.ui.ki_line_edit.setEnabled(False)
