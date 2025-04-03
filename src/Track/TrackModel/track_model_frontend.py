@@ -75,7 +75,7 @@ HARDCODED_LAYOUT = [
     ("K65", 323, 238, 8, 16),
     ("K66", 323, 254, 8, 16),
     ("K67", 323, 270, 8, 16),
-    ("K68", 323, 286, 8, 16),
+    ("K68", 323, 286, 8, 21), # Originally 8, 16
     ("L69", 323, 306, 8, 17),
     ("L70", 320, 322, 10, 17),
     ("L71", 310, 335, 15, 20),
@@ -107,8 +107,8 @@ HARDCODED_LAYOUT = [
     ("P97", 78, 320, 10, 19),
     ("Q98", 80, 336, 13, 17),
     ("Q99", 86, 348, 15, 15),
-    ("Q100", 93, 356, 15, 14),
-    ("R101", 187, 339, 29, 29),
+    ("Q100", 93, 356, 12, 8), # Oirignally 15, 14
+    ("R101", 187, 339, 25, 24), # Originally 29, 29
     ("S102", 211, 339, 14, 8),
     ("S103", 225, 339, 14, 8),
     ("S104", 239, 339, 14, 8),
@@ -157,8 +157,8 @@ HARDCODED_LAYOUT = [
     ("Y147", 56, 144, 8, 11),
     ("Y148", 56, 133, 8, 11),
     ("Y149", 56, 122, 8, 11),
-    ("Z150", 56, 99, 27, 28),
-    ("I0", 259, 141, 59, 21),
+    ("Z150", 56, 99, 25, 28),# Originally 27, 28
+    ("I0", 259, 148, 59, 8), # Originally 259, 141, 59, 21
     ("J0", 324, 137, 8, 59),
 ]
 
@@ -247,7 +247,7 @@ class TrackModelFrontEnd(QMainWindow):
         self.track_heater_status = False
 
         # Load Map Canvas into GraphicsView
-        self.map_canvas = TrackMapCanvas(parent=self.ui.track_map_display)
+        self.map_canvas = TrackMapCanvas()
         self.ui.track_map_display.setScene(self.map_canvas.scene)
         self.ui.track_map_display.setRenderHint(QPainter.Antialiasing)
 
