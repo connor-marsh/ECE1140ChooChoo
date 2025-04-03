@@ -202,12 +202,13 @@ class TrainModel(QMainWindow):
             selected = "train_controller"
 
         if selected in ["testbench", "track"]:
-            self.wayside_speed = selected_data.get("wayside_speed", self.wayside_speed) / self.MPS_TO_MPH
-            self.wayside_authority = selected_data.get("wayside_authority", self.wayside_authority) / self.M_TO_YARD
+            self.wayside_speed = selected_data.get("wayside_speed", self.wayside_speed*self.MPS_TO_MPH) / self.MPS_TO_MPH
+            self.wayside_authority = selected_data.get("wayside_authority", self.wayside_authority)
             if "wayside_authority" in selected_data.keys():
+                print("SENT TO TRAIN")
                 self.wayside_authority = selected_data["wayside_authority"]
                 authDict = {}
-                authDict["wayside_authority"] = self.wayside_authority * self.M_TO_YARD
+                authDict["wayside_authority"] = self.wayside_authority
                 self.controller.set_input_data(train_model_data=authDict)
             self.beacon_data = selected_data.get("beacon_data", self.beacon_data)
             grade = selected_data.get("grade", self.grade)

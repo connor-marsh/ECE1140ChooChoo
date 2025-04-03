@@ -98,7 +98,7 @@ class Train:
             self.dynamic_track.occupancies[self.current_block.id]=Occupancy.UNOCCUPIED
             # Move to new block
             if self.current_block.switch and not self.previous_switch_exit:
-                print("SWITCH")
+                # print("SWITCH")
                 self.previous_switch_entrance=True
                 self.previous_switch_exit=False
                 switch = self.track_data.switches[self.current_block.id]
@@ -110,7 +110,7 @@ class Train:
                 else:
                     self.current_block = self.track_data.blocks[int(nextBlock)-1]
             elif self.current_block.switch_exit and not self.previous_switch_entrance:
-                print("SWITCH")
+                # print("SWITCH")
                 self.previous_switch_exit=True
                 self.previous_switch_entrance=False
                 switch = self.track_data.switches[self.track_data.switch_exits[self.current_block.id].switch_entrance]
@@ -152,7 +152,7 @@ class Train:
 
             # Move to new section
             if self.current_block.id[0] != self.current_section:
-                print("New section")
+                # print("New section")
                 increasing = self.track_data.sections[self.current_block.id[0]].increasing
                 if increasing == 2:
                     self.travel_direction = 1 if self.current_block.id[0] > self.current_section else 0
@@ -160,7 +160,7 @@ class Train:
                     self.travel_direction = increasing
                 self.current_section = self.current_block.id[0]
                 
-            print("BLOCK: " + self.current_block.id)
+            # print("BLOCK: " + self.current_block.id)
 
         
     def update_location(self, new_block: str, distance_delta: float):

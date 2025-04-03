@@ -48,6 +48,7 @@ class TrainController(QMainWindow):
         self.driver_target_speed = 0.0
         self.service_brake = False
         self.position = 0.0
+        self.previous_position = 0.0
         self.block_distance_traveled = 0.0
         self.next_station = "Edgebrook"
         self.announcement = False
@@ -126,6 +127,7 @@ class TrainController(QMainWindow):
                 self.travel_direction = increasing
             self.current_section = self.current_block.id[0]
 
+
     def update_safety(self):
 
         # Ramp up power for passenger comfort
@@ -160,7 +162,8 @@ class TrainController(QMainWindow):
         
 
         # TODO: Check authority and stopping distance and override speed calcs
-        self.wayside_authority -= (self.actual_speed/self.MPS_TO_MPH * self.global_clock.train_dt/1000*self.global_clock.time_multiplier)*self.M_TO_YARDS
+        self.wayside_authority -= self.position - self.previous_position
+        self.previous_position = self.position
 
         theta = math.atan(self.current_block.grade / 100)
         service_dist = ((self.actual_speed/self.MPS_TO_MPH) ** 2) / (2 * (self.SERVICE_BRAKE_DECEL + (self.GRAVITY * math.sin(theta * (math.pi/180)))))
@@ -242,7 +245,7 @@ class TrainController(QMainWindow):
         if selected == "testbench" or selected == "train_model":
             self.actual_speed = selected_data.get("actual_speed", self.actual_speed)
             self.wayside_speed = selected_data.get("wayside_speed", self.wayside_speed)
-            # self.wayside_authority = selected_data.get("wayside_authority", self.wayside_authority)
+            self.wayside_authority = selected_data.get("wayside_authority", self.wayside_authority)
             self.position = selected_data.get("position", self.position)
 
             if self.beacon_data != selected_data.get("beacon_data", self.beacon_data):

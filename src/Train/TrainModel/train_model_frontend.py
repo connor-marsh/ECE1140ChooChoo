@@ -180,7 +180,7 @@ class TrainModelFrontEnd(QMainWindow):
             # Dynamic values from backend.
             velocity_mph = self.current_train.actual_speed * self.current_train.MPS_TO_MPH
             cmd_speed_mph = self.current_train.wayside_speed * self.current_train.MPS_TO_MPH
-            wayside_authority_yd = self.current_train.wayside_authority * self.current_train.M_TO_YARD
+            wayside_authority_yd = self.current_train.wayside_authority# * self.current_train.M_TO_YARD
             
             acceleration_fts2 = self.current_train.current_acceleration * 3.281
             commanded_power = self.current_train.commanded_power

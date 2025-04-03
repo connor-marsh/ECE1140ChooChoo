@@ -79,6 +79,9 @@ class WaysideControllerCollection(QObject):
         from Track.WaysideController.wayside_controller_frontend import WaysideControllerFrontend # lazy import to avoid circular import (do NOT tell me about design patterns)
         self.frontend = WaysideControllerFrontend(self, auto_import_programs)
         
+
+        self.one_shot_suggested = False
+
         self.timer = QTimer()
         self.timer.setInterval(100)
         self.connect_signals()
@@ -138,7 +141,9 @@ class WaysideControllerCollection(QObject):
             self.track_model.update_from_plc_outputs(self.blocks, switch_states, light_states, crossing_states)
 
             # call the update in the track model
-            self.track_model.update_from_comms_outputs(wayside_speeds=commanded_speeds, wayside_authorities=commanded_authorities, maintenances=maintenances)
+            if self.one_shot_suggested:
+                self.track_model.update_from_comms_outputs(wayside_speeds=commanded_speeds, wayside_authorities=commanded_authorities, maintenances=maintenances)
+                self.one_shot_suggested=False
 
     @pyqtSlot()
     def update_ctc(self):
@@ -256,6 +261,7 @@ class WaysideControllerCollection(QObject):
             # set the controller suggested speeds and authorities
             controller.suggested_speeds = sorted_speeds[slice(*self.BLOCK_RANGES[i])]
             controller.suggested_authorities = sorted_authorities[slice(*self.BLOCK_RANGES[i])]
+        self.one_shot_suggested = True
             
 
     def connect_signals(self): # may still need this when using signals later
