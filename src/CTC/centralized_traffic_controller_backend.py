@@ -146,23 +146,22 @@ class CtcBackEnd(QObject):
         self.total_tickets += num_tickets
         self.throughput = self.total_tickets / (self.elapsed_mins/60) #Tickets per hour
 
-    @pyqtSlot(list)
-    def update_occupancy(self, occupancy_list):
+    @pyqtSlot(dict)
+    def update_occupancy(self, occupancies):
         #Updates occupancy list | called by wayside controller
-        for block_id, occupancy in zip(self.active_line.blocks, occupancy_list):
-            self.active_line.blocks[block_id].occupancy = occupancy
-        self.update_train_location(occupancy_list)
+        for block in self.active_line.blocks:
+             block.occupancy = occupancies[block.id]
 
-    @pyqtSlot(list)
+    @pyqtSlot(dict)
     def update_switches(self, switch_list):
         self.active_line.switch_states = switch_list
 
-    @pyqtSlot(list)
+    @pyqtSlot(dict)
     def update_lights(self, light_list):
         #Updates light list | called by wayside controller
         self.active_line.lights = light_list
             
-    @pyqtSlot(list)
+    @pyqtSlot(dict)
     def update_crossings(self, crossing_list):
         self.active_line.crossings = crossing_list
 

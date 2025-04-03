@@ -140,6 +140,23 @@ class WaysideControllerCollection(QObject):
             # call the update in the track model
             self.track_model.update_from_comms_outputs(wayside_speeds=commanded_speeds, wayside_authorities=commanded_authorities, maintenances=maintenances)
 
+    @pyqtSlot()
+    def update_ctc(self):
+        """
+        Called by the collection's timer so that the block occupancies, and plc outputs can be sent.
+        """
+        territory_sorted_occupancies = [] # get the entire tracks occupancies in one list sorted by territory
+
+        for i, controller in enumerate(self.controllers): # for each controller append their occupancies
+            territory_sorted_occupancies = territory_sorted_occupancies + controller.block_occupancies
+        
+        occupancies = {} # create a dictionary to match occupancy to it's block
+        for i, block in enumerate(self.blocks):
+            occupancies[block.id] = territory_sorted_occupancies[i] # match my lists values to their id
+            
+        signals.communication.wayside_block_occupancies.emit(occupancies) # send dictionary to ctc
+
+
     def update_block_occupancies(self, occupancies:dict):
         """
         Receives occupancy updates from the track model (called by the track model)
@@ -152,9 +169,9 @@ class WaysideControllerCollection(QObject):
                 occupancy = occupancies.get(block.id, Occupancy.UNOCCUPIED) # read from the dictionary
 
                 if occupancy == Occupancy.UNOCCUPIED:
-                    sorted_occupancies.append(False)
+                    self.sorted_occupancies.append(False)
                 else:
-                    sorted_occupancies.append(True)
+                    self.sorted_occupancies.append(True)
 
             for i, controller in enumerate(self.controllers):
                 controller.block_occupancies = sorted_occupancies[slice(*self.BLOCK_RANGES[i])] # goofy slice combined with unpacking operator but I like it
@@ -250,6 +267,7 @@ class WaysideControllerCollection(QObject):
         signals.communication.ctc_block_maintenance.connect(self.handle_block_maintenance)
         signals.communication.ctc_suggested.connect(self.handle_suggested_values)
         self.timer.timeout.connect(self.update_track_model)
+        self.timer.timeout.connect(self.update_ctc)
 
 
     #DEFINE A FUNCTION THAT EITHER GRABS VALUES FROM THE TRACK REFERENCE OR FROM THE TESTBENCH DEPENDING ON THE MODE OF THE CONTROLLER
