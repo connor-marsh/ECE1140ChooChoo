@@ -243,7 +243,7 @@ class TrainModel(QMainWindow):
         data["signal_failure"] = self.signal_failure
         data["brake_failure"] = self.brake_failure
         data["engine_failure"] = self.engine_failure
-        data["position"] = self.position * self.M_TO_FT
+        data["position"] = self.position * self.M_TO_YARD
         if self.send_emergency_brake_signal:
             data["emergency_brake"] = self.emergency_brake
             self.send_emergency_brake_signal = False

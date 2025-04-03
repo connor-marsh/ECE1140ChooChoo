@@ -130,6 +130,7 @@ class TrainController(QMainWindow):
             self.wayside_speed = selected_data["wayside_speed"]
             self.wayside_authority = selected_data["wayside_authority"]
             self.beacon_data = selected_data["beacon_data"]
+            self.position = selected_data.get("position", self.position)
 
             # Passengers can turn on the ebrake but not turn it off
             self.emergency_brake = selected_data.get("emergency_brake", self.emergency_brake)
