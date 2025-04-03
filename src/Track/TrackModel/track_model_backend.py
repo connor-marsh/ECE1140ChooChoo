@@ -74,6 +74,7 @@ class DynamicTrack:
 
 class Train:
     def __init__(self, train_id, track_model=None, initial_block=None):
+        self.track_model = track_model
         self.track_data = track_model.track_data
         self.dynamic_track = track_model.dynamic_track
         self.train_id = train_id
@@ -101,7 +102,11 @@ class Train:
                 self.previous_switch_exit=False
                 switch = self.track_data.switches[self.current_block.id]
                 switchState=self.dynamic_track.switch_states[self.current_block.id]
-                self.current_block = self.track_data.blocks[int(switch.positions[1 if switchState else 0].split("-")[1])-1]
+                nextBlock = switch.positions[1 if switchState else 0].split("-")[1]
+                if nextBlock == "Yard":
+                    self.track_model.remove_train(self.train_id)
+                else:
+                    self.current_block = self.track_data.blocks[int(nextBlock)-1]
             elif self.current_block.switch_exit and not self.previous_switch_entrance:
                 print("SWITCH")
                 self.previous_switch_exit=True
@@ -338,7 +343,7 @@ class TrackModel(QtWidgets.QMainWindow):
         self.train_counter += 1
         train_id = self.train_counter-1
         new_train = Train(train_id=train_id, track_model=self, initial_block=start_block)
-        self.train_collection.createTrain()
+        self.train_collection.create_train()
         new_train.train_model = self.train_collection.train_list[-1]
 
         # Store train in backend registry
@@ -349,6 +354,13 @@ class TrackModel(QtWidgets.QMainWindow):
         # self.update_block_occupancy(start_block, "Occupied")
 
         print(f"[Train Init] Train {train_id} initialized on {start_block}.")
+    def remove_train(self, train_id):
+        for i in range(train_id+1, self.train_counter):
+            self.trains[i].train_id-=1
+        self.train_collection.remove_train(train_id)
+        self.trains.pop(train_id)
+        self.train_counter-=1
+        
 
     
     # Ensure the train is travelling the proper direction (ascending or descending)
