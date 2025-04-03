@@ -17,10 +17,10 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QTableWidgetItem
 
 class TrackModelFrontEnd(QMainWindow):
-    def __init__(self):
+    def __init__(self, wayside_integrated=True):
         super().__init__()
         # self.red_line = TrackModel("Red")
-        self.green_line = TrackModel("Green")
+        self.green_line = TrackModel("Green", wayside_integrated=wayside_integrated)
         self.outside_temp = 70.0
         self.track_heater_status = False
 

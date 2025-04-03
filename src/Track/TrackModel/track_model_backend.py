@@ -11,6 +11,7 @@ from Track.TrackModel.track_model_ui import Ui_MainWindow as TrackModelUI
 from Track.TrackModel.test_bench_track_model import Ui_MainWindow as TBTrackModelUI
 
 from Train.train_collection import TrainCollection
+from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
 
 # Ensure proper scaling on high-DPI screens
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
@@ -73,12 +74,14 @@ class DynamicTrack:
 
 class Train:
     def __init__(self, train_id, track_model=None, initial_block=None):
+        self.track_model = track_model
         self.track_data = track_model.track_data
         self.dynamic_track = track_model.dynamic_track
         self.train_id = train_id
         self.current_block = initial_block
         self.current_section = initial_block.id[0] # just a string
-        self.entered_new_section = True
+        self.previous_switch_entrance = False
+        self.previous_switch_exit = True
         self.distance_traveled = 0.0
         self.passenger_count = 0
         # FIX THIS FOR RED LINE
@@ -94,13 +97,21 @@ class Train:
             # Set old block to unoccupied
             self.dynamic_track.occupancies[self.current_block.id]=Occupancy.UNOCCUPIED
             # Move to new block
-            if self.current_block.switch and not self.entered_new_section:
+            if self.current_block.switch and not self.previous_switch_exit:
                 print("SWITCH")
+                self.previous_switch_entrance=True
+                self.previous_switch_exit=False
                 switch = self.track_data.switches[self.current_block.id]
                 switchState=self.dynamic_track.switch_states[self.current_block.id]
-                self.current_block = self.track_data.blocks[int(switch.positions[1 if switchState else 0].split("-")[1])-1]
-            elif self.current_block.switch_exit and not self.entered_new_section:
+                nextBlock = switch.positions[1 if switchState else 0].split("-")[1]
+                if nextBlock == "Yard":
+                    self.track_model.remove_train(self.train_id)
+                else:
+                    self.current_block = self.track_data.blocks[int(nextBlock)-1]
+            elif self.current_block.switch_exit and not self.previous_switch_entrance:
                 print("SWITCH")
+                self.previous_switch_exit=True
+                self.previous_switch_entrance=False
                 switch = self.track_data.switches[self.track_data.switch_exits[self.current_block.id].switch_entrance]
                 switchState=self.dynamic_track.switch_states[self.track_data.switch_exits[self.current_block.id].switch_entrance]
                 switchBlocks = switch.positions[1 if switchState else 0].split("-")
@@ -122,13 +133,15 @@ class Train:
                     print("TRAIN CRASH FROM SWITCH POSITION")
                     print("TRAIN CRASH FROM SWITCH POSITION")
             else:
+                self.previous_switch_exit=False
+                self.previous_switch_entrance=False
                 self.current_block = self.track_data.blocks[int(self.current_block.id[1:])+(self.travel_direction*2-1)-1]
             
             # Set new block to occupied
             self.dynamic_track.occupancies[self.current_block.id]=Occupancy.OCCUPIED
 
             # Check for beacon data in new block, if its there, send to train model
-            if self.track_data.blocks[self.current_block.id].beacon:
+            if self.track_data.blocks[int(self.current_block.id[1:])-1].beacon:
                 send_to_train = {}
                 send_to_train["beacon_data"] = self.track_data.beacons[self.current_block.id].data
                 self.train_model.set_input_data(track_data=send_to_train)
@@ -139,15 +152,12 @@ class Train:
             # Move to new section
             if self.current_block.id[0] != self.current_section:
                 print("New section")
-                self.entered_new_section = True
                 increasing = self.track_data.sections[self.current_block.id[0]].increasing
                 if increasing == 2:
                     self.travel_direction = 1 if self.current_block.id[0] > self.current_section else 0
                 else:
                     self.travel_direction = increasing
                 self.current_section = self.current_block.id[0]
-                if self.current_section == "O":
-                    self.dynamic_track.switch_states["N85"] = True
                 
             print("BLOCK: " + self.current_block.id)
 
@@ -170,7 +180,7 @@ class Train:
 ###############################################################################
 
 class TrackModel(QtWidgets.QMainWindow):
-    def __init__(self, name):
+    def __init__(self, name, wayside_integrated=True):
         super().__init__()
         self.name = name
         self.track_data = global_track_data.lines[name]
@@ -178,11 +188,15 @@ class TrackModel(QtWidgets.QMainWindow):
         self.trains = []  # holds Train instances
         self.train_counter = 0
         self.train_collection = TrainCollection()
+        self.wayside_integrated = wayside_integrated
+        if wayside_integrated:
+            self.wayside_collection = WaysideControllerCollection(self)
+            self.wayside_collection.frontend.show()
 
         # Populate dynamic track
         self.dynamic_track = DynamicTrack()
         for block in self.track_data.blocks:
-            self.dynamic_track.occupancies = Occupancy.UNOCCUPIED
+            self.dynamic_track.occupancies[block.id] = Occupancy.UNOCCUPIED
             if block.switch:
                 self.dynamic_track.switch_states[block.id] = False
             if block.light:
@@ -201,6 +215,8 @@ class TrackModel(QtWidgets.QMainWindow):
 
     def update(self):
         self.update_trains()
+        if self.wayside_integrated:
+            self.wayside_collection.update_block_occupancies(self.dynamic_track.occupancies)
 
     # Populating the trains with information sent from train
     def update_trains(self):
@@ -218,8 +234,6 @@ class TrackModel(QtWidgets.QMainWindow):
 
     # Updating switches, lights, and railway crossings sent from wayside
     def update_from_plc_outputs(self, sorted_blocks, switch_states, light_states, crossing_states):
-        pass
-
         # Updating switch position , should display the proper next block
         # XOR with current position list and compare to see if update
         switch_keys = [block.id for block in sorted_blocks if block.switch]
@@ -330,16 +344,24 @@ class TrackModel(QtWidgets.QMainWindow):
         self.train_counter += 1
         train_id = self.train_counter-1
         new_train = Train(train_id=train_id, track_model=self, initial_block=start_block)
-        self.train_collection.createTrain()
+        self.train_collection.create_train()
         new_train.train_model = self.train_collection.train_list[-1]
 
         # Store train in backend registry
         self.trains.append(new_train)
 
         # Mark the block as occupied
-        self.update_block_occupancy(start_block, "Occupied")
+        self.dynamic_track.occupancies[start_block.id]=Occupancy.OCCUPIED
+        # self.update_block_occupancy(start_block, "Occupied")
 
         print(f"[Train Init] Train {train_id} initialized on {start_block}.")
+    def remove_train(self, train_id):
+        for i in range(train_id+1, self.train_counter):
+            self.trains[i].train_id-=1
+        self.train_collection.remove_train(train_id)
+        self.trains.pop(train_id)
+        self.train_counter-=1
+        
 
     
     # Ensure the train is travelling the proper direction (ascending or descending)

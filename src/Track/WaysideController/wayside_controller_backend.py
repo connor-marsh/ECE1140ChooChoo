@@ -31,12 +31,13 @@ class WaysideController(QObject):
         self.crossing_signals = [False] * crossing_count # List of crossings [ACTIVE == True, INACTIVE == False]
         self.previous_occupancies = [False] * block_count # List of previous block occupancies [OCCUPIED == True, UNOCCUPIED == False]
         self.exit_blocks = [False] * exit_block_count # List of exit blocks [1 hot vector, SELECTED/CURRENT == True, NOT SELECTED == False ]
-        self.suggested_authorities = [0] * block_count # List of the suggested authority to each block
-        self.suggested_speeds = [0] * block_count # List of the suggested speed to each block
-        self.commanded_authorities = [0] * block_count # List of the commanded authority to each block
-        self.commanded_speeds = [0] * block_count # List of the commanded speed to each block
-        
-        
+        self.suggested_authorities = [None] * block_count # List of the suggested authority to each block
+        self.suggested_speeds = [None] * block_count # List of the suggested speed to each block
+        self.commanded_authorities = [None] * block_count # List of the commanded authority to each block
+        self.commanded_speeds = [None] * block_count # List of the commanded speed to each block
+        self.maintenances = [False] * block_count # True for maintenance false for no maintenace
+
+        self.updated_commanded_authorities = {}
 
         self.maintenance_mode = False # A boolean that indicates when the wayside controller is in maintenance mode.
 
@@ -74,6 +75,9 @@ class WaysideController(QObject):
             if not hasattr(module, "plc_logic") or not callable(module.plc_logic):
                 raise ValueError("Error: The PLC program must define a callable 'plc_logic(block_occupancies, switch_positions, light_signals, crossing_signals, previous_occupancies, exit_blocks)' function.")
 
+            if not hasattr(module, "validate_suggested_values") or not callable(module.validate_suggested_values):
+                raise ValueError("Error: The PLC program must define a callable 'validate_suggested_values(suggested_speeds,suggested_authorities, suggested_maintenance)' function.")
+            
             self.program = module
 
             # Run an initial verification test
@@ -135,9 +139,17 @@ class WaysideController(QObject):
         if self.program and hasattr(self.program, "plc_logic"):
             # Run the user-defined PLC logic
             self.switch_positions, self.light_signals, self.crossing_signals = self.program.plc_logic(self.block_occupancies, self.switch_positions, 
-                                                                                                                                 self.light_signals, self.crossing_signals, 
+                                                                                                                         self.light_signals, self.crossing_signals, 
                                                                                                                                  self.previous_occupancies, self.exit_blocks)
-
+        if self.program and hasattr(self.program, "validate_suggested_values"):
+            self.commanded_speeds, self.commanded_authorities = self.program.validate_suggested_values(self.suggested_speeds, self.suggested_authorities, self.maintenances)
+            #compare these lists of values with the currently stored ones
+            #figure out block id's based on index
+            #set the updated dictionaries accordingly
+            
+    
+  
+    
     def get_user_input(self):
         """Prompts the user to input block occupancies as a list of booleans."""
         while True:

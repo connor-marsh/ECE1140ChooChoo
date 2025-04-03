@@ -6,11 +6,12 @@ class GlobalClock(QMainWindow):
         super().__init__()
         self.am_pm = "AM"
         self.text = "06:59"
+        self.full_text = self.text + " " + self.am_pm
         self.hour = 6
         self.minute = 59
         
         # update speeds for the various modules
-        self.time_multiplier = 1
+        self.time_multiplier = 30
         self.train_dt=1
 
         self.time = QTime(6, 59, 0)
@@ -25,6 +26,7 @@ class GlobalClock(QMainWindow):
         self.am_pm = "AM" if self.hour < 12 else "PM"
         self.hour = self.hour % 12 or 12
         self.text = f"{self.hour:02d}:{self.minute:02d}"
+        self.full_text = self.text + " " + self.am_pm
 
 def init():
     global clock
