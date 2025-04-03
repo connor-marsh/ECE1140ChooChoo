@@ -23,9 +23,10 @@ class WaysideControllerFrontend(QMainWindow):
     """
 
 
-    def __init__(self, collection_reference: WaysideControllerCollection):
+    def __init__(self, collection_reference: WaysideControllerCollection, auto_import_programs=False):
         """
         :param collection_reference: Reference to the Wayside Collection object so that the UI can display the values in the backend
+        :param auto_import_programs: Set true if you would like to automatically upload 3 green line plc programs automatically
         """
 
         super().__init__()
@@ -54,6 +55,14 @@ class WaysideControllerFrontend(QMainWindow):
         # read data from the collection to populate the combo box with num of controllers etc.
         # read data from the collection to generate rows in the table for blocks etc
         # read data from the currently indexed backend to show in the table
+
+        if(auto_import_programs): # auto import the programs if necessary
+            for i in range(3):
+                # i sure hope these filepaths exists
+                
+                filepath = "src\Track\WaysideController\PLC\green_line_plc_" + str(i+1) + ".py"
+                self.auto_get_program(i,filepath)
+
         self.timer.start()
     
     def init_combo_box(self):
@@ -305,9 +314,8 @@ class WaysideControllerFrontend(QMainWindow):
         Called when the programmer clicks the input program button. 
         """
         active_controller = self.collection.controllers[self.current_controller_index] # get the actively showing controller
-
         while True:
-            program_file_path, _ = QFileDialog.getOpenFileName(self, "Select PLC Program", "", "Python File (*.py);;All Files (*)") # something i don't fully understand
+            program_file_path, _ = QFileDialog.getOpenFileName(self, "Select PLC Program", "", "Python File (*.py)") # something i don't fully understand
             if program_file_path:
                 if active_controller.load_program(program_file_path): # returns true if valid plc program
                     active_controller.plc_filename = Path(program_file_path).name # store the filename in the backend
@@ -315,6 +323,20 @@ class WaysideControllerFrontend(QMainWindow):
             else:
                 break
 
+
+    def auto_get_program(self, controller_index, filepath):
+        """
+        Used when the plc programs are automatically imported
+
+        :controller_index: which controller should the program run on
+
+        :filepath: the filepath to the program:
+        """
+        active_controller = self.collection.controllers[controller_index]
+        active_controller.load_program(filepath)
+        active_controller.plc_filename = Path(filepath).name
+        
+            
 
 
 
@@ -332,6 +354,13 @@ class WaysideControllerTestbench(QMainWindow):
         self.current_block_index = None # local to this testbench current block is the block clicked on the list
         self.first_open = True # Used to check to see if the testbench has been open before
         self.block_range = self.collection.BLOCK_RANGES[idx] # this never changes
+
+        # Uncomment this loop to correspond the range to the relative index (writing plc programs)
+        #print(self.controller_index)
+        #relative_index = 0
+        #for absolute_index in range(*self.block_range):
+        #    print(self.collection.blocks[absolute_index].id, absolute_index, relative_index, relative_index + 1)
+        #    relative_index += 1
 
 
         # Used for storing the values input by the user

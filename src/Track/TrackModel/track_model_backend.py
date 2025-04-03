@@ -217,12 +217,12 @@ class TrackModel(QtWidgets.QMainWindow):
         # self.track_data.update(filepath) # ACTUALLY DO
 
     # Updating switches, lights, and railway crossings sent from wayside
-    def update_from_plc_outputs(self, switch_states, light_states, crossing_states):
+    def update_from_plc_outputs(self, sorted_blocks, switch_states, light_states, crossing_states):
         pass
 
         # Updating switch position , should display the proper next block
         # XOR with current position list and compare to see if update
-        switch_keys = [block.id for block in self.track_data.blocks if block.switch]
+        switch_keys = [block.id for block in sorted_blocks if block.switch]
         for i, state in enumerate(switch_states):
             if i < len(switch_keys):
                 self.dynamic_track.switch_states[switch_keys[i]]=state
@@ -231,7 +231,7 @@ class TrackModel(QtWidgets.QMainWindow):
 
         # Updating light states, should display green/red
         # XOR with current position list and compare to see if update
-        light_keys = [block.id for block in self.track_data.blocks if block.light]
+        light_keys = [block.id for block in sorted_blocks if block.light]
         for i, state in enumerate(light_states):
             if i < len(light_keys):
                 self.dynamic_track.light_states[light_keys[i]]=state
@@ -240,7 +240,7 @@ class TrackModel(QtWidgets.QMainWindow):
 
         # Updating railway crossing position, should display if open/closed
         # XOR with current position list and compare to see if update
-        crossing_keys = [block.id for block in self.track_data.blocks if block.crossing]
+        crossing_keys = [block.id for block in sorted_blocks if block.crossing]
         for i, state in enumerate(crossing_states):
             if i < len(crossing_keys):
                 self.dynamic_track.crossing_states[crossing_keys[i]]=state
