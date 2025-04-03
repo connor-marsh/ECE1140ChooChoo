@@ -43,3 +43,8 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     switch_positions[1] = train_in_j
 
     return switch_positions, light_signals, crossing_signals
+
+def validate_suggested_values(suggested_speeds, suggested_authorities, maintenances):
+    commanded_speeds = suggested_speeds
+    commanded_authorities = suggested_authorities
+    return commanded_speeds, commanded_authorities

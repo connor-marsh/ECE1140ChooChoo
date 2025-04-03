@@ -1,6 +1,6 @@
 def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signals, previous_occupancies, exit_blocks):
     """
-    User-defined logic for controlling track switches.
+    User-defined logic for controlling track switches, lights, and crossing signals.
 
     :param block_occupancies: The current occupancies of the track
 
@@ -48,3 +48,7 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
 
     return switch_positions, light_signals, crossing_signals
     
+def validate_suggested_values(suggested_speeds, suggested_authorities, maintenances):
+    commanded_speeds = suggested_speeds
+    commanded_authorities = suggested_authorities
+    return commanded_speeds, commanded_authorities
