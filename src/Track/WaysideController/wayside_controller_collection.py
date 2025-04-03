@@ -144,7 +144,7 @@ class WaysideControllerCollection(QObject):
         
 
     @pyqtSlot(str, bool)
-    def handle_switch_maintenance(block_id, position):
+    def handle_switch_maintenance(self, block_id, position):
         """
         This function is called when the ctc makes a request to change a switch a position
 
@@ -154,7 +154,7 @@ class WaysideControllerCollection(QObject):
         """
     
     @pyqtSlot(list)
-    def handle_exit_blocks(current_exit_blocks):
+    def handle_exit_blocks(self, current_exit_blocks):
         """
         Called when the ctc sends what the exit blocks are. Does stuff for exit blocks?
 
@@ -170,23 +170,62 @@ class WaysideControllerCollection(QObject):
         # call track model's method for creating a new train
 
     @pyqtSlot(int, bool)
-    def handle_block_maintenance(block_number, state):
+    def handle_block_maintenance(self, block_id, value):
         """
         Called when the ctc puts a block into maintenance
 
-        :param block_number: the index into the block list
+        :param block_id: the block id such as "A1:
 
         :param state:  0 for maintenance off, 1 for maintenance on
         """
-    @pyqtSlot(list,list)
-    def handle_suggested_values(speeds, authorities):
+        
+
+
+    @pyqtSlot(dict,dict)
+    def handle_suggested_values(self, speeds, authorities):
         """
         Called when the ctc sends suggested speeds and suggested authorities
 
-        :param speeds: a list of suggested speeds from the ctc
+        :param speeds: a dictionary of suggested speeds from the ctc that is keyed with the block id to the corresponding train 
 
-        :param authorities: a list of suggested authoritities from the ctc
+        :param authorities: a list of suggested authoritities from the ctc that is key 
         """
+        sorted_speeds = [] # converting the dictionaries sent by the ctc 
+        sorted_authorities = [] # so that they match my ordering of the blocks by territory and are iterable lists
+
+        # Need to get the suggested 
+        for block_index, block in enumerate(self.blocks):
+            speed = speeds.get(block.id, None) # default to None in the case that there is no value sent
+            authority = authorities.get(block.id, None)
+            
+            controller_index = block.territory - 1 # find which controller this block is in
+            relative_block_index = block_index - self.BLOCK_RANGES[controller_index] # find the relative block index to the controller
+            
+            if speed == None: # no value means just use the previous
+                speed = self.controllers[controller_index].suggested_speeds[relative_block_index] # set the speed to its previous value since no change detected
+            
+            if authority == None: # no value means use the previous
+                authority = self.controllers[controller_index].suggested_authorities[relative_block_index]
+
+            # put in lists for next loop that is per controller
+            sorted_speeds.append(speed)
+            sorted_authorities.append(authority) 
+        
+        commanded_speeds = {} # the individual backend controllers will add to these dictionaries the actual values to be 
+        commanded_authorities = {} # sent to the track model
+
+        # This loop calls a function in each controller individually
+        for i, controller in enumerate(self.controllers):
+            # set the controller suggested speeds and authorities
+            controller.suggested_speeds = sorted_speeds[slice(*self.BLOCK_RANGES[i])]
+            controller.suggested_authorities = sorted_authorities[slice(*self.BLOCK_RANGES[i])]
+
+            # merging the controller specific [limited by its territory] values to the values that will be sent to the track_model
+            commanded_speeds = commanded_speeds | controller.commanded_speeds
+            commanded_authorities = commanded_authorities | controller.commanded_authorities
+
+        # call the update in the track model
+        self.track_model.update_from_comms_outputs(wayside_speeds=commanded_speeds, wayside_authorities=commanded_authorities)
 
     def connect_signals(self): # may still need this when using signals later
         """
