@@ -67,6 +67,7 @@ class TrainControllerHW(TrainController):
 
     def update(self):
         self.update_hardware()
+        self.update_track_location()
         self.update_safety()
         self.update_auxiliary()
 

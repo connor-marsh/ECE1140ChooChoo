@@ -74,9 +74,31 @@ class TrainController(QMainWindow):
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.update)
             self.timer.start(self.global_clock.train_dt)
-
-
+    
     def update(self):
+        # Check if auto or manual mode and calculate power
+        if self.manual_mode:
+            self.target_speed = self.driver_target_speed
+        else:
+            self.target_speed = self.wayside_speed
+        self.target_speed = min(self.target_speed, self.speed_limit*0.9)
+
+        self.error = self.target_speed - self.actual_speed
+        dt = self.global_clock.train_dt/1000 * self.global_clock.time_multiplier
+        self.integral_error += self.error * dt
+        commanded_power_1 = (self.Kp * self.error) + (self.Ki * self.integral_error)
+        commanded_power_2 = (self.Kp * self.error) + (self.Ki * self.integral_error)
+        commanded_power_3 = (self.Kp * self.error) + (self.Ki * self.integral_error)
+        if (commanded_power_1 == commanded_power_2 and commanded_power_1 == commanded_power_3 and commanded_power_2 == commanded_power_3):
+            self.unramped_commanded_power = commanded_power_1
+        else:
+            self.commanded_power = 0
+
+        self.update_track_location()
+        self.update_safety()
+        self.update_auxiliary()
+
+    def update_track_location(self):
         # Calculate distance within the block
         distance_within_block = self.position - self.block_distance_traveled
         if distance_within_block > self.current_block.length:
@@ -104,37 +126,25 @@ class TrainController(QMainWindow):
                 self.travel_direction = increasing
             self.current_section = self.current_block.id[0]
 
+    def update_safety(self):
+
+        # Ramp up power for passenger comfort
+        
+        if self.unramped_commanded_power > self.commanded_power:
+            ramp_rate = 10000.0
+            power_diff = self.unramped_commanded_power - self.commanded_power
+            dt = self.global_clock.train_dt/1000 * self.global_clock.time_multiplier
+            max_delta = ramp_rate * dt
+            if abs(power_diff) < max_delta:
+                self.commanded_power = self.unramped_commanded_power
+            else:
+                self.commanded_power += math.copysign(max_delta, power_diff)
+        else:
+            self.commanded_power = self.unramped_commanded_power
+
         # Check for failures
         if (self.signal_failure or self.brake_failure or self.engine_failure):
             self.emergency_brake = True
-        
-        # Check if auto or manual mode and calculate power
-        if self.manual_mode:
-            self.target_speed = self.driver_target_speed
-        else:
-            self.target_speed = self.wayside_speed
-        self.target_speed = min(self.target_speed, self.speed_limit*0.9)
-
-        self.error = self.target_speed - self.actual_speed
-        dt = self.global_clock.train_dt/1000 * self.global_clock.time_multiplier
-        self.integral_error += self.error * dt
-        commanded_power_1 = (self.Kp * self.error) + (self.Ki * self.integral_error)
-        commanded_power_2 = (self.Kp * self.error) + (self.Ki * self.integral_error)
-        commanded_power_3 = (self.Kp * self.error) + (self.Ki * self.integral_error)
-        if (commanded_power_1 == commanded_power_2 and commanded_power_1 == commanded_power_3 and commanded_power_2 == commanded_power_3):
-            target_power = commanded_power_1
-            if target_power > self.commanded_power:
-                ramp_rate = 10000.0
-                power_diff = target_power - self.commanded_power
-                max_delta = ramp_rate * dt
-                if abs(power_diff) < max_delta:
-                    self.commanded_power = target_power
-                else:
-                    self.commanded_power += math.copysign(max_delta, power_diff)
-            else:
-                self.commanded_power = target_power
-        else:
-            self.commanded_power = 0
 
         # Check for invalid power commands
         new_service_state = False
@@ -172,6 +182,7 @@ class TrainController(QMainWindow):
         if (self.service_brake):
             self.commanded_power = 0.0 # Kill engine if emergency brake is activated
             self.integral_error = 0
+
     def update_auxiliary(self):
         # Set the HVAC Signals
         self.air_conditioning_signal = self.actual_temperature > self.desired_temperature
@@ -195,8 +206,6 @@ class TrainController(QMainWindow):
         self.interior_lights = self.current_block.underground
         self.headlights = self.current_block.underground
 
-        print(f"AUTHORITY: {self.wayside_authority} DIST: {service_dist}")
-        # print(self.current_block)
 
         # check for stopping at stations/do announcements
         # TODO
@@ -233,7 +242,7 @@ class TrainController(QMainWindow):
         if selected == "testbench" or selected == "train_model":
             self.actual_speed = selected_data.get("actual_speed", self.actual_speed)
             self.wayside_speed = selected_data.get("wayside_speed", self.wayside_speed)
-            self.wayside_authority = selected_data.get("wayside_authority", self.wayside_authority)
+            # self.wayside_authority = selected_data.get("wayside_authority", self.wayside_authority)
             self.position = selected_data.get("position", self.position)
 
             if self.beacon_data != selected_data.get("beacon_data", self.beacon_data):
