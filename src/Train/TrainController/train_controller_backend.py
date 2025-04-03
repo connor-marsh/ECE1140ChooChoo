@@ -185,7 +185,7 @@ class TrainController(QMainWindow):
 
         # Check time for lights
         if (not self.manual_mode):
-            if (self.global_clock.hour >= 19 and self.global_clock.hour <= 24) or (self.global_clock.hour >= 0 and self.global_clock.hour < 7):
+            if (self.global_clock.hour >= 19 and self.global_clock.hour <= 24) or (self.global_clock.hour >= 0 and self.global_clock.hour < 7) or self.current_block.underground:
                 self.interior_lights = True
                 self.headlights = True
             else:
@@ -196,11 +196,6 @@ class TrainController(QMainWindow):
         if (self.actual_speed > 0):
             self.left_doors = False
             self.right_doors = False
-
-        # check underground for lights
-        self.interior_lights = self.current_block.underground
-        self.headlights = self.current_block.underground
-
 
         # check for stopping at stations/do announcements
         # TODO
