@@ -89,16 +89,22 @@ class TrainModelFrontEnd(QMainWindow):
         widget_action = QWidgetAction(self)
         widget_action.setDefaultWidget(self.train_dropdown)
         self.train_ui.menuTrain_ID_1.addAction(widget_action)
+        self.update_train_dropdown()
 
     def update_train_dropdown(self):
         if self.train_collection:
             self.train_dropdown.clear()
             for idx, train in enumerate(self.train_collection.train_list):
                 self.train_dropdown.addItem(getattr(train, "name", f"Train ID {idx+1}"))
-            if self.current_train is None:
-                self.current_train = self.train_collection.train_list[0]
-                # Load UI state for the first train.
-                self.load_ui_state(self.current_train)
+            if len(self.train_collection.train_list)==0:
+                self.current_train=None
+                self.train_ui.Main.hide()
+            else:
+                self.train_ui.Main.show()
+                if self.current_train is None :
+                    self.current_train = self.train_collection.train_list[0]
+                    # Load UI state for the first train.
+                    self.load_ui_state(self.current_train)
 
     def get_ui_state(self, train):
         """Returns the UI state dict for a given train. Initialize if not present.

@@ -45,7 +45,7 @@ class WaysideControllerCollection(QObject):
         self.controllers = [] # A collection of wayside has controllers
         self.CONTROLLER_COUNT = len(track_data.territory_counts) # get the number of controllers (CONSTANT)
 
-        self.blocks.sort(key=lambda block: (block.territory, block.id[0], int(block.id[1:]))) # sort blocks by territory then by section then by number
+        self.blocks = sorted(self.blocks, key=lambda block: (block.territory, block.id[0], int(block.id[1:]))) # sort blocks by territory then by section then by number
 
         # Will get the number corresponding to each wayside controller below (CONSTANTS)
         self.BLOCK_COUNTS = [] 
@@ -114,7 +114,7 @@ class WaysideControllerCollection(QObject):
             crossing_states = []
 
             # append each controller's outputs
-            for controller in self.collection.controllers:
+            for controller in self.controllers:
                 switch_states = switch_states + controller.switch_positions
                 light_states = light_states + controller.light_signals
                 crossing_states = crossing_states + controller.crossing_signals
@@ -129,9 +129,9 @@ class WaysideControllerCollection(QObject):
         :param occupancies: A dictionary of block occupancies with keyed with the block id
         """
         if self.track_model != None:
+            sorted_occupancies = [] # create a list for the sorted occupancies to go in
             for block in self.blocks: # iterate through my sorted blocks (sorted by territory then block id)
-                occupancy = occupancies.get(block.id) # read from the dictionary
-                sorted_occupancies = [] # create a list for the sorted occupancies to go in
+                occupancy = occupancies.get(block.id, Occupancy.UNOCCUPIED) # read from the dictionary
 
                 if occupancy == Occupancy.UNOCCUPIED:
                     sorted_occupancies.append(False)
