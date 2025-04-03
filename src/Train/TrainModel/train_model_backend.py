@@ -115,14 +115,14 @@ class TrainModel(QMainWindow):
         velocity_magnitude = math.sqrt(self.actual_speed**2 + self.actual_speed**2) # Calculate velocity magnitude
         drag_force = 0.5 * self.AIR_DENSITY * self.FRONTAL_AREA * self.DRAG_COEFFICIENT * velocity_magnitude**2
         # net_force = dyn_force - grav_force * air_resistance_constant
-        net_force = dyn_force - grav_force - drag_force     # TODO: Make drag code more clean
+        net_force = dyn_force - grav_force - drag_force
         a_base = net_force / self.mass_kg if self.mass_kg != 0 else 0.0
 
         if self.emergency_brake:
-            target_a = self.EMERGENCY_DECEL - self.GRAVITY * math.sin(theta)
+            target_a = self.EMERGENCY_DECEL - a_base
             self.current_acceleration = target_a
         elif self.service_brake:
-            target_a = self.SERVICE_DECEL - self.GRAVITY * math.sin(theta)
+            target_a = self.SERVICE_DECEL - a_base
             ramp_rate = 1.0
             accel_diff = target_a - self.current_acceleration
             max_delta = ramp_rate * dt
