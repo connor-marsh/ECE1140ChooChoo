@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsRectItem, QMainWindow
 from PyQt5.QtGui import QBrush, QPen, QColor, QPainter
-from PyQt5.QtCore import Qt, QRectF
+from PyQt5.QtCore import Qt, QRectF, QTimer 
 from Track.TrackModel.track_model_ui import Ui_MainWindow
 from Track.TrackModel.track_model_backend import TrackModel
 
@@ -234,6 +234,10 @@ class TrackModelFrontEnd(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        self.update_timer = QTimer(self)
+        self.update_timer.timeout.connect(self.update_map)
+        self.update_timer.start(100)  # every 100 ms
+
         # Backend Setup
         self.green_line = TrackModel("Green")
         self.outside_temp = 70.0
@@ -280,4 +284,7 @@ class TrackModelFrontEnd(QMainWindow):
     def reset_failures(self):
         for block_id in self.green_line.dynamic_track.failures:
             self.green_line.dynamic_track.failures[block_id] = 0
+        self.map_canvas.update_block_colors()
+
+    def update_map(self):
         self.map_canvas.update_block_colors()
