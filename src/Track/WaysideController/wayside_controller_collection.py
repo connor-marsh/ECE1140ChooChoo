@@ -112,19 +112,37 @@ class WaysideControllerCollection(QObject):
             switch_states = []
             light_states = []
             crossing_states = []
-
-            # append each controller's outputs
+            temp_commanded_speeds = []
+            temp_commanded_authorities = []
+            commanded_speeds = {}
+            commanded_authorities = {}
+            maintenances = {}
+            # loop through each controller to get values for entire track
             for controller in self.controllers:
+                # LISTS
                 switch_states = switch_states + controller.switch_positions
                 light_states = light_states + controller.light_signals
                 crossing_states = crossing_states + controller.crossing_signals
 
+                # DICTIONARIES
+                temp_commanded_speeds = temp_commanded_speeds + controller.commanded_speeds
+                temp_commanded_authorities = temp_commanded_authorities + controller.commanded_authorities
+
+            for i, block in enumerate(self.blocks):
+                if temp_commanded_speeds[i] != None:
+                    commanded_speeds[block.id] = temp_commanded_speeds[i]
+                if temp_commanded_authorities[i] != None:
+                    commanded_authorities[block.id] = temp_commanded_authorities[i]
+
             # send the outputs along with the sorted block struct so that they can interpret the values
             self.track_model.update_from_plc_outputs(self.blocks, switch_states, light_states, crossing_states)
 
+            # call the update in the track model
+            self.track_model.update_from_comms_outputs(wayside_speeds=commanded_speeds, wayside_authorities=commanded_authorities, maintenances=maintenances)
+
     def update_block_occupancies(self, occupancies:dict):
         """
-        Receives occupancy updates from the track model
+        Receives occupancy updates from the track model (called by the track model)
 
         :param occupancies: A dictionary of block occupancies with keyed with the block id
         """
@@ -169,12 +187,12 @@ class WaysideControllerCollection(QObject):
         # check if it is safe to dispatch the train
         # call track model's method for creating a new train
 
-    @pyqtSlot(int, bool)
+    @pyqtSlot(str, bool)
     def handle_block_maintenance(self, block_id, value):
         """
         Called when the ctc puts a block into maintenance
 
-        :param block_id: the block id such as "A1:
+        :param block_id: the block id such as "A1":
 
         :param state:  0 for maintenance off, 1 for maintenance on
         """
@@ -192,14 +210,13 @@ class WaysideControllerCollection(QObject):
         """
         sorted_speeds = [] # converting the dictionaries sent by the ctc 
         sorted_authorities = [] # so that they match my ordering of the blocks by territory and are iterable lists
-
         # Need to get the suggested 
         for block_index, block in enumerate(self.blocks):
             speed = speeds.get(block.id, None) # default to None in the case that there is no value sent
             authority = authorities.get(block.id, None)
             
             controller_index = block.territory - 1 # find which controller this block is in
-            relative_block_index = block_index - self.BLOCK_RANGES[controller_index] # find the relative block index to the controller
+            relative_block_index = block_index + self.BLOCK_RANGES[controller_index][0] # find the relative block index to the controller
             
             if speed == None: # no value means just use the previous
                 speed = self.controllers[controller_index].suggested_speeds[relative_block_index] # set the speed to its previous value since no change detected
@@ -207,29 +224,24 @@ class WaysideControllerCollection(QObject):
             if authority == None: # no value means use the previous
                 authority = self.controllers[controller_index].suggested_authorities[relative_block_index]
 
-            # put in lists for next loop that is per controller
+            if speed != None:
+                speed = speed if speed <= block.speed_limit else 0 # basic clamp for speeds
+
+            # put in lists for next loop that sends it to each backend controller
             sorted_speeds.append(speed)
-            sorted_authorities.append(authority) 
-        
-        commanded_speeds = {} # the individual backend controllers will add to these dictionaries the actual values to be 
-        commanded_authorities = {} # sent to the track model
+            sorted_authorities.append(authority)
+
 
         # This loop calls a function in each controller individually
         for i, controller in enumerate(self.controllers):
             # set the controller suggested speeds and authorities
             controller.suggested_speeds = sorted_speeds[slice(*self.BLOCK_RANGES[i])]
             controller.suggested_authorities = sorted_authorities[slice(*self.BLOCK_RANGES[i])]
-
-            # merging the controller specific [limited by its territory] values to the values that will be sent to the track_model
-            commanded_speeds = commanded_speeds | controller.commanded_speeds
-            commanded_authorities = commanded_authorities | controller.commanded_authorities
-
-        # call the update in the track model
-        self.track_model.update_from_comms_outputs(wayside_speeds=commanded_speeds, wayside_authorities=commanded_authorities)
+            
 
     def connect_signals(self): # may still need this when using signals later
         """
-        Connects any necessary signals for communication using the pyqt framework
+        Connects any necessary local and global signals for communication using the pyqt framework
         """
         signals.communication.ctc_switch_maintenance.connect(self.handle_switch_maintenance)
         signals.communication.ctc_exit_blocks.connect(self.handle_exit_blocks)
