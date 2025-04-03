@@ -23,8 +23,8 @@ class TrainControllerFrontend(QMainWindow):
         self.ui = TrainControllerUI()
         self.ui.setupUi(self)
 
-        # Initialize UI state dictionary (per train) for door toggles only.
-        # Keys: 'door_left', 'door_right'
+        # Initialize UI state dictionary (per train) for door toggles, cabin temperature, and control mode.
+        # Keys: 'door_left', 'door_right', 'desired_temperature', 'control_mode', 'next_station', 'control_constants', 'Kp', 'Ki', 'driver_target_speed'
         self.ui_states = {}
 
         # Set up default UI values
@@ -57,36 +57,57 @@ class TrainControllerFrontend(QMainWindow):
 
     def get_ui_state(self, train):
         """Return the UI state dictionary for the given train, initializing with defaults if needed.
-        Only door button states are tracked here.
+        Tracks door button states, cabin temperature, and control mode (auto/manual).
         """
         key = id(train)
         if key not in self.ui_states:
             self.ui_states[key] = {
                 'door_left': False,
                 'door_right': False,
-                'actual_temperature': self.ui.cabin_temperature_spin_box.value(),
-                'control_mode': self.ui.control_mode_switch.value()  # Assume 0 for auto, 1 for manual
+                'desired_temperature': self.ui.cabin_temperature_spin_box.value(),
+                'control_mode': self.ui.control_mode_switch.value(),  # Assume 0 for auto, 1 for manual
+                'next_station': self.ui.next_station_label.text(),
+                'control_constants': self.ui.control_constants_apply_button.isEnabled(),
+                'Kp': self.ui.kp_line_edit.text(),
+                'Ki': self.ui.kp_line_edit.text(),
+                'driver_target_speed': self.ui.target_speed_spin_box.value()
             }
         return self.ui_states[key]
 
     def save_current_ui_state(self):
-        """Save current door button states and propagate them to the backend for the active train."""
+        """Save current UI state to the state dictionary,
+        then propagate door states to the backend.
+        """
         if self.current_train is not None:
             state = self.get_ui_state(self.current_train)
             state['door_left'] = self.ui.door_left_button.isChecked()
             state['door_right'] = self.ui.door_right_button.isChecked()
-            state['actual_temperature'] = self.ui.cabin_temperature_spin_box.value()
+            state['desired_temperature'] = self.ui.cabin_temperature_spin_box.value()
             state['control_mode'] = self.ui.control_mode_switch.value()
+            state['next_station'] = self.ui.next_station_label.text()
+            state['control_constants'] = self.ui.control_constants_apply_button.isEnabled()
+            state['Kp'] = self.ui.kp_line_edit.text()
+            state['Ki'] = self.ui.ki_line_edit.text()
+            state['driver_target_speed'] = self.ui.target_speed_spin_box.value()
             self.current_train.door_left = state['door_left']
             self.current_train.door_right = state['door_right']
 
     def load_ui_state(self, train):
-        """Load the door button states for the given train and update UI controls and backend accordingly."""
+        """Load the UI state for the given train;
+        update UI controls and propagate door states to backend.
+        """
         state = self.get_ui_state(train)
         self.ui.door_left_button.setChecked(state['door_left'])
         self.ui.door_right_button.setChecked(state['door_right'])
-        self.ui.cabin_temperature_spin_box.setValue(state['actual_temperature'])
-        state['control_mode'] = self.ui.control_mode_switch.value()
+        self.ui.cabin_temperature_spin_box.setValue(state['desired_temperature'])
+        self.ui.control_mode_switch.setValue(state['control_mode'])
+        self.ui.next_station_label.setText(state['next_station'])
+        self.ui.control_constants_apply_button.setEnabled(state['control_constants'])
+        self.ui.kp_line_edit.setText(state['Kp'])
+        self.ui.ki_line_edit.setText(state['Ki'])
+        self.ui.kp_line_edit.setEnabled(state['control_constants'])
+        self.ui.ki_line_edit.setEnabled(state['control_constants'])
+        self.ui.target_speed_spin_box.setValue(state['driver_target_speed'])
         train.door_left = state['door_left']
         train.door_right = state['door_right']
 
@@ -155,7 +176,7 @@ class TrainControllerFrontend(QMainWindow):
         if self.current_train.emergency_brake:
             self.activate_emergency_brake()
 
-        # Set the input temperature
+        # Set the input temperature in backend
         self.current_train.desired_temperature = self.ui.cabin_temperature_spin_box.value()
 
         # Disable door buttons if the train is moving
