@@ -22,7 +22,7 @@ from CTC.centralized_traffic_controller_backend import CtcBackEnd
 
 if __name__=="__main__":
 
-    running_module = "CTC" # all, CTC, WaysideController, TrackModel, Train, TrainModel, TrainController, TrainControllerHW
+    running_module = "CtcWayside" # all, CTC, WaysideController, TrackModel, Train, TrackWayside TrainModel, TrainController, TrainControllerHW, CtcWayside
     
     # Create App
     app = QApplication(sys.argv)
@@ -38,7 +38,17 @@ if __name__=="__main__":
         ctc_backend = CtcBackEnd()
         ctc_frontend = CtcFrontEnd(ctc_backend)
         ctc_frontend.show()
-        pass
+        
+    elif running_module == "CtcWayside":
+        ctc_backend = CtcBackEnd()
+        ctc_frontend = CtcFrontEnd(ctc_backend)
+        ctc_frontend.show()
+        try:
+            line_name = "Green"
+            collection = WaysideControllerCollection(track_model=None,line_name=line_name,auto_import_programs=True)
+            collection.frontend.show()
+        except KeyError as e:
+            print(f"\n❌ {e}\nPlease enter a valid line name. \'{line_name}\' is not in the list of imported lines.")
     elif running_module == "TrackWayside":
         track_model = TrackModelFrontEnd()
         # track_model.upload_track_layout_data("GreenLine_Layout.xlsx")
