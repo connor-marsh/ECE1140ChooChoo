@@ -49,6 +49,7 @@ class TrainControllerFrontend(QMainWindow):
 
         # Connect the train dropdown so that when selection changes, UI state is saved/loaded.
         self.ui.train_id_dropdown.currentIndexChanged.connect(self.on_train_selection_changed)
+        self.update_train_dropdown()
 
         # Set up timer for callback/update function
         self.timer = QTimer(self)
@@ -112,6 +113,8 @@ class TrainControllerFrontend(QMainWindow):
         train.door_right = state['door_right']
 
     def on_train_selection_changed(self, index):
+        if len(self.collection.train_list)==0:
+            return
         """Handle switching trains from the dropdown."""
         if self.current_train is not None:
             self.save_current_ui_state()
@@ -124,19 +127,21 @@ class TrainControllerFrontend(QMainWindow):
         if self.collection:
             self.ui.train_id_dropdown.clear()
             self.ui.train_id_dropdown.addItems([str(i+1) for i in range(len(self.collection.train_list))])
-            if self.current_train is None:
-                self.current_train = self.collection.train_list[0]
-                if self.train_integrated:
-                    self.current_train = self.current_train.controller
-                self.load_ui_state(self.current_train)
+            if len(self.collection.train_list)==0:
+                self.current_train = None
+                self.ui.centralwidget.hide()
+            else:
+                self.ui.centralwidget.show()
+                if self.current_train is None:
+                    self.current_train = self.collection.train_list[0]
+                    if self.train_integrated:
+                        self.current_train = self.current_train.controller
+                    self.load_ui_state(self.current_train)
 
     def update(self):
         # Set the display values
         if not self.current_train:
             return
-        self.current_train = self.collection.train_list[int(self.ui.train_id_dropdown.currentText())-1]
-        if self.train_integrated:
-            self.current_train = self.current_train.controller
 
         # Update clock
         self.ui.global_clock_lcd.display(self.current_train.global_clock.text)
