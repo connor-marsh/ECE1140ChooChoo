@@ -268,7 +268,7 @@ class Track:
         self.name = name
         self.active_trains = []
         self.blocks = []
-        self.switch_data = self.track_data.switches.copy()
+        self.switch_data = self.track_data.switches
         self.station_names = self.track_data.stations.copy()
         self.switch_states = [0,0,0,0,0,0] #hardcoded
         self.lights = [0,0,0,0,0,0] #hardcoded

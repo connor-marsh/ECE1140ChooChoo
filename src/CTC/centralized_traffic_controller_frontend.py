@@ -69,7 +69,6 @@ class CtcFrontEnd(QMainWindow):
         self.update_throughput() #update throughput label
         self.update_map() #update track data table
         self.ctc_ui.active_train_number_label.setText(str(self.backend.train_count))
-        self.update_active_train_table()
 
 
     #Stacked Widget Navigation
@@ -92,37 +91,13 @@ class CtcFrontEnd(QMainWindow):
         if not file_name:
             return None  # If no file is selected, return None
             
-        file_data = pd.read_excel(file_name, header=None)
+        file_data = pd.read_excel(file_name)
         return file_data
     
     def get_train_schedule(self):
         #open file dialog
         route_schedules = self.open_file_dialog()
         self.backend.process_route_data(route_schedules)
-        self.update_route_table()
-
-    def update_route_table(self):
-        self.ctc_ui.sub_dispatch_train_table.setRowCount(len(self.backend.routes))
-        max_stations = max(len(stations) for stations in self.backend.routes.values())
-
-        # Set the number of columns: 1 for ID, 1 for Route Name, then columns for each station
-        self.ctc_ui.sub_dispatch_train_table.setColumnCount(max_stations + 2)
-        self.ctc_ui.sub_dispatch_train_table.setHorizontalHeaderLabels(['ID', 'Route Name'] + [f'Station {i+1}' for i in range(max_stations)])
-
-        for row_idx, (route_name, stations) in enumerate(self.backend.routes.items()):
-            # Add ID column (using row_idx to generate a unique ID for each route)
-            self.ctc_ui.sub_dispatch_train_table.setItem(row_idx, 0, QTableWidgetItem(str(row_idx + 1)))  # IDs start from 1
-
-            # Add Route Name column
-            self.ctc_ui.sub_dispatch_train_table.setItem(row_idx, 1, QTableWidgetItem(route_name))
-
-            # Add Stations columns
-            for col_idx, station in enumerate(stations):
-                self.ctc_ui.sub_dispatch_train_table.setItem(row_idx, col_idx + 2, QTableWidgetItem(station))
-
-            # Fill remaining columns with empty text if route has fewer stations than the max
-            for col_idx in range(len(stations) + 2, self.ctc_ui.sub_dispatch_train_table.columnCount()):
-                self.ctc_ui.sub_dispatch_train_table.setItem(row_idx, col_idx, QTableWidgetItem(''))
 
     def on_map_row_clicked(self, row, column):
         #stores data for clicked block
@@ -150,43 +125,10 @@ class CtcFrontEnd(QMainWindow):
         for i in range(1, 151):
             self.ctc_ui.sub_block_number_combo.addItem(str(i))
 
-    def update_active_train_table(self):
-        active_trains = self.backend.active_line.active_trains
-        if len(active_trains) != 0:
-            self.ctc_ui.main_active_trains_table.setRowCount(len(active_trains)) 
-
-            for row, train in enumerate(active_trains):
-                train_id = str(train.train_id)
-                current_block = str(self.backend.active_line.blocks[train.current_block].id)
-                upcoming_stop = str("Edgebrook") #HARDCODED
-                remaining_stops = str("1")       #HARDCODED
-                current_mode = str(train.mode)
-
-                id_item = QTableWidgetItem(train_id)
-                id_item.setTextAlignment(Qt.AlignCenter)
-                self.ctc_ui.main_active_trains_table.setItem(row, 0, id_item)
-
-                current_block_item = QTableWidgetItem(current_block)
-                current_block_item.setTextAlignment(Qt.AlignCenter)
-                self.ctc_ui.main_active_trains_table.setItem(row, 1, current_block_item)
-
-                upcoming_stop_item = QTableWidgetItem(upcoming_stop)
-                upcoming_stop_item.setTextAlignment(Qt.AlignCenter)
-                self.ctc_ui.main_active_trains_table.setItem(row, 2, upcoming_stop_item)
-
-                remaining_stops_item = QTableWidgetItem(remaining_stops)
-                remaining_stops_item.setTextAlignment(Qt.AlignCenter)
-                self.ctc_ui.main_active_trains_table.setItem(row, 3, remaining_stops_item)
-
-                mode_item = QTableWidgetItem(current_mode)
-                mode_item.setTextAlignment(Qt.AlignCenter)
-                self.ctc_ui.main_active_trains_table.setItem(row, 4, mode_item)
-                
-
-
     #Map Initialization
     def initialize_map(self):
         self.block_data, self.station_names, self.switches, _, _, _ = self.backend.get_map_data()
+        
         # Update map size 
         self.ctc_ui.main_map_table.setRowCount(len(self.block_data))
 
@@ -212,13 +154,19 @@ class CtcFrontEnd(QMainWindow):
 
             # Set Switch and Position
             if block_info.id in self.switches:
-                switch_value = self.switches[block_info.id].positions[0] # May need to update ID check
+                switch_value = str(self.switches[block_info.id].positions[0])
+                print("Block id:", block_info.id, "value:", switch_value)  # Debugging output
             else:
-                switch_value = " "
-            switch_item = QTableWidgetItem(switch_value)
+                switch_value = " "  # Default value
+
+            switch_item = QTableWidgetItem()
+            switch_item.setText(switch_value) 
+
             if switch_value == " ":
                 switch_item.setBackground(QColor("darkGray"))
+
             self.ctc_ui.main_map_table.setItem(row_index, 4, switch_item)
+
 
             # Set Traffic Light
             traffic_light_item = QTableWidgetItem("")
@@ -249,7 +197,7 @@ class CtcFrontEnd(QMainWindow):
 
     def update_map(self): # Include updated check for block data?? Check effeciency
         # Updates map with new data (Occupancy, Switch Position, Traffic Light, Crossing Status, and Maintenance | called by update function
-        block_data, _, switch_data, switch_states, lights, crossings = self.backend.get_map_data()
+        self.block_data, self.station_names, self.switches, switch_state, lights, crossings = self.backend.get_map_data()
 
         switch_index, light_index, crossing_index = 0, 0, 0
 
@@ -259,13 +207,18 @@ class CtcFrontEnd(QMainWindow):
             occupancy_item = QTableWidgetItem()
             occupancy_item.setBackground(QColor("red") if block.occupancy else QColor("green"))
             self.ctc_ui.main_map_table.setItem(row_index, 2, occupancy_item)
-
-            if block.has_switch:
+            '''
+            if block.id in self.switches: #VOLITLE
                 # Update Switch Position
-                switch_item = QTableWidgetItem(str(switch_states[switch_index])) #Would like to swap to actual blocks, not just 0, 1
-                self.ctc_ui.main_map_table.setItem(row_index, 4, switch_item)
-                switch_index += 1
+                if switch_state[switch_index] == 0:
+                    switch_value = str(self.switches[block.id].positions[0]) 
+                elif switch_state[switch_index] == 1:
+                    switch_value = str(self.switches[block.id].positions[1]) 
+                switch_item = QTableWidgetItem()
+                switch_item.setText(switch_value) 
 
+                self.ctc_ui.main_map_table.setItem(row_index, 4, switch_item)
+            '''
             if block.has_light:
                 # Update Traffic Light
                 light_item = QTableWidgetItem()
