@@ -7,6 +7,7 @@ Description:
 import sys
 import globals.track_data_class as init_track_data
 import globals.signals as signals
+from Track.TrackModel.track_model_enums import Occupancy
 from Track.WaysideController.wayside_controller_backend import WaysideController
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject, QTimer
@@ -22,18 +23,17 @@ class WaysideControllerCollection(QObject):
         :param track_data: A class that contains the unchanging data imported from the track builder
         """
         super().__init__()
+        self.track_model = track_model
         if track_model != None:
             if track_model.name not in init_track_data.lines:
                 raise KeyError
-            self.track_model = track_model
+            
             self.LINE_NAME = track_model.name
-            self.timer = QTimer()
-            self.timer.setInterval(100)
-            self.timer.timeout.connect(self.update_track_model)
         else:
             if line_name not in init_track_data.lines:
                 raise KeyError
             self.LINE_NAME = line_name
+
 
         # get references to the data from the corresponding track
         track_data = init_track_data.lines[self.LINE_NAME]
@@ -79,8 +79,13 @@ class WaysideControllerCollection(QObject):
         from Track.WaysideController.wayside_controller_frontend import WaysideControllerFrontend # lazy import to avoid circular import (do NOT tell me about design patterns)
         self.frontend = WaysideControllerFrontend(self, auto_import_programs)
         
-
+        self.timer = QTimer()
+        self.timer.setInterval(100)
         self.connect_signals()
+                
+        self.timer.start()
+
+        
     
     def get_ranges(self, counts): # THIS FUNCTION COULD BE MOVED TO THE TRACK DATA CLASS BUT THIS KINDA FITS MORE WITH WHAT I HAVE TO DO (ONLY USED FOR INIT)
         """
@@ -97,26 +102,46 @@ class WaysideControllerCollection(QObject):
             ranges.append((start_index, end_index + 1))
             start_index = end_index + 1  # Move start index to next range
         return ranges
-
-    @pyqtSignal()
+    
+    @pyqtSlot()
     def update_track_model(self):
         """
         Sends the outputs of each controller's plc program upon the collection's timer timing outs
         """
+        if self.track_model != None:
+            switch_states = []
+            light_states = []
+            crossing_states = []
 
-        switch_states = []
-        light_states = []
-        crossing_states = []
+            # append each controller's outputs
+            for controller in self.collection.controllers:
+                switch_states = switch_states + controller.switch_positions
+                light_states = light_states + controller.light_signals
+                crossing_states = crossing_states + controller.crossing_signals
 
-        # append each controller's outputs
-        for controller in self.collection.controllers:
-            switch_states = switch_states + controller.switch_positions
-            light_states = light_states + controller.light_signals
-            crossing_states = crossing_states + controller.crossing_signals
+            # send the outputs along with the sorted block struct so that they can interpret the values
+            self.track_model.update_from_plc_outputs(self.blocks, switch_states, light_states, crossing_states)
 
-        # send the outputs along with the sorted block struct so that they can interpret the values
-        self.track_model.update_from_plc_outputs(self.blocks, switch_states, light_states, crossing_states)
+    def update_block_occupancies(self, occupancies:dict):
+        """
+        Receives occupancy updates from the track model
 
+        :param occupancies: A dictionary of block occupancies with keyed with the block id
+        """
+        if self.track_model != None:
+            for block in self.blocks: # iterate through my sorted blocks (sorted by territory then block id)
+                occupancy = occupancies.get(block.id) # read from the dictionary
+                sorted_occupancies = [] # create a list for the sorted occupancies to go in
+
+                if occupancy == Occupancy.UNOCCUPIED:
+                    sorted_occupancies.append(False)
+                else:
+                    sorted_occupancies.append(True)
+
+            for i, controller in enumerate(self.controllers):
+                controller.block_occupancies = sorted_occupancies[slice(*self.BLOCK_RANGES[i])] # goofy slice combined with unpacking operator but I like it
+
+        
 
     @pyqtSlot(str, bool)
     def handle_switch_maintenance(block_id, position):
@@ -172,6 +197,8 @@ class WaysideControllerCollection(QObject):
         signals.communication.ctc_dispatch.connect(self.handle_dispatch)
         signals.communication.ctc_block_maintenance.connect(self.handle_block_maintenance)
         signals.communication.ctc_suggested.connect(self.handle_suggested_values)
+        self.timer.timeout.connect(self.update_track_model)
+
 
     #DEFINE A FUNCTION THAT EITHER GRABS VALUES FROM THE TRACK REFERENCE OR FROM THE TESTBENCH DEPENDING ON THE MODE OF THE CONTROLLER
     # FOR EACH CONTROLLER CHECK THE MODE 

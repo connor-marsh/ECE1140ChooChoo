@@ -44,7 +44,7 @@ class WaysideController(QObject):
 
 
         self.timer = QTimer()
-        self.timer.setInterval(1000)
+        self.timer.setInterval(100)
         self.timer.timeout.connect(self.update)
         self.timer.start()
 
