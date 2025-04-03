@@ -19,7 +19,7 @@ from Track.TrackModel.track_model_frontend import TrackModelFrontEnd
 
 if __name__=="__main__":
 
-    running_module = "Train" # all, CTC, WaysideController, TrackModel, Train, Train Model, Train Controller
+    running_module = "WaysideController" # all, CTC, WaysideController, TrackModel, Train, Train Model, Train Controller
     
     # Create App
     app = QApplication(sys.argv)
@@ -27,23 +27,17 @@ if __name__=="__main__":
     # Setup global objects
     global_clock.init()
     track_data.init()
-    signals.init()
     # Instatiate Modules
     if running_module == "all":
         pass
     elif running_module == "CTC":
         pass
     elif running_module == "WaysideController":
-        try:
-            line_name = "Green"
-            collection = WaysideControllerCollection(line_name=line_name)
-            collection.frontend.show()
-        except KeyError as e:
-            print(f"\n❌ {e}\nPlease enter a valid line name. \'{line_name}\' is not in the list of imported lines.")
+        collection = WaysideControllerCollection("GREEN")
+        collection.frontend.show()
     elif running_module == "TrackModel":
-        track_model = TrackModelFrontEnd()
-        # track_model.upload_track_layout_data("GreenLine_Layout.xlsx")
-        track_model.change_temperature(35)
+        track_model_ui = TrackModelFrontEnd()
+        track_model_ui.show()
     elif running_module == "Train":
         train_collection = TrainCollection(num_trains=3)
         train_model_testbench = TrainModelTestbench(train_collection, train_integrated=True)    

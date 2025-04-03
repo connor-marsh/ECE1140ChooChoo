@@ -209,5 +209,5 @@ class TrackData():
 def init():
     global lines 
     lines = {}
-    line = TrackData("src\Track\TrackModel\GreenLine_Layout.xlsx")
+    line = TrackData("src/Track/TrackModel/GreenLine_Layout.xlsx")
     lines[line.line_name] = line

@@ -633,3 +633,16 @@ class Ui_MainWindow(object):
         self.broken_rail_failure_icon.setText(_translate("MainWindow", "IC"))
         self.power_failure_icon.setText(_translate("MainWindow", "IC"))
         self.group_infrasturcture.setTitle(_translate("MainWindow", "Infrastructure"))
+
+
+if __name__ == "__main__":
+    import sys
+    from PyQt5.QtWidgets import QApplication, QMainWindow
+
+    app = QApplication(sys.argv)
+    MainWindow = QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())
+
