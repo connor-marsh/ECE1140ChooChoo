@@ -49,22 +49,20 @@ class CtcBackEnd(QObject):
 
         #Read in signal from Track Model
         signals.communication.track_tickets.connect(self.update_tickets)  #int
-
         signals.communication.wayside_block_occupancies.connect(self.update_occupancy) #List
-        signals.communication.wayside_switches.connect(self.update_switches()) #List
-        signals.communication.wayside_lights.connect(self.update_lights()) #List
-        signals.communication.wayside_crossings.connect(self.update_crossings()) #List
+        signals.communication.wayside_switches.connect(self.update_switches) #List
+        signals.communication.wayside_lights.connect(self.update_lights) #List
+        signals.communication.wayside_crossings.connect(self.update_crossings) #List
         
         
-        self.suggested_speed = [] #length of track, each block has a suggested speed, speed limit for now
-        self.suggested_authority = [] #length of track, each block has a suggested authority, -1 for no change
-        self.manual_switch_states = [] #length of switch count, each block has a switch state, 0 for first option, 1 for second option
+        self.suggested_speed = {} #key is block data is sent to
+        self.suggested_authority = {} #Key is block data is being sent to
 
         self.total_tickets = 0
         self.throughput = 0
         self.train_count = 0
         self.elapsed_mins = 0
-        self.last_minute = self.wall_clock.get_minute()
+        self.last_minute = self.wall_clock.minute
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.backend_update)
@@ -73,15 +71,23 @@ class CtcBackEnd(QObject):
         
 
     def backend_update(self):
-        if self.wall_clock.get_minute() != self.last_minute:
+        if self.wall_clock.minute != self.last_minute:
             self.elapsed_mins += 1
-            self.last_minute = self.wall_clock.get_minute()
-
+            self.last_minute = self.wall_clock.minute
+        #print("Elapsed Time", self.elapsed_mins)
         self.dispatch_queue_handler() #Dispatch queue handler    
-        self.send_suggestions() #Send suggestions to wayside     
+        if self.active_line.blocks[62].occupancy:
+            self.suggested_speed = {"K63" : 70}
+            self.suggested_authority = {"K63" : 16134}
+            self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside  
+        if self.active_line.blocks[9].occupancy:
+            self.suggested_speed = {"C9" : 45}
+            self.suggested_authority = {"C9" : 5959}
+            self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside  
+            
         
     def get_map_data(self):
-        return self.active_line.blocks, self.active_line.switch_data, self.active_line.switch_states, self.active_line.lights, self.active_line.crossings
+        return self.active_line.blocks, self.active_line.station_names, self.active_line.switch_data, self.active_line.switch_states, self.active_line.lights, self.active_line.crossings
 
     def process_route_data(self, file_data):
         if(file_data is not None):
@@ -107,12 +113,6 @@ class CtcBackEnd(QObject):
 
     def upload_train_schedule(self):
         #uploads train schedule file | activated by button
-        pass
-
-
-    def update_active_trains_count(self):
-        #Updated mainscreen train count
-        #reads number of rows from train data file + manual sent trains
         pass
 
     def update_manual_suggested(self):
@@ -159,11 +159,9 @@ class CtcBackEnd(QObject):
 
     def first_blocks_free(self):
         #Checks if first blocks are free | called by dispatch queue handler
-        block_1 = self.active_line.blocks[self.active_line.entrance_blocks[0]].occupancy 
-        block_2 = self.active_line.blocks[self.active_line.entrance_blocks[1]].occupancy
-        block_3 = self.active_line.blocks[self.active_line.entrance_blocks[2]].occupancy
+        block_1 = self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].occupancy 
 
-        if not block_1 and not block_2 and not block_3: #Check correctness of this logic
+        if not block_1: #Check correctness of this logic
             return True
         else:
             return False
@@ -172,40 +170,45 @@ class CtcBackEnd(QObject):
         #Train dispatch handler | called by front end
         if destination_type == 'station':
             #Dispatch to station
-            destination_block = int(self.G_STATION_BLOCKS[destination])
+            destination_block = int(self.G_STATIONS_BLOCKS[destination])
+            print("Trying to dispatch to: ", destination, " Block: ", self.G_STATIONS_BLOCKS[destination])
         elif destination_type == 'block':
             #Dispatch to block
             destination_block = int(destination)
+            print("Trying to dispatch to block", destination)
 
         self.train_queue.put(destination_block)
+        print("Train Entered into Queue")
 
     def dispatch_queue_handler(self):
         #Handles train queue | called by update function
         if not self.train_queue.empty() and self.first_blocks_free():
             #get destination block from queue
             destination_block = self.train_queue.get()
-            Track.add_active_train(self.train_count, destination_block, "manual")
+            self.active_line.add_active_train(self.train_count, destination_block, "manual")
             self.train_count += 1
-            self.update_active_trains_count() #Move to own function eventually, update periodicly
             #Update active train list
+            print("Train Leaving Queue")
             self.send_dispatch_train() 
  
     def send_dispatch_train(self):
-        signals.communication.communication.ctc_dispatch.emit() # Just signal, no param
+        signals.communication.ctc_dispatch.emit() # Just signal, no param
+        print("TRAIN DISPATCHED")
 
     def send_block_maintenance(self, block_id, maintenance_val):
         signals.communication.ctc_block_maintenance.emit(block_id, maintenance_val) #int, bool 
-
+        print("Set Block ", block_id, " Maintenance value to ", maintenance_val)
+        print("Stored Block value: ", self.active_line.blocks[block_id].id, " ", self.active_line.blocks[block_id].maintenance)
     def send_suggestions(self, suggested_speeds, suggested_authorities): 
         signals.communication.ctc_suggested.emit(suggested_speeds, suggested_authorities) #Dict, Dict
 
     def send_exit_blocks(self, exit_blocks):
         signals.communication.ctc_exit_blocks.emit() #List, Currently Unused
 
-    def send_switch_states(self, switch_id, switch_state): 
-        switch_id = "0" #String to locate switch
-        switch_state = False #False for first option, True for second option
+    def send_switch_states(self, block_id, switch_state): #KNOWN ERROR - SENDS SWITCH VAL WHEN EXITING MAINTENANCE
+        switch_id = self.active_line.blocks[block_id].id
         signals.communication.ctc_switch_maintenance.emit(switch_id, switch_state) #String, bool
+        print("Switch on Block ", switch_id, " set to ", switch_state)
 
     
 class DummyTrain:
@@ -234,7 +237,7 @@ class DummyTrain:
 class TrackBlocks:
     def __init__(self, block):
         self.id = block.id
-        self.length = block.length
+        self.length = block.length #IN YARDS, UPDATE UI-------------------------------
         self.speed_limit = block.speed_limit
         self.grade = block.grade
         self.underground = block.underground
@@ -253,21 +256,22 @@ class TrackBlocks:
         self.suggested_authority = 0
         self.updated = True
         #May need addition values
-        print("Block ID: ", self.id, "Switch", self.has_switch) #Testing line, remove later
+        #print("Block ID: ", self.id, "Switch", self.has_switch) #Testing line, remove later
 
 class Track: 
     def __init__(self, name):
         self.track_data = global_track_data.lines[name]
         self.name = name
-        self.active_trains = {}
+        self.active_trains = []
         self.blocks = []
         self.switch_data = self.track_data.switches.copy()
-        self.switch_states = []
-        self.lights = []
-        self.crossings = []
+        self.station_names = self.track_data.stations.copy()
+        self.switch_states = [0,0,0,0,0,0] #hardcoded
+        self.lights = [0,0,0,0,0,0] #hardcoded
+        self.crossings = [0,0] #hardcoded
 
         if name == "Green":
-            self.entrance_blocks = ["J62", "K63", "K64"] #Entrance blocks for green line
+            self.ENTRANCE_BLOCK = 1  #Entrance blocks for green line | Now unique
         #elif name == "Red":
         #    self.entrance_blocks = [1, 2, 3] #Entrance blocks for red line
         else:
@@ -278,10 +282,10 @@ class Track:
     def initialize_blocks(self):
         self.blocks = [TrackBlocks(block) for block in self.track_data.blocks]
 
-    def add_active_train(self, train_id, train_route, train_mode):
+    def add_active_train(self, train_id, train_route, train_mode="manual"):
         #Adds train to active trains list
         new_train = DummyTrain(train_id, train_route, train_mode)
-        self.active_trains[train_id] = new_train
+        self.active_trains.append(new_train) #Changed to list, was dictionary
         
 
     def get_train_data(self, train_id):
