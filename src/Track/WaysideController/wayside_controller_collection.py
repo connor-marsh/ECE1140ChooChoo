@@ -226,6 +226,7 @@ class WaysideControllerCollection(QObject):
 
         :param authorities: a list of suggested authoritities from the ctc that is key 
         """
+        print("IN SUGGESTED VALUES")
         sorted_speeds = [] # converting the dictionaries sent by the ctc 
         sorted_authorities = [] # so that they match my ordering of the blocks by territory and are iterable lists
         # Need to get the suggested 
