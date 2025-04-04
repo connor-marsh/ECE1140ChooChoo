@@ -38,7 +38,7 @@ class CtcBackEnd(QObject):
         super().__init__()
         self.sent62 = False # These are temporary fixes that allow the ctc to only send authorities/speeds one time per occupancy update
         self.sent9 = False
-        self.routes= {}
+        self.routes = {}
 
         #Controls active track data
         self.green_line = Track("Green")
@@ -153,17 +153,25 @@ class CtcBackEnd(QObject):
              block.occupancy = occupancies[block.id]
 
     @pyqtSlot(dict)
-    def update_switches(self, switch_list):
-        self.active_line.switch_states = switch_list
+    def update_switches(self, switch_dict):
+        #Updates block switch status 
+        for block in self.active_line.blocks:
+            if block.id in switch_dict:
+                block.switch_state = switch_dict[block.id]
 
     @pyqtSlot(dict)
-    def update_lights(self, light_list):
+    def update_lights(self, light_dict):
         #Updates light list | called by wayside controller
-        self.active_line.lights = light_list
-            
+        for block in self.active_line.blocks:
+            if block.id in light_dict:
+                block.light_state = light_dict[block.id]
+
     @pyqtSlot(dict)
-    def update_crossings(self, crossing_list):
-        self.active_line.crossings = crossing_list
+    def update_crossings(self, crossing_dict):
+        for block in self.active_line.blocks:
+            if block.id in crossing_dict:
+                block.crossing_state = crossing_dict[block.id]
+
 
     def update_train_location(self, occupancy_list):
         if len(self.active_line.active_trains) != 0:
@@ -175,7 +183,7 @@ class CtcBackEnd(QObject):
     def first_blocks_free(self):
         #Checks if first blocks are free | called by dispatch queue handler
         block_1 = self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].occupancy or self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].maintenance
-        print("Block ", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].id, "Occupancy is", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].occupancy, " and has maintenance ", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].maintenance)
+        #print("Block ", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].id, "Occupancy is", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].occupancy, " and has maintenance ", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].maintenance)
         if not block_1: # Altered from 3 blocks
             return True
         else:
@@ -208,12 +216,13 @@ class CtcBackEnd(QObject):
  
     def send_dispatch_train(self):
         signals.communication.ctc_dispatch.emit() # Just signal, no param
-        print("TRAIN DISPATCHED")
+        print("Train Dispatched from CTC")
 
     def send_block_maintenance(self, block_id, maintenance_val):
         signals.communication.ctc_block_maintenance.emit(self.active_line.blocks[block_id].id, maintenance_val) #int, bool 
         print("Set Block ", block_id, " Maintenance value to ", maintenance_val)
         print("Stored Block value: ", self.active_line.blocks[block_id].id, " ", self.active_line.blocks[block_id].maintenance)
+
     def send_suggestions(self, suggested_speeds, suggested_authorities): 
         signals.communication.ctc_suggested.emit(suggested_speeds, suggested_authorities) #Dict, Dict
 
@@ -267,6 +276,7 @@ class TrackBlocks:
         self.maintenance = False
         self.switch_state = 0 #0 for first option, 1 for second option
         self.light_state = 0 #0 for red, 1 for green
+        self.crossing_state = 0
         self.suggested_speed = 0
         self.suggested_authority = 0
         self.updated = True
