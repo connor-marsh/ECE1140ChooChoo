@@ -217,20 +217,20 @@ class TrainController(QMainWindow):
             self.left_doors = False
             self.right_doors = False
 
-        # # check for stopping at stations/do announcements
-        # if (self.wayside_authority < 50 and self.previous_authority > 50):
-        #     self.stopping = True
-        # self.previous_authority = self.wayside_authority
+        # check for stopping at stations/do announcements
+        if (self.wayside_authority < 50 and self.previous_authority > 50):
+            self.stopping = True
+        self.previous_authority = self.wayside_authority
         
-        # if self.stopping and self.current_block.station and not self.started_timer1 and not self.started_timer2:
-        #     QTimer.singleShot(int(500.0/self.global_clock.time_multiplier), self.start_dwell)
-        #     QTimer.singleShot(int(10.0*30500.0/self.global_clock.time_multiplier), self.end_dwell)
-        #     self.started_timer1 = True
-        #     self.started_timer2 = True
-        # if self.dwell:
-        #     self.service_brake = True
+        if self.stopping and self.current_block.station and not self.started_timer1 and not self.started_timer2:
+            QTimer.singleShot(int(500.0/self.global_clock.time_multiplier), self.start_dwell)
+            QTimer.singleShot(int(10.0*30500.0/self.global_clock.time_multiplier), self.end_dwell)
+            self.started_timer1 = True
+            self.started_timer2 = True
+        if self.dwell:
+            self.service_brake = True
         
-        # print(self.dwell)
+        print(self.dwell)
 
     def start_dwell(self):
         self.dwell = True
