@@ -80,13 +80,10 @@ class WaysideControllerCollection(QObject):
         self.frontend = WaysideControllerFrontend(self, auto_import_programs)
         
 
-        self.one_shot_suggested = False
+        #self.one_shot_suggested = False
 
-        self.timer = QTimer()
-        self.timer.setInterval(100)
         self.connect_signals()
-                
-        self.timer.start()
+
 
         
     
@@ -273,8 +270,7 @@ class WaysideControllerCollection(QObject):
         signals.communication.ctc_dispatch.connect(self.handle_dispatch)
         signals.communication.ctc_block_maintenance.connect(self.handle_block_maintenance)
         signals.communication.ctc_suggested.connect(self.handle_suggested_values)
-        self.timer.timeout.connect(self.update_track_model)
-        self.timer.timeout.connect(self.update_ctc)
+
 
 
     #DEFINE A FUNCTION THAT EITHER GRABS VALUES FROM THE TRACK REFERENCE OR FROM THE TESTBENCH DEPENDING ON THE MODE OF THE CONTROLLER
