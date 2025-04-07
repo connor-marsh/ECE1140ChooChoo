@@ -57,6 +57,8 @@ class TrainController(QMainWindow):
         self.manual_mode = False
         self.target_speed = 0.0
         self.beacon_data_recieved = False
+        self.started_timer1 = False
+        self.started_timer2 = False
         
         #TODO: these defaults should be fixed - currently hard-coded
         self.current_block = self.track_data.blocks[63-1]
@@ -103,8 +105,8 @@ class TrainController(QMainWindow):
             self.commanded_power = 0
 
         self.update_track_location()
-        self.update_safety()
         self.update_auxiliary()
+        self.update_safety()
 
     def update_track_location(self):
         # Calculate distance within the block
@@ -215,17 +217,20 @@ class TrainController(QMainWindow):
             self.left_doors = False
             self.right_doors = False
 
-        # check for stopping at stations/do announcements
-        if (self.wayside_authority < 50 and self.previous_authority > 50):
-            self.stopping = True
-        self.previous_authority = self.wayside_authority
+        # # check for stopping at stations/do announcements
+        # if (self.wayside_authority < 50 and self.previous_authority > 50):
+        #     self.stopping = True
+        # self.previous_authority = self.wayside_authority
         
-        if self.stopping and self.current_block.station:
-            self.start_dwell()
-            QTimer.singleShot(int(30500.0/self.global_clock.time_multiplier), self.end_dwell)
-            self.stopping=False
-        if self.dwell:
-            self.service_brake = True
+        # if self.stopping and self.current_block.station and not self.started_timer1 and not self.started_timer2:
+        #     QTimer.singleShot(int(500.0/self.global_clock.time_multiplier), self.start_dwell)
+        #     QTimer.singleShot(int(10.0*30500.0/self.global_clock.time_multiplier), self.end_dwell)
+        #     self.started_timer1 = True
+        #     self.started_timer2 = True
+        # if self.dwell:
+        #     self.service_brake = True
+        
+        # print(self.dwell)
 
     def start_dwell(self):
         self.dwell = True
@@ -238,12 +243,14 @@ class TrainController(QMainWindow):
                 else:
                     self.left_doors = True
                     self.right_doors = True
+        self.started_timer1 = False
 
     def end_dwell(self):
         self.left_doors = False
         self.right_doors = False
         self.dwell = False
         self.stopping = False
+        self.started_timer2 = False
 
     def process_beacon_data(self):
         self.previous_switch_entrance = True
