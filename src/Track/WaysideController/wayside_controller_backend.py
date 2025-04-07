@@ -8,6 +8,7 @@ import importlib.util
 import sys
 import time
 import os
+import globals.signals as Signals
 from pathlib import Path
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 from Track.TrackModel.track_model_enums import Occupancy
@@ -39,15 +40,13 @@ class WaysideController(QObject):
         self.commanded_authorities = [None] * block_count # List of the commanded authority to each block
         self.commanded_speeds = [None] * block_count # List of the commanded speed to each block
         self.maintenances = [False] * block_count # True for maintenance false for no maintenace
-        self.index = index
-        self.collection = collection_reference
-        self.updated_commanded_authorities = {}
-
+        self.index = index # allows the controller to lookup information about the track based on which territory it is
+        self.collection = collection_reference # 
         self.maintenance_mode = False # A boolean that indicates when the wayside controller is in maintenance mode.
-
         self.program = None
 
-
+        Signals.communication.ctc_suggested.connect(self.handle_suggested_values)
+        
         self.timer = QTimer()
         self.timer.setInterval(100)
         self.timer.timeout.connect(self.update)
@@ -59,7 +58,18 @@ class WaysideController(QObject):
     def update(self):
         if self.program != None:
             self.execute_cycle() # make it so that it calls programmers code 3 times and checks
+
+
             # update the ctc with the signals for occupancies, switch positions, etc?
+            c_speeds = {} # dictionaries that will hold the values for the update
+            c_authorities = {}
+            for i, block in enumerate(self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])]):
+                if self.commanded_speeds[i] != None:
+                    c_speeds[block.id] = self.commanded_speeds[i]
+                if self.commanded_authorities[i] != None:
+                    c_authorities[block.id] = self.commanded_authorities[i]
+
+            self.collection.track_model.update_from_comms_outputs(wayside_speeds=c_speeds, wayside_authorities=c_authorities)
             # update the track_model?
 
 
@@ -108,6 +118,8 @@ class WaysideController(QObject):
         self.suggested_speeds = sorted_speeds # update the controllers suggested values
         self.suggested_authorities = sorted_authorities
 
+        self.commanded_speeds = self.suggested_speeds
+        self.commanded_authorities = self.suggested_authorities
 
     def load_program(self, file_path="Track\WaysideController\example_plc_program.py") -> bool:
         """
