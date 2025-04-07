@@ -229,7 +229,6 @@ class WaysideControllerCollection(QObject):
 
         :param authorities: a list of suggested authoritities from the ctc that is key 
         """
-        print("IN SUGGESTED VALUES")
         sorted_speeds = [] # converting the dictionaries sent by the ctc 
         sorted_authorities = [] # so that they match my ordering of the blocks by territory and are iterable lists
         # Need to get the suggested 
@@ -266,7 +265,7 @@ class WaysideControllerCollection(QObject):
         """
         Connects any necessary local and global signals for communication using the pyqt framework
         """
-        signals.communication.ctc_switch_maintenance.connect(self.handle_switch_maintenance)
+        signals.communication.ctc_switch_maintenance.connect(self.handle_switch_maintenance) 
         signals.communication.ctc_exit_blocks.connect(self.handle_exit_blocks)
         signals.communication.ctc_dispatch.connect(self.handle_dispatch)
         signals.communication.ctc_block_maintenance.connect(self.handle_block_maintenance)

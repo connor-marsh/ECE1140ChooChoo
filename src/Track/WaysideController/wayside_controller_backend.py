@@ -58,7 +58,10 @@ class WaysideController(QObject):
     @pyqtSlot()
     def update(self):
         if self.program != None:
-            self.execute_cycle()
+            self.execute_cycle() # make it so that it calls programmers code 3 times and checks
+            # update the ctc with the signals for occupancies, switch positions, etc?
+            # update the track_model?
+
 
     def set_occupancies(self, occupancies: dict):
         """
@@ -79,6 +82,31 @@ class WaysideController(QObject):
             self.block_occupancies = sorted_occupancies
 
 
+    def handle_suggested_values(self, speeds, authorities):
+        sorted_speeds = [] # converting the dictionaries sent by the ctc 
+        sorted_authorities = [] # so that they match my ordering of the blocks by territory and are iterable lists
+
+        # need to enumerate so that I can tell if the current block is occupied or not
+        for i, block in enumerate(self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])]): # only look at the blocks in this controller's range
+            speed = speeds.get(block.id, None) # default to None in the case that there is no value sent
+            authority = authorities.get(block.id, None)
+
+            if speed == None and self.block_occupancies[i] == True: # send the previously sent value to the train while on the same block?
+                speed = self.suggested_speeds[i] 
+            
+            if authority == None and self.block_occupancies[i] == True:
+                authority = self.suggested_authorities[i]
+            
+            if speed != None:
+                speed = speed if speed <= block.speed_limit else block.speed_limit # basic clamp for speeds
+
+            # clamp authority somehow
+
+            sorted_speeds.append(speed)
+            sorted_authorities.append(authority) # after handling add them to the lists
+
+        self.suggested_speeds = sorted_speeds # update the controllers suggested values
+        self.suggested_authorities = sorted_authorities
 
 
     def load_program(self, file_path="Track\WaysideController\example_plc_program.py") -> bool:
