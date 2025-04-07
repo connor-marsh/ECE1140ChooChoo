@@ -59,18 +59,22 @@ class WaysideController(QObject):
         if self.program != None:
             self.execute_cycle() # make it so that it calls programmers code 3 times and checks
 
+            if self.collection.track_model != None:
+                self.collection.track_model.update_from_plc_outputs(sorted_blocks=self.blocks[slice(*self.collection.BLOCK_RANGES[self.index])],
+                                                                    switch_states=self.switch_positions,light_states=self.light_signals,
+                                                                    crossing_states=self.crossing_signals)
 
-            # update the ctc with the signals for occupancies, switch positions, etc?
-            c_speeds = {} # dictionaries that will hold the values for the update
-            c_authorities = {}
-            for i, block in enumerate(self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])]):
-                if self.commanded_speeds[i] != None:
-                    c_speeds[block.id] = self.commanded_speeds[i]
-                if self.commanded_authorities[i] != None:
-                    c_authorities[block.id] = self.commanded_authorities[i]
+                # update the ctc with the signals for occupancies, switch positions, etc?
+                c_speeds = {} # dictionaries that will hold the values for the update
+                c_authorities = {}
+                for i, block in enumerate(self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])]):
+                    if self.commanded_speeds[i] != None:
+                        c_speeds[block.id] = self.commanded_speeds[i]
+                    if self.commanded_authorities[i] != None:
+                        c_authorities[block.id] = self.commanded_authorities[i]
 
-            self.collection.track_model.update_from_comms_outputs(wayside_speeds=c_speeds, wayside_authorities=c_authorities)
-            # update the track_model?
+                self.collection.track_model.update_from_comms_outputs(wayside_speeds=c_speeds, wayside_authorities=c_authorities)
+
 
 
     def set_occupancies(self, occupancies: dict):
