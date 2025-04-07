@@ -8,7 +8,6 @@ import sys
 import globals.track_data_class as init_track_data
 import globals.signals as signals
 from Track.TrackModel.track_model_enums import Occupancy
-from Track.WaysideController.wayside_controller_backend import WaysideController
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject, QTimer
 
@@ -53,6 +52,7 @@ class WaysideControllerCollection(QObject):
         self.LIGHT_COUNTS = []
         self.CROSSING_COUNTS = []
 
+        from Track.WaysideController.wayside_controller_backend import WaysideController # lazy import
         for i in range(self.CONTROLLER_COUNT): # for each controller they will have a specific number of blocks, switches, lights, and crossings associated with it
             block_count = track_data.territory_counts[i + 1]
             switch_count = track_data.device_counts[i + 1]['switches']
@@ -63,7 +63,8 @@ class WaysideControllerCollection(QObject):
             self.LIGHT_COUNTS.append(light_count)
             self.CROSSING_COUNTS.append(crossing_count)
             self.controllers.append(WaysideController(block_count=block_count,switch_count=switch_count,
-                                                      light_count=light_count,crossing_count=crossing_count,exit_block_count=0))
+                                                      light_count=light_count,crossing_count=crossing_count,
+                                                      exit_block_count=0, index=i, collection_reference=self))
 
         # Get the ranges of each territory, so that indexing the list is easier
         self.BLOCK_RANGES = self.get_ranges(self.BLOCK_COUNTS)
