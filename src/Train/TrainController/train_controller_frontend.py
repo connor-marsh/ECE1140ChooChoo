@@ -205,6 +205,8 @@ class TrainControllerFrontend(QMainWindow):
 
         # Disable door buttons if the train is moving
         if self.current_train.actual_speed > 0:
+            self.ui.door_left_button.setChecked(False)
+            self.ui.door_right_button.setChecked(False)
             self.ui.door_left_button.setEnabled(False)
             self.ui.door_right_button.setEnabled(False)
 
