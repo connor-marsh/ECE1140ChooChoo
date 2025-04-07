@@ -53,26 +53,28 @@ class WaysideController(QObject):
         self.timer.start()
 
 
-
     @pyqtSlot()
     def update(self):
         if self.program != None:
             self.execute_cycle() # make it so that it calls programmers code 3 times and checks
 
+            # send occupancies to ctc                      
             if self.collection.track_model != None:
-                self.collection.track_model.update_from_plc_outputs(sorted_blocks=self.blocks[slice(*self.collection.BLOCK_RANGES[self.index])],
+                self.collection.track_model.update_from_plc_outputs(sorted_blocks=self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])],
                                                                     switch_states=self.switch_positions,light_states=self.light_signals,
                                                                     crossing_states=self.crossing_signals)
-
                 # update the ctc with the signals for occupancies, switch positions, etc?
+                occupancies = {}
                 c_speeds = {} # dictionaries that will hold the values for the update
                 c_authorities = {}
                 for i, block in enumerate(self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])]):
+                    occupancies[block.id] = self.block_occupancies[i]
                     if self.commanded_speeds[i] != None:
                         c_speeds[block.id] = self.commanded_speeds[i]
                     if self.commanded_authorities[i] != None:
                         c_authorities[block.id] = self.commanded_authorities[i]
 
+                Signals.communication.wayside_block_occupancies.emit(occupancies)
                 self.collection.track_model.update_from_comms_outputs(wayside_speeds=c_speeds, wayside_authorities=c_authorities)
 
 
@@ -95,8 +97,9 @@ class WaysideController(QObject):
 
             self.block_occupancies = sorted_occupancies
 
-
+    @pyqtSlot(dict, dict)
     def handle_suggested_values(self, speeds, authorities):
+        print("In handler")
         sorted_speeds = [] # converting the dictionaries sent by the ctc 
         sorted_authorities = [] # so that they match my ordering of the blocks by territory and are iterable lists
 
@@ -119,6 +122,7 @@ class WaysideController(QObject):
             sorted_speeds.append(speed)
             sorted_authorities.append(authority) # after handling add them to the lists
 
+        print(sorted_speeds,sorted_authorities)
         self.suggested_speeds = sorted_speeds # update the controllers suggested values
         self.suggested_authorities = sorted_authorities
 
