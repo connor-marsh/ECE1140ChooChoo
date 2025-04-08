@@ -84,6 +84,7 @@ class WaysideController(QObject):
                 if len(self.to_send_authorities)>0 or len(self.to_send_speeds)>0:
                     print("SENDING COMMS " + str(self.index))
                     self.collection.track_model.update_from_comms_outputs(wayside_speeds=self.to_send_speeds, wayside_authorities=self.to_send_authorities)
+                    print(self.index,self.suggested_speeds)
                     # self.to_send_speeds = {}
                     # self.to_send_authorities = {}
                     
@@ -147,6 +148,7 @@ class WaysideController(QObject):
         self.suggested_authorities = sorted_authorities
         self.commanded_speeds = self.suggested_speeds
         self.commanded_authorities = self.suggested_authorities
+
 
         
         

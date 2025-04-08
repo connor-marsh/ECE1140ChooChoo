@@ -140,16 +140,18 @@ class WaysideControllerFrontend(QMainWindow):
         
         for col in range(table.columnCount()): # loop through each column except for commanded speed and authority
             for row, value in enumerate(data[col]): 
-                if value != None: # Skip items that don't need to be written
-                    item = QTableWidgetItem() # Create an item to go in the table
-                    unit = " yards" if col % 2 == 0 else " mph" # Figure out what the unit should be depending on the position in the table
+                item = QTableWidgetItem() # Create an item to go in the table
+                unit = " yards" if col % 2 == 0 else " mph" # Figure out what the unit should be depending on the position in the table
+                if value != None:
                     if type(value) is float or type(value) is int: # If the column has a numeric value it should have a unit attatched
                         text = str(value) + unit
                     elif type(value) is bool: # For bools the text should say occupied/unoccupied since only bool in table is occupancy
                         text = "Occupied" if value else "Unoccupied"
                     item.setText(text) # set the items text attribute
                     table.setItem(row, col, item) # put the item in the table
-
+                else:
+                    item.setText("")
+                    table.setItem(row,col,item)
     
     def populate_lists(self):
         """
