@@ -18,6 +18,7 @@ class TrainController(QMainWindow):
     SERVICE_BRAKE_DECEL = 1.2 # (m/s²)
     EMERGENCY_BRAKE_DECEL = 2.73 # (m/s²)
     GRAVITY = 9.81 # (m/s²)
+    DWELL_TIME_MS = 30000
 
     def __init__(self, train_integrated=False, line_name="Green"):
         super().__init__()
@@ -136,12 +137,6 @@ class TrainController(QMainWindow):
                 self.travel_direction = increasing
             self.current_section = self.current_block.id[0]
 
-        if self.current_block.id=="C10":
-            self.global_clock.time_multiplier=1
-        if self.current_block.id=="C8":
-            self.global_clock.time_multiplier=20
-
-
     def update_safety(self):
         # Ramp up power for passenger comfort
         if self.unramped_commanded_power > self.commanded_power:
@@ -168,10 +163,8 @@ class TrainController(QMainWindow):
         elif (self.commanded_power > 120000):
             self.commanded_power = 120000.0
         
-        if not self.manual_mode:
+        if not self.manual_mode and not self.stopping:
             self.service_brake=new_service_state
-
-        
 
         # TODO: Check authority and stopping distance and override speed calcs
         self.wayside_authority -= self.position - self.previous_position
@@ -190,11 +183,7 @@ class TrainController(QMainWindow):
         # else:
         #     self.service_brake = False #TODO: Ask profeta how we should handle manual mode service brakes if he wants a toggle but also wants it vital.
 
-        if (self.emergency_brake):
-            self.commanded_power = 0.0 # Kill engine if emergency brake is activated
-            self.integral_error = 0
-
-        if (self.service_brake):
+        if (self.emergency_brake or self.service_brake):
             self.commanded_power = 0.0 # Kill engine if emergency brake is activated
             self.integral_error = 0
 
@@ -217,40 +206,54 @@ class TrainController(QMainWindow):
             self.left_doors = False
             self.right_doors = False
 
-        # check for stopping at stations/do announcements
-        if (self.wayside_authority < 50 and self.previous_authority > 50):
+        # ----- Dwelling Logic -----
+        # Detect if we're stopping at a station:
+        # A common condition might be:
+        #   - The wayside authority drops significantly (e.g., below a threshold)
+        #   - The train is in a station block (self.current_block.station is True)
+        #   - The train’s speed has reached zero.
+        print(self.current_block.id)
+        print(self.current_block.station)
+        if (self.wayside_authority > 300 and self.previous_authority < 300 and self.current_block.station and not self.dwell):
+            print("Stopping at station...")
+            # Mark that we are in the stopping/dwell process
             self.stopping = True
+            # Call start_dwell after a short delay (to let the stopping process complete)
+            QTimer.singleShot(int(500 / self.global_clock.time_multiplier), self.start_dwell)
+
         self.previous_authority = self.wayside_authority
-        
-        if self.stopping and self.current_block.station and not self.started_timer1 and not self.started_timer2:
-            QTimer.singleShot(int(500.0/self.global_clock.time_multiplier), self.start_dwell)
-            QTimer.singleShot(int(10.0*30500.0/self.global_clock.time_multiplier), self.end_dwell)
-            self.started_timer1 = True
-            self.started_timer2 = True
-        if self.dwell:
+ 
+        # While dwelling, we keep the service brakes active so that the train remains stationary
+        if self.dwell or self.stopping:
             self.service_brake = True
         
-        print(self.dwell)
+        #TODO: Announcements
 
     def start_dwell(self):
         self.dwell = True
-        if self.actual_speed == 0.0:
-            if not self.manual_mode:
-                if self.track_data.stations[self.current_block.id].doors == 0:
+        # Open doors if the train is stopped and not in manual mode.
+        if self.actual_speed == 0.0 and not self.manual_mode:
+            station = self.track_data.stations.get(self.current_block.id, None)
+            if station:
+                # If a station defines which doors to open, use that information.
+                # For this example, assume 0 means left doors, 1 means right doors, and 2 means both.
+                if station.doors == 0:
                     self.left_doors = True
-                elif self.track_data.stations[self.current_block.id].doors == 1:
-                    self.right_doors = True
+                elif station.doors == 1:
+                     self.right_doors = True
                 else:
                     self.left_doors = True
                     self.right_doors = True
-        self.started_timer1 = False
+        # Set a timer to end dwell after 30 seconds.
+        QTimer.singleShot(int(self.DWELL_TIME_MS / self.global_clock.time_multiplier), self.end_dwell)
 
     def end_dwell(self):
+        # Close Doors
         self.left_doors = False
         self.right_doors = False
+        # Reset flags
         self.dwell = False
         self.stopping = False
-        self.started_timer2 = False
 
     def process_beacon_data(self):
         self.previous_switch_entrance = True
