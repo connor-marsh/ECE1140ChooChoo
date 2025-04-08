@@ -69,7 +69,7 @@ class CtcBackEnd(QObject):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.backend_update)
         self.timer.start(100)  # 10 Hz update
-        self.calculate_authority(12, 150, 0) #Test function, remove later
+        #self.calculate_authority(12, 150, 0) #Test function, remove later
 
         
 
@@ -82,12 +82,14 @@ class CtcBackEnd(QObject):
 
         if self.active_line.blocks[62].occupancy:
             self.suggested_speed = {"K63" : 70}
-            self.suggested_authority = {"K63" : 16134}
+            auth = self.calculate_authority(63, 9)
+            self.suggested_authority = {"K63" : auth}
             print("In ctc dispatch")
             self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside
         if self.active_line.blocks[8].occupancy:
             self.suggested_speed = {"C9" : 45}
-            self.suggested_authority = {"C9" : 5959}
+            auth = self.calculate_authority(9, 58)
+            self.suggested_authority = {"C9" : auth}
             self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside 
 
 
