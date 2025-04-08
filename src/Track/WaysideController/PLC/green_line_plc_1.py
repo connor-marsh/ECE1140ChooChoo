@@ -38,17 +38,19 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
 
     train_in_d_e_f = any(block_occupancies[12:28])
 
+    train_in_e = any(block_occupancies[16:20])
+
     train_in_y_z = any(block_occupancies[47:51])
     
   
     switch_positions[0] = train_in_a_b_c and not train_in_d_e_f
+    light_signals[0] = not switch_positions[0]
+    light_signals[1] = switch_positions[0]
 
     switch_positions[1] = train_in_y_z and not train_in_d_e_f
+    light_signals[2] = not switch_positions[1]
+    light_signals[3] = switch_positions[1]
 
-
+    crossing_signals[0] = train_in_e
     return switch_positions, light_signals, crossing_signals
     
-def validate_suggested_values(suggested_speeds, suggested_authorities, maintenances):
-    commanded_speeds = suggested_speeds
-    commanded_authorities = suggested_authorities
-    return commanded_speeds, commanded_authorities

@@ -219,7 +219,8 @@ class TrackModel(QtWidgets.QMainWindow):
     def update(self):
         self.update_trains()
         if self.wayside_integrated:
-            self.wayside_collection.update_block_occupancies(self.dynamic_track.occupancies)
+            for controller in self.wayside_collection.controllers: # have to iterate through each controller now due to what profeta said
+                controller.set_occupancies(self.dynamic_track.occupancies) # use the dictionary for each controller, but the controller only looks at blocks in its territory
 
     # Populating the trains with information sent from train
     def update_trains(self):

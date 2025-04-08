@@ -8,20 +8,24 @@ import importlib.util
 import sys
 import time
 import os
+import globals.signals as Signals
 from pathlib import Path
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
-
+from Track.TrackModel.track_model_enums import Occupancy
+from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
 class WaysideController(QObject):
     """
     Accepts a user created plc program at runtime and executes it.
     """
-    def __init__(self, block_count: int, switch_count: int, light_count: int, crossing_count: int, exit_block_count: int):
+    def __init__(self, block_count: int, switch_count: int, light_count: int, crossing_count: int, exit_block_count: int, index: int, collection_reference: WaysideControllerCollection):
         """
         :param block_count: Nonnegative Integer number of input blocks to the PLC program
         :param switch_count: Nonnegative Integer number of switches controlled by the PLC program
         :param light_count: Nonnegative Integer number of light signals controlled by the PLC program
         :param crossing_count: Nonnegative Integer number of crossing signals controlled by the PLC program
         :param exit_block_count: Nonnegative integer number of exit blocks that the territory of the wayside has
+        :param index: The index of the controller object
+        :param collection_reference: Allows the controller to access the constants associated with the track and know which blocks are in its range
         """
         super().__init__()
         self.plc_filename = "" # The name of the plc file, used by the ui to display the name properly, otherwise not really necessary
@@ -33,31 +37,120 @@ class WaysideController(QObject):
         self.exit_blocks = [False] * exit_block_count # List of exit blocks [1 hot vector, SELECTED/CURRENT == True, NOT SELECTED == False ]
         self.suggested_authorities = [None] * block_count # List of the suggested authority to each block
         self.suggested_speeds = [None] * block_count # List of the suggested speed to each block
-        self.commanded_authorities = [None] * block_count # List of the commanded authority to each block
-        self.commanded_speeds = [None] * block_count # List of the commanded speed to each block
+        self.commanded_authorities = [None] * block_count # List of the commanded authority to each block UI only
+        self.commanded_speeds = [None] * block_count # List of the commanded speed to each block UI only
+        self.to_send_occupancies = {} # Dictionary to send to the ctc
+        self.to_send_speeds = {} # Dictionary sent to the track model
+        self.to_send_authorities = {} # Dictionary sent to the track model
         self.maintenances = [False] * block_count # True for maintenance false for no maintenace
-
-        self.updated_commanded_authorities = {}
-
+        self.index = index # allows the controller to lookup information about the track based on which territory it is
+        self.collection = collection_reference # 
         self.maintenance_mode = False # A boolean that indicates when the wayside controller is in maintenance mode.
-
         self.program = None
 
-
+        Signals.communication.ctc_suggested.connect(self.handle_suggested_values)
+        
         self.timer = QTimer()
         self.timer.setInterval(100)
         self.timer.timeout.connect(self.update)
         self.timer.start()
 
 
-
     @pyqtSlot()
     def update(self):
         if self.program != None:
-            self.execute_cycle()
+            self.execute_cycle() # make it so that it calls programmers code 3 times and checks
+            # if we clamped authority
+            #   update authority dict
+            #   update authority list
+            # send occupancies to ctc                      
+            if self.collection.track_model != None:
+                self.collection.track_model.update_from_plc_outputs(sorted_blocks=self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])],
+                                                                    switch_states=self.switch_positions,light_states=self.light_signals,
+                                                                    crossing_states=self.crossing_signals)
+                # update the ctc with the signals for occupancies, switch positions, etc?
+              #  occupancies = {}
+               # c_speeds = {} # dictionaries that will hold the values for the update
+                #c_authorities = {}
+                #for i, block in enumerate(self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])]):
+                #    occupancies[block.id] = self.block_occupancies[i]
+                #    if self.commanded_speeds[i] != None:
+                ##        c_speeds[block.id] = self.commanded_speeds[i]
+                #    if self.commanded_authorities[i] != None:
+                #        c_authorities[block.id] = self.commanded_authorities[i]
+
+                Signals.communication.wayside_block_occupancies.emit(self.to_send_occupancies)
+
+                if len(self.to_send_authorities)>0 or len(self.to_send_speeds)>0:
+                    print("SENDING COMMS " + str(self.index))
+                    self.collection.track_model.update_from_comms_outputs(wayside_speeds=self.to_send_speeds, wayside_authorities=self.to_send_authorities)
+                    # self.to_send_speeds = {}
+                    # self.to_send_authorities = {}
+                    
 
 
+    def set_occupancies(self, occupancies: dict):
+        """
+        Receives occupancy updates from the track model (called by the track model)
 
+        :param occupancies: A dictionary of block occupancies with keyed with the block id
+        """
+        
+        sorted_occupancies = []
+        if self.collection.track_model != None:
+            for block in self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])]: # index the blocks only in the range of this controller
+                occupancy = occupancies.get(block.id, Occupancy.UNOCCUPIED) # read from the dictionary
+
+                if occupancy == Occupancy.UNOCCUPIED:
+                    sorted_occupancies.append(False)
+                    self.to_send_occupancies[block.id] = False
+                else:
+                    sorted_occupancies.append(True) # will have to change this with failures but should be fine for now
+                    self.to_send_occupancies[block.id] = True
+            self.block_occupancies = sorted_occupancies
+
+    @pyqtSlot(dict, dict)
+    def handle_suggested_values(self, speeds, authorities):
+        sorted_speeds = [] # converting the dictionaries sent by the ctc 
+        sorted_authorities = [] # so that they match my ordering of the blocks by territory and are iterable lists
+        to_send_speeds = {}
+        to_send_authorities = {}
+
+        block_slice = slice(*self.collection.BLOCK_RANGES[self.index]) # specifies to the list which slice of the track this controller is looking at
+        
+        # need to enumerate so that I can tell if the current block is occupied or not
+        for i, block in enumerate(self.collection.blocks[block_slice]): # only look at the blocks in this controller's range
+            speed = speeds.get(block.id, None) # default to None in the case that there is no value sent
+            authority = authorities.get(block.id, None)
+
+            if speed != None:
+                newValue = False
+                if speed != self.suggested_speeds[i]:
+                    newValue = True
+                if newValue:
+                    to_send_speeds[block.id] = speed
+            if authority != None:
+                newValue = False
+                if authority != self.suggested_authorities[i]:
+                    newValue = True
+                if newValue:
+                    to_send_authorities[block.id] = authority
+
+            sorted_speeds.append(speed)
+            sorted_authorities.append(authority) # after handling add them to the lists
+
+
+        self.to_send_authorities = to_send_authorities
+        self.to_send_speeds = to_send_speeds
+
+        self.suggested_speeds = sorted_speeds # update the controllers suggested values
+        self.suggested_authorities = sorted_authorities
+        self.commanded_speeds = self.suggested_speeds
+        self.commanded_authorities = self.suggested_authorities
+
+        
+        
+  
 
     def load_program(self, file_path="Track\WaysideController\example_plc_program.py") -> bool:
         """
@@ -75,9 +168,7 @@ class WaysideController(QObject):
             if not hasattr(module, "plc_logic") or not callable(module.plc_logic):
                 raise ValueError("Error: The PLC program must define a callable 'plc_logic(block_occupancies, switch_positions, light_signals, crossing_signals, previous_occupancies, exit_blocks)' function.")
 
-            if not hasattr(module, "validate_suggested_values") or not callable(module.validate_suggested_values):
-                raise ValueError("Error: The PLC program must define a callable 'validate_suggested_values(suggested_speeds,suggested_authorities, suggested_maintenance)' function.")
-            
+          
             self.program = module
 
             # Run an initial verification test
@@ -141,8 +232,7 @@ class WaysideController(QObject):
             self.switch_positions, self.light_signals, self.crossing_signals = self.program.plc_logic(self.block_occupancies, self.switch_positions, 
                                                                                                                          self.light_signals, self.crossing_signals, 
                                                                                                                                  self.previous_occupancies, self.exit_blocks)
-        if self.program and hasattr(self.program, "validate_suggested_values"):
-            self.commanded_speeds, self.commanded_authorities = self.program.validate_suggested_values(self.suggested_speeds, self.suggested_authorities, self.maintenances)
+       
             #compare these lists of values with the currently stored ones
             #figure out block id's based on index
             #set the updated dictionaries accordingly
