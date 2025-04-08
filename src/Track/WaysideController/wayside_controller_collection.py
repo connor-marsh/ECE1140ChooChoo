@@ -8,7 +8,6 @@ import sys
 import globals.track_data_class as init_track_data
 import globals.signals as signals
 from Track.TrackModel.track_model_enums import Occupancy
-from Track.WaysideController.wayside_controller_backend import WaysideController
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject, QTimer
 
@@ -53,6 +52,7 @@ class WaysideControllerCollection(QObject):
         self.LIGHT_COUNTS = []
         self.CROSSING_COUNTS = []
 
+        from Track.WaysideController.wayside_controller_backend import WaysideController # lazy import
         for i in range(self.CONTROLLER_COUNT): # for each controller they will have a specific number of blocks, switches, lights, and crossings associated with it
             block_count = track_data.territory_counts[i + 1]
             switch_count = track_data.device_counts[i + 1]['switches']
@@ -63,7 +63,8 @@ class WaysideControllerCollection(QObject):
             self.LIGHT_COUNTS.append(light_count)
             self.CROSSING_COUNTS.append(crossing_count)
             self.controllers.append(WaysideController(block_count=block_count,switch_count=switch_count,
-                                                      light_count=light_count,crossing_count=crossing_count,exit_block_count=0))
+                                                      light_count=light_count,crossing_count=crossing_count,
+                                                      exit_block_count=0, index=i, collection_reference=self))
 
         # Get the ranges of each territory, so that indexing the list is easier
         self.BLOCK_RANGES = self.get_ranges(self.BLOCK_COUNTS)
@@ -80,13 +81,10 @@ class WaysideControllerCollection(QObject):
         self.frontend = WaysideControllerFrontend(self, auto_import_programs)
         
 
-        self.one_shot_suggested = False
+        #self.one_shot_suggested = False
 
-        self.timer = QTimer()
-        self.timer.setInterval(100)
         self.connect_signals()
-                
-        self.timer.start()
+
 
         
     
@@ -209,7 +207,7 @@ class WaysideControllerCollection(QObject):
         if self.track_model != None:
             if self.track_model.dynamic_track.occupancies["K63"] == Occupancy.UNOCCUPIED:
                 self.track_model.initialize_train()
-        print("In collection handler for dispatch")
+
     @pyqtSlot(str, bool)
     def handle_block_maintenance(self, block_id, value):
         """
@@ -231,7 +229,6 @@ class WaysideControllerCollection(QObject):
 
         :param authorities: a list of suggested authoritities from the ctc that is key 
         """
-        print("IN SUGGESTED VALUES")
         sorted_speeds = [] # converting the dictionaries sent by the ctc 
         sorted_authorities = [] # so that they match my ordering of the blocks by territory and are iterable lists
         # Need to get the suggested 
@@ -268,13 +265,11 @@ class WaysideControllerCollection(QObject):
         """
         Connects any necessary local and global signals for communication using the pyqt framework
         """
-        signals.communication.ctc_switch_maintenance.connect(self.handle_switch_maintenance)
-        signals.communication.ctc_exit_blocks.connect(self.handle_exit_blocks)
+
         signals.communication.ctc_dispatch.connect(self.handle_dispatch)
-        signals.communication.ctc_block_maintenance.connect(self.handle_block_maintenance)
-        signals.communication.ctc_suggested.connect(self.handle_suggested_values)
-        self.timer.timeout.connect(self.update_track_model)
-        self.timer.timeout.connect(self.update_ctc)
+ 
+
+
 
 
     #DEFINE A FUNCTION THAT EITHER GRABS VALUES FROM THE TRACK REFERENCE OR FROM THE TESTBENCH DEPENDING ON THE MODE OF THE CONTROLLER

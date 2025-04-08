@@ -80,21 +80,15 @@ class CtcBackEnd(QObject):
         self.dispatch_queue_handler() #Dispatch queue handler  
 
         if self.active_line.blocks[62].occupancy:
-            if self.sent62 == False: # not sent
-                self.suggested_speed = {"K63" : 70}
-                self.suggested_authority = {"K63" : 16134}
-                self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside
-                self.sent62 = True  
-        else:
-            self.sent62 = False
-        if self.active_line.blocks[9].occupancy:
-            if self.sent9 == False:
-                self.suggested_speed = {"C9" : 45}
-                self.suggested_authority = {"C9" : 5959}
-                self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside 
-                self.sent9 = True
-        else:
-            self.sent9 = False
+            self.suggested_speed = {"K63" : 70}
+            self.suggested_authority = {"K63" : 16134}
+            print("In ctc dispatch")
+            self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside
+        if self.active_line.blocks[8].occupancy:
+            self.suggested_speed = {"C9" : 45}
+            self.suggested_authority = {"C9" : 5959}
+            self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside 
+
 
             
         
@@ -149,28 +143,30 @@ class CtcBackEnd(QObject):
     @pyqtSlot(dict)
     def update_occupancy(self, occupancies):
         #Updates occupancy list | called by wayside controller
-        for block in self.active_line.blocks:
-             block.occupancy = occupancies[block.id]
+        for i, block in enumerate(self.active_line.blocks):
+             if block.id in occupancies:
+                 self.active_line.blocks[i].occupancy = occupancies[block.id]
+            
 
     @pyqtSlot(dict)
     def update_switches(self, switch_dict):
         #Updates block switch status 
-        for block in self.active_line.blocks:
-            if block.id in switch_dict:
-                block.switch_state = switch_dict[block.id]
+        for i, block in enumerate(self.active_line.blocks):
+             if block.id in switch_dict:
+                 self.active_line.blocks[i].switch_state = switch_dict[block.id]
 
     @pyqtSlot(dict)
     def update_lights(self, light_dict):
         #Updates light list | called by wayside controller
-        for block in self.active_line.blocks:
-            if block.id in light_dict:
-                block.light_state = light_dict[block.id]
+        for i, block in enumerate(self.active_line.blocks):
+             if block.id in light_dict:
+                 self.active_line.blocks[i].light_state = light_dict[block.id]
 
     @pyqtSlot(dict)
     def update_crossings(self, crossing_dict):
-        for block in self.active_line.blocks:
-            if block.id in crossing_dict:
-                block.crossing_state = crossing_dict[block.id]
+        for i, block in enumerate(self.active_line.blocks):
+             if block.id in crossing_dict:
+                 self.active_line.blocks[i].crossing_state = crossing_dict[block.id]
 
 
     def update_train_location(self, occupancy_list):
