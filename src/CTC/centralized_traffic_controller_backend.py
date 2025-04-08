@@ -1,6 +1,6 @@
 '''
 Author: Aaron Kuchta
-Date: 4-3-2025
+Date: 4-7-2025
 '''
 
 
@@ -69,6 +69,7 @@ class CtcBackEnd(QObject):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.backend_update)
         self.timer.start(100)  # 10 Hz update
+        self.calculate_authority(73, 0) #Test function, remove later
 
         
 
@@ -235,6 +236,50 @@ class CtcBackEnd(QObject):
         print("Switch on Block ", switch_id, " set to ", switch_state)
 
     
+    def calculate_authority(self, start_id, end_id):
+        #Calculates authority needed to reach destination
+        start_id = start_id - 1 #Convert to 0-indexed
+        end_id = end_id - 1 #Convert to 0-indexed
+
+        if start_id == end_id:
+            return 0
+        if start_id < 0 or start_id > 149:
+            print("Invalid start block ID")
+            return -1
+        
+        authority = 0
+        track_direction = self.active_line.sections[self.active_line.blocks[start_id].id[0]].increasing #0 for decreasing, 1 for increasing, 2 for bidirectional
+        print("Block: ", self.active_line.blocks[start_id].id, "Direction: ", track_direction)
+        current_id = start_id
+        next_id = current_id + 1
+        if next_id >= 150:
+            next_id -= 150
+
+        while current_id != end_id:
+            track_direction = self.active_line.sections[self.active_line.blocks[current_id].id[0]].increasing
+            authority += self.active_line.blocks[current_id].length #Add length of block to authority
+            jump_key = (current_id, track_direction)
+            print("Current Block: ", self.active_line.blocks[current_id].id, "Next Block: ", self.active_line.blocks[next_id].id, "Direction: ", track_direction, "Total Authority: ", authority)
+
+            if track_direction == 0: #Moving in decending order
+                current_id = next_id
+                #find next block ID
+                if jump_key in self.active_line.JUMP_BLOCKS: 
+                    next_block,   = self.active_line.JUMP_BLOCKS[current_id]
+                else: 
+                    next_block = current_id - 1
+                
+            elif track_direction == 1: #Moving in ascending order
+                #current_id = next_id
+                #find next block ID
+                #if current_id is in JUMP_BLOCKS: next_block = JUMP_BLOCKS[current_id]
+                #else: next_block = current_id + 1
+                pass
+            elif track_direction == 2: #Moving in bidirectional order - Needs to know if increasing or decreasing 
+                pass
+
+
+
 class DummyTrain:
     def __init__(self, train_id, route, mode):
         super().__init__()
@@ -260,6 +305,12 @@ class DummyTrain:
     
 class TrackBlocks:
     def __init__(self, block):
+        self.JUMP_BLOCKS = { 
+            (100, 1): (85, 0),   # Q100 -> N85, decrease
+            (77, 0): (101, 1),   # N77 -> R101, increase
+            (150, 1): (28, 0),   # Z150 -> F28, decrease
+            (1, 0): (13, 1)}     #A1 -> D13, increase
+            #More may be needed for Yard Entrace/exit
         self.id = block.id
         self.length = block.length #IN YARDS, UPDATE UI-------------------------------
         self.speed_limit = block.speed_limit
@@ -289,6 +340,8 @@ class Track:
         self.name = name
         self.active_trains = []
         self.blocks = []
+        self.sections = self.track_data.sections
+        #print("Sections: ", self.sections)
         self.switch_data = self.track_data.switches
         self.station_names = self.track_data.stations.copy()
         self.switch_states = [0,0,0,0,0,0] #hardcoded

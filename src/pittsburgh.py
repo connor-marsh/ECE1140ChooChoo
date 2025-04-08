@@ -22,7 +22,7 @@ from CTC.centralized_traffic_controller_backend import CtcBackEnd
 
 if __name__=="__main__":
 
-    running_module = "all" # all, CTC, WaysideController, TrackModel, Train, TrackWayside TrainModel, TrainController, TrainControllerHW, CtcWayside
+    running_module = "CTC" # all, CTC, WaysideController, TrackModel, Train, TrackWayside TrainModel, TrainController, TrainControllerHW, CtcWayside
     
     # Create App
     app = QApplication(sys.argv)
