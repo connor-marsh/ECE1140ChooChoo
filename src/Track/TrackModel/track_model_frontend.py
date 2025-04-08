@@ -251,8 +251,9 @@ class TrackModelFrontEnd(QMainWindow):
         self.ui.track_map_display.setScene(self.map_canvas.scene)
         self.ui.track_map_display.setRenderHint(QPainter.Antialiasing)
 
-        # Use hardcoded layout data
         self.map_canvas.load_from_backend(self.green_line, HARDCODED_LAYOUT)
+        self.populate_block_combobox(HARDCODED_LAYOUT)
+
 
         # Button Hooks
         self.ui.import_track_layout_button.clicked.connect(lambda: self.map_canvas.load_from_backend(self.green_line, HARDCODED_LAYOUT))
@@ -261,9 +262,21 @@ class TrackModelFrontEnd(QMainWindow):
         self.ui.power_failure_toggle.clicked.connect(lambda: self.toggle_failure("power"))
         self.ui.reset_errors_button.clicked.connect(self.reset_failures)
 
+        self.ui.block_number_selected.currentTextChanged.connect(self.on_combobox_selected)
+
+
     def on_block_selected(self, block_id):
         self.display_block_info(block_id)
+        self.ui.block_number_selected.setCurrentText(block_id)
         self.map_canvas.update_block_colors()
+
+        # ✅ This code is now properly placed INSIDE the method
+        selected_item = self.map_canvas.block_items.get(block_id)
+        if selected_item:
+            for item in self.map_canvas.block_items.values():
+                item.setPen(QPen(Qt.black, 0.5))
+            selected_item.setPen(QPen(Qt.red, 2))
+
 
     def display_block_info(self, block_id):
         block = next((b for b in self.green_line.track_data.blocks if b.id == block_id), None)
@@ -271,12 +284,27 @@ class TrackModelFrontEnd(QMainWindow):
             print(f"Block {block_id} not found.")
             return
 
+        occ = self.green_line.dynamic_track.occupancies.get(block_id, Occupancy.UNOCCUPIED)
+        fail = self.green_line.dynamic_track.failures.get(block_id, Failures.NONE)
+        heater = self.track_heater_status
+        temp = self.outside_temp
+
         self.ui.block_selected_value.setText(str(block_id))
-        self.ui.block_length_value.setText(str(block.length))
-        self.ui.speed_limit_value.setText(str(block.speed_limit))
+        self.ui.block_length_value.setText(f"{float(block.length):.2f}")
+        self.ui.speed_limit_value.setText(f"{float(block.speed_limit):.2f}")
         self.ui.underground_value.setText("Yes" if getattr(block, "underground", False) else "No")
-        self.ui.elevation_value.setText(str(block.grade))
-        self.ui.sum_elevation_value.setText(str(block.grade))  # You can replace with actual sum elevation if available
+        self.ui.elevation_value.setText(f"{block.grade}")
+        self.ui.sum_elevation_value.setText(f"{block.grade}")  # Replace if cumulative is different
+        self.ui.track_temperature_value.setText(f"{temp:.1f}")
+        self.ui.track_heater_value.setText("Enabled" if heater else "Disabled")
+
+        # Optional: Highlight occupancy/failure
+        if fail != Failures.NONE:
+            self.ui.block_selected_value.setStyleSheet("color: orange;")
+        elif occ == Occupancy.OCCUPIED:
+            self.ui.block_selected_value.setStyleSheet("color: green;")
+        else:
+            self.ui.block_selected_value.setStyleSheet("color: black;")
 
     def toggle_failure(self, kind):
         block_id = self.ui.block_selected_value.text()
@@ -291,6 +319,30 @@ class TrackModelFrontEnd(QMainWindow):
 
     def update_map(self):
         self.map_canvas.update_block_colors()
+
+    def on_combobox_selected(self, block_id):
+        if block_id in self.map_canvas.block_items:
+            self.display_block_info(block_id)
+            self.map_canvas.update_block_colors()
+            # Optional: visually highlight the selected block
+            selected_item = self.map_canvas.block_items[block_id]
+            for item in self.map_canvas.block_items.values():
+                item.setPen(QPen(Qt.black, 0.5))
+            selected_item.setPen(QPen(Qt.red, 2))
+
+    def populate_block_combobox(self, layout_data):
+        self.ui.block_number_selected.blockSignals(True)
+        self.ui.block_number_selected.clear()
+        self.ui.block_number_selected.addItems([block_id for block_id, *_ in layout_data])
+        self.ui.block_number_selected.blockSignals(False)
+
+        if layout_data:
+            first_block = layout_data[0][0]
+            self.ui.block_number_selected.setCurrentText(first_block)
+            self.display_block_info(first_block)
+
+
+
 
 
 if __name__ == "__main__":
