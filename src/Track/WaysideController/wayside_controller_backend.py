@@ -37,14 +37,15 @@ class WaysideController(QObject):
         self.exit_blocks = [False] * exit_block_count # List of exit blocks [1 hot vector, SELECTED/CURRENT == True, NOT SELECTED == False ]
         self.suggested_authorities = [None] * block_count # List of the suggested authority to each block
         self.suggested_speeds = [None] * block_count # List of the suggested speed to each block
-        self.commanded_authorities = [None] * block_count # List of the commanded authority to each block
-        self.commanded_speeds = [None] * block_count # List of the commanded speed to each block
+        self.commanded_authorities = [None] * block_count # List of the commanded authority to each block UI only
+        self.commanded_speeds = [None] * block_count # List of the commanded speed to each block UI only
+        self.to_send_occupancies = {} # Dictionary to send to the ctc
+        self.to_send_speeds = {} # Dictionary sent to the track model
+        self.to_send_authorities = {} # Dictionary sent to the track model
         self.maintenances = [False] * block_count # True for maintenance false for no maintenace
         self.index = index # allows the controller to lookup information about the track based on which territory it is
         self.collection = collection_reference # 
         self.maintenance_mode = False # A boolean that indicates when the wayside controller is in maintenance mode.
-        self.sent_comms = True
-        self.comms_ready = False
         self.program = None
 
         Signals.communication.ctc_suggested.connect(self.handle_suggested_values)
@@ -59,30 +60,33 @@ class WaysideController(QObject):
     def update(self):
         if self.program != None:
             self.execute_cycle() # make it so that it calls programmers code 3 times and checks
-
+            # if we clamped authority
+            #   update authority dict
+            #   update authority list
             # send occupancies to ctc                      
             if self.collection.track_model != None:
                 self.collection.track_model.update_from_plc_outputs(sorted_blocks=self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])],
                                                                     switch_states=self.switch_positions,light_states=self.light_signals,
                                                                     crossing_states=self.crossing_signals)
                 # update the ctc with the signals for occupancies, switch positions, etc?
-                occupancies = {}
-                c_speeds = {} # dictionaries that will hold the values for the update
-                c_authorities = {}
-                for i, block in enumerate(self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])]):
-                    occupancies[block.id] = self.block_occupancies[i]
-                    if self.commanded_speeds[i] != None:
-                        c_speeds[block.id] = self.commanded_speeds[i]
-                    if self.commanded_authorities[i] != None:
-                        c_authorities[block.id] = self.commanded_authorities[i]
+              #  occupancies = {}
+               # c_speeds = {} # dictionaries that will hold the values for the update
+                #c_authorities = {}
+                #for i, block in enumerate(self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])]):
+                #    occupancies[block.id] = self.block_occupancies[i]
+                #    if self.commanded_speeds[i] != None:
+                ##        c_speeds[block.id] = self.commanded_speeds[i]
+                #    if self.commanded_authorities[i] != None:
+                #        c_authorities[block.id] = self.commanded_authorities[i]
 
-                Signals.communication.wayside_block_occupancies.emit(occupancies)
+                Signals.communication.wayside_block_occupancies.emit(self.to_send_occupancies)
 
-                if self.sent_comms == False:
-                    print(self.commanded_authorities)
-                    self.collection.track_model.update_from_comms_outputs(wayside_speeds=c_speeds, wayside_authorities=c_authorities)
+                if len(self.to_send_authorities)>0 or len(self.to_send_speeds)>0:
+                    print("SENDING COMMS " + str(self.index))
+                    self.collection.track_model.update_from_comms_outputs(wayside_speeds=self.to_send_speeds, wayside_authorities=self.to_send_authorities)
+                    # self.to_send_speeds = {}
+                    # self.to_send_authorities = {}
                     
-                    self.sent_comms = True
 
 
     def set_occupancies(self, occupancies: dict):
@@ -91,6 +95,7 @@ class WaysideController(QObject):
 
         :param occupancies: A dictionary of block occupancies with keyed with the block id
         """
+        
         sorted_occupancies = []
         if self.collection.track_model != None:
             for block in self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])]: # index the blocks only in the range of this controller
@@ -98,15 +103,18 @@ class WaysideController(QObject):
 
                 if occupancy == Occupancy.UNOCCUPIED:
                     sorted_occupancies.append(False)
+                    self.to_send_occupancies[block.id] = False
                 else:
                     sorted_occupancies.append(True) # will have to change this with failures but should be fine for now
-
+                    self.to_send_occupancies[block.id] = True
             self.block_occupancies = sorted_occupancies
 
     @pyqtSlot(dict, dict)
     def handle_suggested_values(self, speeds, authorities):
         sorted_speeds = [] # converting the dictionaries sent by the ctc 
         sorted_authorities = [] # so that they match my ordering of the blocks by territory and are iterable lists
+        to_send_speeds = {}
+        to_send_authorities = {}
 
         block_slice = slice(*self.collection.BLOCK_RANGES[self.index]) # specifies to the list which slice of the track this controller is looking at
         
@@ -115,35 +123,33 @@ class WaysideController(QObject):
             speed = speeds.get(block.id, None) # default to None in the case that there is no value sent
             authority = authorities.get(block.id, None)
 
-            if speed == None and self.block_occupancies[i] == True: # send the previously sent value to the train while on the same block?
-                speed = self.suggested_speeds[i] 
-            
-            if authority == None and self.block_occupancies[i] == True:
-                authority = self.suggested_authorities[i]
-            
             if speed != None:
-                speed = speed if speed <= block.speed_limit else block.speed_limit # basic clamp for speeds
-
-            # clamp authority somehow
+                newValue = False
+                if speed != self.suggested_speeds[i]:
+                    newValue = True
+                if newValue:
+                    to_send_speeds[block.id] = speed
+            if authority != None:
+                newValue = False
+                if authority != self.suggested_authorities[i]:
+                    newValue = True
+                if newValue:
+                    to_send_authorities[block.id] = authority
 
             sorted_speeds.append(speed)
             sorted_authorities.append(authority) # after handling add them to the lists
 
 
+        self.to_send_authorities = to_send_authorities
+        self.to_send_speeds = to_send_speeds
+
         self.suggested_speeds = sorted_speeds # update the controllers suggested values
         self.suggested_authorities = sorted_authorities
+        self.commanded_speeds = self.suggested_speeds
+        self.commanded_authorities = self.suggested_authorities
 
         
         
-        
-
-
-
-        if self.suggested_speeds != self.commanded_speeds or self.suggested_authorities != self.commanded_authorities:
-            print("SENT", self.index)
-            self.commanded_speeds = self.suggested_speeds
-            self.commanded_authorities = self.suggested_authorities
-            self.sent_comms = False
   
 
     def load_program(self, file_path="Track\WaysideController\example_plc_program.py") -> bool:
