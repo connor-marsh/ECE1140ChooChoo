@@ -205,7 +205,7 @@ class CtcBackEnd(QObject):
         print("Train Entered into Queue")
 
     def dispatch_queue_handler(self):
-        #Handles train queue | called by update function
+        # Handles train queue | called by update function
         if not self.train_queue.empty() and self.first_blocks_free():
             #get destination block from queue
             destination_block = self.train_queue.get()
