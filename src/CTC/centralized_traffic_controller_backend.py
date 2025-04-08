@@ -84,7 +84,7 @@ class CtcBackEnd(QObject):
             self.suggested_authority = {"K63" : 16134}
             print("In ctc dispatch")
             self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside
-        if self.active_line.blocks[9].occupancy:
+        if self.active_line.blocks[8].occupancy:
             self.suggested_speed = {"C9" : 45}
             self.suggested_authority = {"C9" : 5959}
             self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside 

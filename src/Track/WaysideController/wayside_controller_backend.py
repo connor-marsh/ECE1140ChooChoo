@@ -135,16 +135,15 @@ class WaysideController(QObject):
 
         
         
+        
+
+
+
         if self.suggested_speeds != self.commanded_speeds or self.suggested_authorities != self.commanded_authorities:
-            self.comms_ready = True
-
-
-        if self.comms_ready == True:
             print("SENT", self.index)
             self.commanded_speeds = self.suggested_speeds
             self.commanded_authorities = self.suggested_authorities
             self.sent_comms = False
-            self.comms_ready = False
   
 
     def load_program(self, file_path="Track\WaysideController\example_plc_program.py") -> bool:

@@ -265,11 +265,10 @@ class WaysideControllerCollection(QObject):
         """
         Connects any necessary local and global signals for communication using the pyqt framework
         """
-        signals.communication.ctc_switch_maintenance.connect(self.handle_switch_maintenance) 
-        signals.communication.ctc_exit_blocks.connect(self.handle_exit_blocks)
+
         signals.communication.ctc_dispatch.connect(self.handle_dispatch)
-        signals.communication.ctc_block_maintenance.connect(self.handle_block_maintenance)
-        signals.communication.ctc_suggested.connect(self.handle_suggested_values)
+ 
+
 
 
 
