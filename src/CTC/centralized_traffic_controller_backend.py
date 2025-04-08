@@ -151,22 +151,22 @@ class CtcBackEnd(QObject):
     @pyqtSlot(dict)
     def update_switches(self, switch_dict):
         #Updates block switch status 
-        for block in self.active_line.blocks:
-            if block.id in switch_dict:
-                block.switch_state = switch_dict[block.id]
+        for i, block in enumerate(self.active_line.blocks):
+             if block.id in switch_dict:
+                 self.active_line.blocks[i].switch_state = switch_dict[block.id]
 
     @pyqtSlot(dict)
     def update_lights(self, light_dict):
         #Updates light list | called by wayside controller
-        for block in self.active_line.blocks:
-            if block.id in light_dict:
-                block.light_state = light_dict[block.id]
+        for i, block in enumerate(self.active_line.blocks):
+             if block.id in light_dict:
+                 self.active_line.blocks[i].light_state = light_dict[block.id]
 
     @pyqtSlot(dict)
     def update_crossings(self, crossing_dict):
-        for block in self.active_line.blocks:
-            if block.id in crossing_dict:
-                block.crossing_state = crossing_dict[block.id]
+        for i, block in enumerate(self.active_line.blocks):
+             if block.id in crossing_dict:
+                 self.active_line.blocks[i].crossing_state = crossing_dict[block.id]
 
 
     def update_train_location(self, occupancy_list):

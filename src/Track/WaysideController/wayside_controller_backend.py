@@ -43,7 +43,8 @@ class WaysideController(QObject):
         self.index = index # allows the controller to lookup information about the track based on which territory it is
         self.collection = collection_reference # 
         self.maintenance_mode = False # A boolean that indicates when the wayside controller is in maintenance mode.
-        self.sent_comms = False
+        self.sent_comms = True
+        self.comms_ready = False
         self.program = None
 
         Signals.communication.ctc_suggested.connect(self.handle_suggested_values)
@@ -76,8 +77,12 @@ class WaysideController(QObject):
                         c_authorities[block.id] = self.commanded_authorities[i]
 
                 Signals.communication.wayside_block_occupancies.emit(occupancies)
-                self.collection.track_model.update_from_comms_outputs(wayside_speeds=c_speeds, wayside_authorities=c_authorities)
 
+                if self.sent_comms == False:
+                    print(self.commanded_authorities)
+                    self.collection.track_model.update_from_comms_outputs(wayside_speeds=c_speeds, wayside_authorities=c_authorities)
+                    
+                    self.sent_comms = True
 
 
     def set_occupancies(self, occupancies: dict):
@@ -131,13 +136,16 @@ class WaysideController(QObject):
         
         
         if self.suggested_speeds != self.commanded_speeds or self.suggested_authorities != self.commanded_authorities:
-            self.sent_comms = False
+            self.comms_ready = True
 
-        if self.sent_comms == False:
-            print("SENT")
+
+        if self.comms_ready == True:
+            print("SENT", self.index)
             self.commanded_speeds = self.suggested_speeds
             self.commanded_authorities = self.suggested_authorities
-            self.sent_comms = True
+            self.sent_comms = False
+            self.comms_ready = False
+  
 
     def load_program(self, file_path="Track\WaysideController\example_plc_program.py") -> bool:
         """
