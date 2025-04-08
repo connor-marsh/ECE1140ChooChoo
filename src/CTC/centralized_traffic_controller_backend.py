@@ -236,11 +236,12 @@ class CtcBackEnd(QObject):
         print("Switch on Block ", switch_id, " set to ", switch_state)
 
     
-    def calculate_authority(self, start_id, end_id):
+    def calculate_authority(self, start_id, end_id, direction):
         #Calculates authority needed to reach destination
         start_id = start_id - 1 #Convert to 0-indexed
         end_id = end_id - 1 #Convert to 0-indexed
-
+        current_id = start_id
+        
         if start_id == end_id:
             return 0
         if start_id < 0 or start_id > 149:
@@ -248,36 +249,59 @@ class CtcBackEnd(QObject):
             return -1
         
         authority = 0
-        track_direction = self.active_line.sections[self.active_line.blocks[start_id].id[0]].increasing #0 for decreasing, 1 for increasing, 2 for bidirectional
-        print("Block: ", self.active_line.blocks[start_id].id, "Direction: ", track_direction)
-        current_id = start_id
+        last_dir = direction #Initial direction
+        section_dir = self.active_line.sections[self.active_line.blocks[start_id].id[0]].increasing #0 for decreasing, 1 for increasing, 2 for bidirectional
+        print("Block: ", self.active_line.blocks[start_id].id, "Direction: ", section_dir)
+        
         next_id = current_id + 1
         if next_id >= 150:
             next_id -= 150
 
         while current_id != end_id:
-            track_direction = self.active_line.sections[self.active_line.blocks[current_id].id[0]].increasing
+            section_dir = self.active_line.sections[self.active_line.blocks[current_id].id[0]].increasing
             authority += self.active_line.blocks[current_id].length #Add length of block to authority
-            jump_key = (current_id, track_direction)
-            print("Current Block: ", self.active_line.blocks[current_id].id, "Next Block: ", self.active_line.blocks[next_id].id, "Direction: ", track_direction, "Total Authority: ", authority)
+            jump_key = (current_id, section_dir)
+            print("Current Block: ", self.active_line.blocks[current_id].id, "Next Block: ", self.active_line.blocks[next_id].id, "Direction: ", section_dir, "Total Authority: ", authority)
 
-            if track_direction == 0: #Moving in decending order
-                current_id = next_id
-                #find next block ID
-                if jump_key in self.active_line.JUMP_BLOCKS: 
-                    next_block,   = self.active_line.JUMP_BLOCKS[current_id]
-                else: 
-                    next_block = current_id - 1
-                
-            elif track_direction == 1: #Moving in ascending order
-                #current_id = next_id
-                #find next block ID
-                #if current_id is in JUMP_BLOCKS: next_block = JUMP_BLOCKS[current_id]
-                #else: next_block = current_id + 1
-                pass
-            elif track_direction == 2: #Moving in bidirectional order - Needs to know if increasing or decreasing 
-                pass
 
+
+def calculate_authority(self, start_id, end_id):
+      last_direction = 1 if end_id > start_id else 0  # Use end vs start to set initial guess
+
+    while current_id != end_id:
+        current_block = self.active_line.blocks[current_id]
+        section_key = current_block.id[0]  # Assume first letter determines section
+        section_dir = self.active_line.sections[section_key].increasing
+
+        # Determine direction: if bidirectional, use last_direction
+        if section_dir == 2:
+            direction = last_direction
+        else:
+            direction = section_dir
+
+        jump_key = (current_id, direction)
+        authority += current_block.length
+
+        print(f"Current Block: {current_block.id} | Direction: {direction} | Total Authority: {authority}")
+
+        # Determine next block
+        if jump_key in self.active_line.JUMP_BLOCKS:
+            next_id, new_direction = self.active_line.JUMP_BLOCKS[jump_key]
+            last_direction = new_direction
+        else:
+            if direction == 1:
+                next_id = current_id + 1
+                if next_id >= len(self.active_line.blocks):
+                    next_id = 0
+            elif direction == 0:
+                next_id = current_id - 1
+                if next_id < 0:
+                    next_id = len(self.active_line.blocks) - 1
+            last_direction = direction
+
+        current_id = next_id
+
+    return authority
 
 
 class DummyTrain:
