@@ -50,7 +50,6 @@ class TrainController(QMainWindow):
         self.manual_mode = False
         self.target_speed = 0.0
         self.beacon_data_recieved = False
-        self.started_dwell = False  # Flag to avoid re-triggering dwell
 
         # Set current block from track data (hard-coded example)
         self.current_block = self.track_data.blocks[63-1]
@@ -199,8 +198,8 @@ class TrainController(QMainWindow):
         # ----- Dwelling Logic -----
         # Detect if we're stopping at a station:
         # A common condition might be:
-        #   - The wayside authority drops significantly (e.g., below a threshold)
-        #   - The train is in a station block (self.current_block.station is True)
+        #   - The wayside authority drops significantly
+        #   - The train is in a station block
         #   - The train’s speed has reached zero.
         print(self.current_block.id)
         print(self.current_block.station)
