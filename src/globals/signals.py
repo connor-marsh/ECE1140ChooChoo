@@ -18,9 +18,7 @@ class Signals(QObject):
 
 
     wayside_block_occupancies = pyqtSignal(dict)
-    wayside_switches = pyqtSignal(dict)
-    wayside_lights = pyqtSignal(dict)
-    wayside_crossings = pyqtSignal(dict)
+    wayside_plc_outputs = pyqtSignal(list,list,list,list)
 
     track_tickets = pyqtSignal(int)
 
