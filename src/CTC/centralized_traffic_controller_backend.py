@@ -1,6 +1,6 @@
 '''
 Author: Aaron Kuchta
-Date: 4-3-2025
+Date: 4-7-2025
 '''
 
 
@@ -69,6 +69,7 @@ class CtcBackEnd(QObject):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.backend_update)
         self.timer.start(100)  # 10 Hz update
+        self.calculate_authority(12, 150, 0) #Test function, remove later
 
         
 
@@ -200,7 +201,7 @@ class CtcBackEnd(QObject):
         print("Train Entered into Queue")
 
     def dispatch_queue_handler(self):
-        #Handles train queue | called by update function
+        # Handles train queue | called by update function
         if not self.train_queue.empty() and self.first_blocks_free():
             #get destination block from queue
             destination_block = self.train_queue.get()
@@ -231,6 +232,72 @@ class CtcBackEnd(QObject):
         print("Switch on Block ", switch_id, " set to ", switch_state)
 
     
+    def calculate_authority(self, start_id, end_id, direction=1):
+        '''
+        Parameters:
+            start_id: The block ID to start from (1-150)
+            end_id: The block ID to end on (1-150)
+            direction: Starting movment direction, 0 for decreasing, 1 for increasing
+
+        Returns: 
+            Authority needed to reach end from start
+    
+        TODO:
+            - Adapt for red line
+            - Adapt for yard entrance/exit blocks
+        '''
+        start_id = start_id - 1 #Convert to 0-indexed
+        end_id = end_id - 1 #Convert to 0-indexed
+        current_id = start_id
+        
+        if start_id == end_id:
+            return 0
+        if start_id < 0 or start_id > 149:
+            print("Invalid start block ID")
+            return -1
+        
+        authority = 0
+        last_dir = direction #Initial direction
+        section_dir = self.active_line.sections[self.active_line.blocks[start_id].id[0]].increasing #0 for decreasing, 1 for increasing, 2 for bidirectional
+        #print("Block: ", self.active_line.blocks[start_id].id, "Direction: ", section_dir)
+
+        while current_id != end_id:
+            current_block = self.active_line.blocks[current_id]
+            section_key = current_block.id[0]  #Gets section letter
+            #section_dir = self.active_line.sections[section_key].increasing
+
+            jump_key = (current_id+1, direction)
+            #print("Current Block: ", current_block.id, "Direction: ", direction, "Jump Key: ", jump_key)
+
+            if jump_key in self.active_line.JUMP_BLOCKS:
+                #print("JUMP BLOCK DETECTED - ", current_block.id, "Direction: ", direction, "Jump Key: ", jump_key)
+                next_id, new_dir = self.active_line.JUMP_BLOCKS[jump_key]
+                next_dir = new_dir
+            elif direction == 0:
+                next_id = current_id - 1
+                if next_id < 0:
+                    print("JUMP BLOCK MISSED 1-13")
+                next_dir = direction
+            elif direction == 1:
+                next_id = current_id + 1
+                if next_id >= 150:
+                    print("JUMP BLOCK MISSED 150-28")
+                next_dir = direction
+
+            authority += current_block.length #accumulate authority
+            #print("Current Block: ", self.active_line.blocks[current_id].id, "Next Block: ", self.active_line.blocks[next_id].id, "Direction: ", direction, "Total Authority: ", authority)
+
+            current_id = next_id #Update current block
+            direction = next_dir
+
+        current_block = self.active_line.blocks[current_id] 
+        authority += current_block.length
+
+        #print("-----END REACHED-----")
+        #print("Current Block: ", current_block.id, "Total Authority: ", authority)
+        return authority
+
+
 class DummyTrain:
     def __init__(self, train_id, route, mode):
         super().__init__()
@@ -281,10 +348,18 @@ class TrackBlocks:
 
 class Track: 
     def __init__(self, name):
+        self.JUMP_BLOCKS = { 
+            (100, 1): (84, 0),   # Q100 -> N85, decrease
+            (77, 0): (100, 1),   # N77 -> R101, increase
+            (150, 1): (27, 0),   # Z150 -> F28, decrease
+            (1, 0): (12, 1)}     #A1 -> D13, increase
+            #More may be needed for Yard Entrace/exit
         self.track_data = global_track_data.lines[name]
         self.name = name
         self.active_trains = []
         self.blocks = []
+        self.sections = self.track_data.sections
+        #print("Sections: ", self.sections)
         self.switch_data = self.track_data.switches
         self.station_names = self.track_data.stations.copy()
         self.switch_states = [0,0,0,0,0,0] #hardcoded
