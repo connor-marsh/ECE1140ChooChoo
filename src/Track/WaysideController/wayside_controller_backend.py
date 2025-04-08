@@ -35,10 +35,10 @@ class WaysideController(QObject):
         self.crossing_signals = [False] * crossing_count # List of crossings [ACTIVE == True, INACTIVE == False]
         self.previous_occupancies = [False] * block_count # List of previous block occupancies [OCCUPIED == True, UNOCCUPIED == False]
         self.exit_blocks = [False] * exit_block_count # List of exit blocks [1 hot vector, SELECTED/CURRENT == True, NOT SELECTED == False ]
-        self.suggested_authorities = [None] * block_count # List of the suggested authority to each block
-        self.suggested_speeds = [None] * block_count # List of the suggested speed to each block
-        self.commanded_authorities = [None] * block_count # List of the commanded authority to each block UI only
-        self.commanded_speeds = [None] * block_count # List of the commanded speed to each block UI only
+        self.suggested_authorities = [None] * block_count # List of the suggested authority to each block BACKEND UI ONLY
+        self.suggested_speeds = [None] * block_count # List of the suggested speed to each block UI ONLY BACKEND
+        self.commanded_authorities = [None] * block_count # List of the commanded authority to each block UI only BACKEND
+        self.commanded_speeds = [None] * block_count # List of the commanded speed to each block UI only BACKEND
         self.to_send_occupancies = {} # Dictionary to send to the ctc
         self.to_send_speeds = {} # Dictionary sent to the track model
         self.to_send_authorities = {} # Dictionary sent to the track model
@@ -46,11 +46,11 @@ class WaysideController(QObject):
         self.index = index # allows the controller to lookup information about the track based on which territory it is
         self.collection = collection_reference # 
         self.maintenance_mode = False # A boolean that indicates when the wayside controller is in maintenance mode.
-        self.program = None
+        self.program = None # python file uploaded by programmer
 
-        Signals.communication.ctc_suggested.connect(self.handle_suggested_values)
+        Signals.communication.ctc_suggested.connect(self.handle_suggested_values) # connect signals
         
-        self.timer = QTimer()
+        self.timer = QTimer() # initialize update timer
         self.timer.setInterval(100)
         self.timer.timeout.connect(self.update)
         self.timer.start()
@@ -68,26 +68,13 @@ class WaysideController(QObject):
                 self.collection.track_model.update_from_plc_outputs(sorted_blocks=self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])],
                                                                     switch_states=self.switch_positions,light_states=self.light_signals,
                                                                     crossing_states=self.crossing_signals)
-                # update the ctc with the signals for occupancies, switch positions, etc?
-              #  occupancies = {}
-               # c_speeds = {} # dictionaries that will hold the values for the update
-                #c_authorities = {}
-                #for i, block in enumerate(self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])]):
-                #    occupancies[block.id] = self.block_occupancies[i]
-                #    if self.commanded_speeds[i] != None:
-                ##        c_speeds[block.id] = self.commanded_speeds[i]
-                #    if self.commanded_authorities[i] != None:
-                #        c_authorities[block.id] = self.commanded_authorities[i]
 
+                block_slice = slice(*self.collection.BLOCK_RANGES[self.index])
                 Signals.communication.wayside_block_occupancies.emit(self.to_send_occupancies)
+                Signals.communication.wayside_plc_outputs.emit(self.collection.blocks[block_slice],self.switch_positions,self.light_signals,self.crossing_signals)
 
-                if len(self.to_send_authorities)>0 or len(self.to_send_speeds)>0:
-                    print("SENDING COMMS " + str(self.index))
+                if len(self.to_send_authorities) > 0 or len(self.to_send_speeds) > 0:
                     self.collection.track_model.update_from_comms_outputs(wayside_speeds=self.to_send_speeds, wayside_authorities=self.to_send_authorities)
-                    print(self.index,self.suggested_speeds)
-                    # self.to_send_speeds = {}
-                    # self.to_send_authorities = {}
-                    
 
 
     def set_occupancies(self, occupancies: dict):
@@ -96,7 +83,6 @@ class WaysideController(QObject):
 
         :param occupancies: A dictionary of block occupancies with keyed with the block id
         """
-        
         sorted_occupancies = []
         if self.collection.track_model != None:
             for block in self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])]: # index the blocks only in the range of this controller
