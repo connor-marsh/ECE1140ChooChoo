@@ -43,6 +43,7 @@ class WaysideController(QObject):
         self.index = index # allows the controller to lookup information about the track based on which territory it is
         self.collection = collection_reference # 
         self.maintenance_mode = False # A boolean that indicates when the wayside controller is in maintenance mode.
+        self.sent_comms = False
         self.program = None
 
         Signals.communication.ctc_suggested.connect(self.handle_suggested_values)
@@ -99,12 +100,13 @@ class WaysideController(QObject):
 
     @pyqtSlot(dict, dict)
     def handle_suggested_values(self, speeds, authorities):
-        print("In handler")
         sorted_speeds = [] # converting the dictionaries sent by the ctc 
         sorted_authorities = [] # so that they match my ordering of the blocks by territory and are iterable lists
 
+        block_slice = slice(*self.collection.BLOCK_RANGES[self.index]) # specifies to the list which slice of the track this controller is looking at
+        
         # need to enumerate so that I can tell if the current block is occupied or not
-        for i, block in enumerate(self.collection.blocks[slice(*self.collection.BLOCK_RANGES[self.index])]): # only look at the blocks in this controller's range
+        for i, block in enumerate(self.collection.blocks[block_slice]): # only look at the blocks in this controller's range
             speed = speeds.get(block.id, None) # default to None in the case that there is no value sent
             authority = authorities.get(block.id, None)
 
@@ -122,12 +124,20 @@ class WaysideController(QObject):
             sorted_speeds.append(speed)
             sorted_authorities.append(authority) # after handling add them to the lists
 
-        print(sorted_speeds,sorted_authorities)
+
         self.suggested_speeds = sorted_speeds # update the controllers suggested values
         self.suggested_authorities = sorted_authorities
 
-        self.commanded_speeds = self.suggested_speeds
-        self.commanded_authorities = self.suggested_authorities
+        
+        
+        if self.suggested_speeds != self.commanded_speeds or self.suggested_authorities != self.commanded_authorities:
+            self.sent_comms = False
+
+        if self.sent_comms == False:
+            print("SENT")
+            self.commanded_speeds = self.suggested_speeds
+            self.commanded_authorities = self.suggested_authorities
+            self.sent_comms = True
 
     def load_program(self, file_path="Track\WaysideController\example_plc_program.py") -> bool:
         """

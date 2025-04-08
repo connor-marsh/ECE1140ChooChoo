@@ -143,8 +143,10 @@ class CtcBackEnd(QObject):
     @pyqtSlot(dict)
     def update_occupancy(self, occupancies):
         #Updates occupancy list | called by wayside controller
-        for block in self.active_line.blocks:
-             block.occupancy = occupancies.get(block.id)
+        for i, block in enumerate(self.active_line.blocks):
+             if block.id in occupancies:
+                 self.active_line.blocks[i].occupancy = occupancies[block.id]
+            
 
     @pyqtSlot(dict)
     def update_switches(self, switch_dict):

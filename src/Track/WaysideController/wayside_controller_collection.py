@@ -207,7 +207,7 @@ class WaysideControllerCollection(QObject):
         if self.track_model != None:
             if self.track_model.dynamic_track.occupancies["K63"] == Occupancy.UNOCCUPIED:
                 self.track_model.initialize_train()
-        print("In collection handler for dispatch")
+
     @pyqtSlot(str, bool)
     def handle_block_maintenance(self, block_id, value):
         """
