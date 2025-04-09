@@ -231,7 +231,6 @@ class TrainModelFrontEnd(QMainWindow):
             else:
                 # Clear the announcement when the train moves.
                 self.train_ui.Announcement_2.setText("")
-                self.current_train.announcement = ""
 
             if hasattr(self.train_ui, "Temperature"):
                 display_temp = self.current_train.actual_temperature * 9 / 5 + 32
