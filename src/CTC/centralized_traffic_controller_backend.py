@@ -57,8 +57,6 @@ class CtcBackEnd(QObject):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.backend_update)
         self.timer.start(100)  # 10 Hz update
-        #self.calculate_authority(12, 150, 0) #Test function, remove later
-
         
 
     def backend_update(self):
@@ -79,16 +77,12 @@ class CtcBackEnd(QObject):
             self.suggested_authority = {"C9" : auth}
             self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside 
 
-
-            
-        
     def get_map_data(self):
         return self.active_line.blocks, self.active_line.station_names, self.active_line.switch_data, self.active_line.switch_states, self.active_line.lights, self.active_line.crossings
 
     def process_route_data(self, file_data):
         if(file_data is not None):
             self.read_route_file(file_data)
-            self.initialize_route_table()   
 
     def read_route_file(self, file_data):
         for _, row in file_data.iterrows():
@@ -98,14 +92,6 @@ class CtcBackEnd(QObject):
 
         #for route, stations in self.routes.items(): #Debug info
         #    print(f"{route}: {', '.join(stations)}")
-
-    def initialize_route_table(self):
-
-        pass
-
-    def upload_train_schedule(self):
-        #uploads train schedule file | activated by button
-        pass
 
     def update_manual_suggested(self):
         if self.ctc_ui.sub_enter_speed_override.value() > 0:
@@ -313,7 +299,7 @@ class DummyTrain:
 class TrackBlocks:
     def __init__(self, block):
         self.id = block.id
-        self.length = block.length #IN YARDS, UPDATE UI-------------------------------
+        self.length = block.length 
         self.speed_limit = block.speed_limit
         self.grade = block.grade
         self.underground = block.underground
@@ -332,17 +318,12 @@ class TrackBlocks:
         self.suggested_speed = 0
         self.suggested_authority = 0
         self.updated = True
-        #May need addition values
         #print("Block ID: ", self.id, "Switch", self.has_switch) #Testing line, remove later
 
 class Track: 
     def __init__(self, name):
-        self.JUMP_BLOCKS = { 
-            (100, 1): (84, 0),   # Q100 -> N85, decrease
-            (77, 0): (100, 1),   # N77 -> R101, increase
-            (150, 1): (27, 0),   # Z150 -> F28, decrease
-            (1, 0): (12, 1)}     #A1 -> D13, increase
-            #More may be needed for Yard Entrace/exit
+        self.JUMP_BLOCKS = {}  
+
         self.track_data = global_track_data.lines[name]
         self.name = name
         self.active_trains = []
@@ -357,6 +338,12 @@ class Track:
 
         if name == "Green":
             self.ENTRANCE_BLOCK = 62  #Entrance blocks for green line | Should be K63 but is 62 to account for 0-indexing
+            self.JUMP_BLOCKS = { 
+            (100, 1): (84, 0),   # Q100 -> N85, decrease
+            (77, 0): (100, 1),   # N77 -> R101, increase
+            (150, 1): (27, 0),   # Z150 -> F28, decrease
+            (1, 0): (12, 1)}     #A1 -> D13, increase
+            #More may be needed for Yard Entrace/exit
         #elif name == "Red":
         #    self.entrance_blocks = [1, 2, 3] #Entrance blocks for red line
         else:
