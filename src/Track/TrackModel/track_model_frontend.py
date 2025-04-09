@@ -1,10 +1,16 @@
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsRectItem, QMainWindow
 from PyQt5.QtGui import QBrush, QPen, QColor, QPainter
-from PyQt5.QtCore import Qt, QRectF, QTimer 
+from PyQt5.QtCore import Qt, QRectF, QTimer
+from PyQt5.QtWidgets import QGraphicsPixmapItem
+from PyQt5.QtGui import QPixmap
 from Track.TrackModel.track_model_ui import Ui_MainWindow
 from Track.TrackModel.track_model_backend import TrackModel
 from Track.TrackModel.track_model_enums import Occupancy
 from Track.TrackModel.track_model_enums import Failures
+
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 # HARDCODED LAYOUT DATA: (block_id, x, y, width, height)
 HARDCODED_LAYOUT = [
@@ -162,6 +168,15 @@ HARDCODED_LAYOUT = [
     ("J0", 324, 137, 8, 59),
 ]
 
+# Icon file paths (relative to your project structure)
+ICON_PATHS = {
+    "train": os.path.join(BASE_DIR, "Resources/train_icon.png"),
+    "station": os.path.join(BASE_DIR, "Resources/station_icon.jpeg"),
+    "switch": os.path.join(BASE_DIR, "Resources/switch_icon.png"),
+    "traffic_light": os.path.join(BASE_DIR, "Resources/traffic_light_icon.png"),
+    "railway_crossing": os.path.join(BASE_DIR, "Resources/railway_crossing_icon.png")
+}
+
 class TrackMapCanvas(QGraphicsView):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -178,6 +193,9 @@ class TrackMapCanvas(QGraphicsView):
         self.block_items = {}
         self.block_lookup = {}
         self.backend = None
+
+        self.infrastructure_icons = []
+
 
     def wheelEvent(self, event):
         zoom_in_factor = 1.15
@@ -208,14 +226,25 @@ class TrackMapCanvas(QGraphicsView):
             self.block_lookup[rect] = label
 
         self.update_block_colors()
+        self.add_infrastructure_icons()
+
 
     def mousePressEvent(self, event):
-        item = self.itemAt(event.pos())
-        if isinstance(item, QGraphicsRectItem) and item in self.block_lookup:
+        print("[DEBUG] mousePressEvent triggered")
+        scene_pos = self.mapToScene(event.pos())
+        item = self.scene.itemAt(scene_pos, self.transform())
+
+        if isinstance(item, QGraphicsPixmapItem) and item.data(0):
+            icon_type = item.data(0)
+            print(f"[ICON CLICKED] {icon_type} at position ({item.pos().x():.1f}, {item.pos().y():.1f})")
+        elif isinstance(item, QGraphicsRectItem) and item in self.block_lookup:
             block_id = self.block_lookup[item]
+            print(f"[BLOCK CLICKED] Block ID: {block_id}")
             if hasattr(self.parent(), "on_block_selected"):
                 self.parent().on_block_selected(block_id)
+
         super().mousePressEvent(event)
+
 
     def update_block_colors(self):
         if not self.backend:
@@ -229,6 +258,67 @@ class TrackMapCanvas(QGraphicsView):
                 item.setBrush(QBrush(QColor("green")))
             else:
                 item.setBrush(QBrush(QColor("gray")))
+
+    def add_infrastructure_icons(self):
+        self.infrastructure_icons.clear()
+        for block in self.backend.track_data.blocks:
+            block_id = block.id
+            rect = self.block_items.get(block_id)
+            if not rect:
+                continue
+            rect_pos = rect.sceneBoundingRect()
+            x, y = rect_pos.x(), rect_pos.y()
+
+            if getattr(block, "station", None):
+                path = ICON_PATHS["station"]
+                pixmap = QPixmap(path).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                icon = QGraphicsPixmapItem(pixmap)
+                icon.setData(0, "station")
+                icon.setPos(x + 10, y - 20)
+                icon.setAcceptedMouseButtons(Qt.LeftButton)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsSelectable, True)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsFocusable, True)
+                self.scene.addItem(icon)
+                self.infrastructure_icons.append(icon)
+
+            if getattr(block, "switch", False):
+                path = ICON_PATHS["switch"]
+                pixmap = QPixmap(path).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                icon = QGraphicsPixmapItem(pixmap)
+                icon.setData(0, "switch")
+                icon.setPos(x - 10, y - 10)
+                icon.setAcceptedMouseButtons(Qt.LeftButton)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsSelectable, True)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsFocusable, True)
+                self.scene.addItem(icon)
+                self.infrastructure_icons.append(icon)
+
+            if getattr(block, "light", False):
+                path = ICON_PATHS["traffic_light"]
+                pixmap = QPixmap(path).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                icon = QGraphicsPixmapItem(pixmap)
+                icon.setData(0, "traffic_light")
+                icon.setPos(x + 5, y + 5)
+                icon.setAcceptedMouseButtons(Qt.LeftButton)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsSelectable, True)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsFocusable, True)                
+                self.scene.addItem(icon)
+                self.infrastructure_icons.append(icon)
+
+            if getattr(block, "crossing", False):
+                path = ICON_PATHS["railway_crossing"]
+                pixmap = QPixmap(path).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                icon = QGraphicsPixmapItem(pixmap)
+                icon.setData(0, "railway_crossing")
+                icon.setPos(x - 20, y)
+                icon.setAcceptedMouseButtons(Qt.LeftButton)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsSelectable, True)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsFocusable, True)  
+                self.scene.addItem(icon)
+                self.infrastructure_icons.append(icon)
+
+
+
 
 class TrackModelFrontEnd(QMainWindow):
     def __init__(self, wayside_integrated=True):
@@ -270,7 +360,6 @@ class TrackModelFrontEnd(QMainWindow):
         self.ui.block_number_selected.setCurrentText(block_id)
         self.map_canvas.update_block_colors()
 
-        # ✅ This code is now properly placed INSIDE the method
         selected_item = self.map_canvas.block_items.get(block_id)
         if selected_item:
             for item in self.map_canvas.block_items.values():
