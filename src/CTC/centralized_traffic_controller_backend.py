@@ -1,6 +1,6 @@
 '''
 Author: Aaron Kuchta
-Date: 4-7-2025
+Date: 4-8-2025
 '''
 
 
@@ -22,18 +22,6 @@ import globals.signals as signals
 
 
 class CtcBackEnd(QObject):
-
-    #Stations located green line
-    G_STATIONS = ("Pioneer", "Edgebrook", "Station", "Whited", "South Bank", "Central", "Inglewood", "Overbrook", "Glenbury", "Dormont", 
-                "MT Lebanon", "Poplar", "Castle Shannon", "Dormont", "Glenbury", "Overbrook", "Inglewood", "Central")
-    G_STATIONS_BLOCKS = (2, 9, 16, 22, 31, 39, 48, 57, 65, 73, 77, 88, 96, 105, 114, 123, 132, 141)
-
-    EDGEBROOK_EXIT_BLOCKS = [[0,0,1], [0,0,1], [0,0,1]] #1 hot vector for each wayside exit blocks - Need to find which blocks
-    
-    #Stations located on red line
-    #R_STATIONS = ()
-    #R_STATIONS_BLOCKS = ()
-
     def __init__(self): 
         super().__init__()
         self.sent62 = False # These are temporary fixes that allow the ctc to only send authorities/speeds one time per occupancy update
@@ -77,7 +65,6 @@ class CtcBackEnd(QObject):
         if self.wall_clock.minute != self.last_minute:
             self.elapsed_mins += 1
             self.last_minute = self.wall_clock.minute
-        #print("Elapsed Time", self.elapsed_mins)
         self.dispatch_queue_handler() #Dispatch queue handler  
 
         if self.active_line.blocks[62].occupancy:
