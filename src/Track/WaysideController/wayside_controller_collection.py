@@ -109,7 +109,7 @@ class WaysideControllerCollection(QObject):
         Called when the ctc dispatches a train. Verifies that it is safe to dispatch the train
         """
         if self.track_model != None:
-            if self.track_model.dynamic_track.occupancies["K63"] == Occupancy.UNOCCUPIED:
+            if self.track_model.dynamic_track.occupancies["$151"] == Occupancy.UNOCCUPIED:
                 self.track_model.initialize_train()
 
         
