@@ -67,7 +67,6 @@ class CtcBackEnd(QObject):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.backend_update)
         self.timer.start(100)  # 10 Hz update
-        self.calculate_authority(12, 150, 0) #Test function, remove later
 
         
 
@@ -81,7 +80,6 @@ class CtcBackEnd(QObject):
         if self.active_line.blocks[62].occupancy:
             self.suggested_speed = {"K63" : 70}
             self.suggested_authority = {"K63" : 16134}
-            print("In ctc dispatch")
             self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside
         if self.active_line.blocks[8].occupancy:
             self.suggested_speed = {"C9" : 45}
@@ -255,7 +253,6 @@ class CtcBackEnd(QObject):
         if start_id < 0 or start_id > 149:
             print("Invalid start block ID")
             return -1
-        
         authority = 0
         last_dir = direction #Initial direction
         section_dir = self.active_line.sections[self.active_line.blocks[start_id].id[0]].increasing #0 for decreasing, 1 for increasing, 2 for bidirectional
@@ -275,13 +272,9 @@ class CtcBackEnd(QObject):
                 next_dir = new_dir
             elif direction == 0:
                 next_id = current_id - 1
-                if next_id < 0:
-                    print("JUMP BLOCK MISSED 1-13")
                 next_dir = direction
             elif direction == 1:
                 next_id = current_id + 1
-                if next_id >= 150:
-                    print("JUMP BLOCK MISSED 150-28")
                 next_dir = direction
 
             authority += current_block.length #accumulate authority

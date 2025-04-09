@@ -54,7 +54,6 @@ class TrainController(QMainWindow):
         self.previous_position = 0.0
         self.block_distance_traveled = 0.0
         self.next_station = ""
-        self.announcement = False
         self.manual_mode = False
         self.target_speed = 0.0
         self.beacon_data_recieved = False
@@ -137,56 +136,6 @@ class TrainController(QMainWindow):
                 self.travel_direction = increasing
             self.current_section = self.current_block.id[0]
 
-    def update_safety(self):
-        # Ramp up power for passenger comfort
-        if self.unramped_commanded_power > self.commanded_power:
-            ramp_rate = 10000.0
-            power_diff = self.unramped_commanded_power - self.commanded_power
-            dt = self.global_clock.train_dt/1000 * self.global_clock.time_multiplier
-            max_delta = ramp_rate * dt
-            if abs(power_diff) < max_delta:
-                self.commanded_power = self.unramped_commanded_power
-            else:
-                self.commanded_power += math.copysign(max_delta, power_diff)
-        else:
-            self.commanded_power = self.unramped_commanded_power
-
-        # Check for failures
-        if (self.signal_failure or self.brake_failure or self.engine_failure):
-            self.emergency_brake = True
-
-        # Check for invalid power commands
-        new_service_state = False
-        if (self.commanded_power <= 0):
-            self.commanded_power = 0.0
-            new_service_state = True
-        elif (self.commanded_power > 120000):
-            self.commanded_power = 120000.0
-        
-        if not self.manual_mode and not self.stopping:
-            self.service_brake=new_service_state
-
-        # TODO: Check authority and stopping distance and override speed calcs
-        self.wayside_authority -= self.position - self.previous_position
-        self.previous_position = self.position
-
-        theta = math.atan(self.current_block.grade / 100)
-        service_dist = ((self.actual_speed/self.MPS_TO_MPH) ** 2) / (2 * (self.SERVICE_BRAKE_DECEL + (self.GRAVITY * math.sin(theta * (math.pi/180)))))
-        service_dist *= self.M_TO_YARDS
-
-        if (self.wayside_authority < service_dist and self.wayside_authority > 10):
-            self.emergency_brake = True
-        elif (self.wayside_authority < (3*service_dist)):
-            self.service_brake = True
-        if self.wayside_authority < 5:
-            self.service_brake = True
-        # else:
-        #     self.service_brake = False #TODO: Ask profeta how we should handle manual mode service brakes if he wants a toggle but also wants it vital.
-
-        if (self.emergency_brake or self.service_brake):
-            self.commanded_power = 0.0 # Kill engine if emergency brake is activated
-            self.integral_error = 0
-
     def update_auxiliary(self):
         # Set the HVAC Signals
         self.air_conditioning_signal = self.actual_temperature > self.desired_temperature
@@ -238,6 +187,56 @@ class TrainController(QMainWindow):
         if self.dwell or self.stopping:
             self.service_brake = True
 
+    def update_safety(self):
+        # Ramp up power for passenger comfort
+        if self.unramped_commanded_power > self.commanded_power:
+            ramp_rate = 10000.0
+            power_diff = self.unramped_commanded_power - self.commanded_power
+            dt = self.global_clock.train_dt/1000 * self.global_clock.time_multiplier
+            max_delta = ramp_rate * dt
+            if abs(power_diff) < max_delta:
+                self.commanded_power = self.unramped_commanded_power
+            else:
+                self.commanded_power += math.copysign(max_delta, power_diff)
+        else:
+            self.commanded_power = self.unramped_commanded_power
+
+        # Check for failures
+        if (self.signal_failure or self.brake_failure or self.engine_failure):
+            self.emergency_brake = True
+
+        # Check for invalid power commands
+        new_service_state = False
+        if (self.commanded_power <= 0):
+            self.commanded_power = 0.0
+            new_service_state = True
+        elif (self.commanded_power > 120000):
+            self.commanded_power = 120000.0
+        
+        if not self.manual_mode and not self.stopping:
+            self.service_brake=new_service_state
+
+        # TODO: Check authority and stopping distance and override speed calcs
+        self.wayside_authority -= self.position - self.previous_position
+        self.previous_position = self.position
+
+        theta = math.atan(self.current_block.grade / 100)
+        service_dist = ((self.actual_speed/self.MPS_TO_MPH) ** 2) / (2 * (self.SERVICE_BRAKE_DECEL + (self.GRAVITY * math.sin(theta * (math.pi/180)))))
+        service_dist *= self.M_TO_YARDS
+
+        if (self.wayside_authority < service_dist and self.wayside_authority > 10):
+            self.emergency_brake = True
+        elif (self.wayside_authority < (3*service_dist)):
+            self.service_brake = True
+        if self.wayside_authority < 5:
+            self.service_brake = True
+        # else:
+        #     self.service_brake = False #TODO: Ask profeta how we should handle manual mode service brakes if he wants a toggle but also wants it vital.
+
+        if (self.emergency_brake or self.service_brake):
+            self.commanded_power = 0.0 # Kill engine if emergency brake is activated
+            self.integral_error = 0
+
     def start_dwell(self):
         self.dwell = True
         # Open doors if the train is stopped and not in manual mode.
@@ -257,6 +256,7 @@ class TrainController(QMainWindow):
         QTimer.singleShot(int(self.DWELL_TIME_MS / self.global_clock.time_multiplier), self.end_dwell)
 
     def end_dwell(self):
+        print("Leaving station")
         # Close Doors
         self.left_doors = False
         self.right_doors = False
