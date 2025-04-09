@@ -53,7 +53,7 @@ class TrainController(QMainWindow):
         self.position = 0.0
         self.previous_position = 0.0
         self.block_distance_traveled = 0.0
-        self.next_station = "Edgebrook"
+        self.next_station = ""
         self.announcement = False
         self.manual_mode = False
         self.target_speed = 0.0
@@ -212,10 +212,21 @@ class TrainController(QMainWindow):
         #   - The wayside authority drops significantly (e.g., below a threshold)
         #   - The train is in a station block (self.current_block.station is True)
         #   - The train’s speed has reached zero.
-        print(self.current_block.id)
-        print(self.current_block.station)
+        # print(self.current_block.id)
+        # print(self.current_block.station)
         if (self.wayside_authority > 300 and self.previous_authority < 300 and self.current_block.station and not self.dwell):
             print("Stopping at station...")
+
+            # TODO: Announcements
+            # set the next station announcement based on station information
+            station = self.track_data.stations.get(self.current_block.id, None)
+            if station:
+                # update the next_station field to the station's name
+                self.next_station = station.name
+            else:
+                # arbitrary station name
+                self.next_station = "Unknown Station"
+
             # Mark that we are in the stopping/dwell process
             self.stopping = True
             # Call start_dwell after a short delay (to let the stopping process complete)
@@ -226,8 +237,6 @@ class TrainController(QMainWindow):
         # While dwelling, we keep the service brakes active so that the train remains stationary
         if self.dwell or self.stopping:
             self.service_brake = True
-        
-        #TODO: Announcements
 
     def start_dwell(self):
         self.dwell = True
