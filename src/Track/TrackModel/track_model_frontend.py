@@ -231,20 +231,31 @@ class TrackMapCanvas(QGraphicsView):
 
     # Allows interaction with physical map
     def mousePressEvent(self, event):
-        print("[DEBUG] mousePressEvent triggered")
         scene_pos = self.mapToScene(event.pos())
         item = self.scene.itemAt(scene_pos, self.transform())
 
         if isinstance(item, QGraphicsPixmapItem) and item.data(0):
             icon_type = item.data(0)
-            print(f"[ICON CLICKED] {icon_type} at position ({item.pos().x():.1f}, {item.pos().y():.1f})")
+            if icon_type == "switch":
+                block_id = item.data(1)  # Get block ID from icon
+                switch_state = self.backend.dynamic_track.switch_states.get(block_id)
+                switch = self.backend.track_data.switches.get(block_id)
+
+                if switch and switch_state is not None:
+                    state_label = switch.positions[1 if switch_state else 0]
+                    print(f"[SWITCH CLICKED] Block {block_id}: {state_label}")
+                else:
+                    print(f"[SWITCH CLICKED] No switch info for block {block_id}")
+            else:
+                print(f"[ICON CLICKED] {icon_type} at position ({item.pos().x():.1f}, {item.pos().y():.1f})")
+
+
         elif isinstance(item, QGraphicsRectItem) and item in self.block_lookup:
             block_id = self.block_lookup[item]
             print(f"[BLOCK CLICKED] Block ID: {block_id}")
             self.blockClicked.emit(block_id)
 
         super().mousePressEvent(event)
-
 
 
     def update_block_colors(self):
@@ -286,13 +297,15 @@ class TrackMapCanvas(QGraphicsView):
                 path = ICON_PATHS["switch"]
                 pixmap = QPixmap(path).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 icon = QGraphicsPixmapItem(pixmap)
-                icon.setData(0, "switch")
+                icon.setData(0, "switch")     # icon type
+                icon.setData(1, block_id)     # block ID
                 icon.setPos(x - 10, y - 10)
                 icon.setAcceptedMouseButtons(Qt.LeftButton)
                 icon.setFlag(QGraphicsPixmapItem.ItemIsSelectable, True)
                 icon.setFlag(QGraphicsPixmapItem.ItemIsFocusable, True)
                 self.scene.addItem(icon)
                 self.infrastructure_icons.append(icon)
+
 
             if getattr(block, "light", False):
                 path = ICON_PATHS["traffic_light"]
@@ -471,9 +484,6 @@ class TrackModelFrontEnd(QMainWindow):
             first_block = self.block_number_to_id["1"]
             self.ui.block_number_selected.setCurrentText("1")
             self.display_block_info(first_block)
-
-
-
 
 
 
