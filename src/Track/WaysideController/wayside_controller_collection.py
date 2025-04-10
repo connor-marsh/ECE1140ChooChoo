@@ -36,7 +36,7 @@ class WaysideControllerCollection(QObject):
 
         # get references to the data from the corresponding track
         track_data = init_track_data.lines[self.LINE_NAME]
-        self.blocks = track_data.blocks 
+        self.overlaps = track_data.overlaps
         self.switches = track_data.switches # dictionaries don't require sorting duh
         self.lights = track_data.lights
         self.crossings = track_data.crossings
@@ -44,8 +44,9 @@ class WaysideControllerCollection(QObject):
         self.controllers = [] # A collection of wayside has controllers
         self.CONTROLLER_COUNT = len(track_data.territory_counts) # get the number of controllers (CONSTANT)
 
-        self.blocks = sorted(self.blocks, key=lambda block: (block.territory, block.id[0], int(block.id[1:]))) # sort blocks by territory then by section then by number
-
+        # my blocks are a list of lists i filter the main list by territory and then i use ranges to index them in my ui
+        self.blocks = [self.get_blocks_for_territory(i + 1, track_data.blocks) for i in range(self.CONTROLLER_COUNT)]
+       
         # Will get the number corresponding to each wayside controller below (CONSTANTS)
         self.BLOCK_COUNTS = [] 
         self.SWITCH_COUNTS = []
@@ -67,10 +68,10 @@ class WaysideControllerCollection(QObject):
                                                       exit_block_count=0, index=i, collection_reference=self))
 
         # Get the ranges of each territory, so that indexing the list is easier
-        self.BLOCK_RANGES = self.get_ranges(self.BLOCK_COUNTS)
-        self.SWITCH_RANGES = self.get_ranges(self.SWITCH_COUNTS)
-        self.LIGHT_RANGES = self.get_ranges(self.LIGHT_COUNTS)
-        self.CROSSING_RANGES = self.get_ranges(self.CROSSING_COUNTS)
+        self.BLOCK_RANGES = self.get_ranges_with_overlap(self.BLOCK_COUNTS,self.overlaps)
+        #self.SWITCH_RANGES = self.get_ranges(self.SWITCH_COUNTS)
+        #self.LIGHT_RANGES = self.get_ranges(self.LIGHT_COUNTS)
+        #self.CROSSING_RANGES = self.get_ranges(self.CROSSING_COUNTS)
 
         # Create a list of testbenches for maintenance mode corresponding to each one of the wayside controllers
         from Track.WaysideController.wayside_controller_frontend import WaysideControllerTestbench # Avoiding circular imports?
@@ -84,23 +85,51 @@ class WaysideControllerCollection(QObject):
         self.connect_signals()
 
 
-        
+    def get_sort_territory(self, territory):
+        if isinstance(territory, int):
+            return (territory, 1)  # normal territory, secondary sort to put them before overlap
+        elif isinstance(territory, tuple):
+            return (territory[0], 2)  # overlap — put after main territory
     
-    def get_ranges(self, counts): # THIS FUNCTION COULD BE MOVED TO THE TRACK DATA CLASS BUT THIS KINDA FITS MORE WITH WHAT I HAVE TO DO (ONLY USED FOR INIT)
+    def get_blocks_for_territory(self, territory, blocks):
+        # Assuming block.territory can be an int or a tuple, or even a list.
+        filtered = [
+            block for block in blocks
+            if (isinstance(block.territory, (tuple, list)) and territory in block.territory) or
+            (block.territory == territory)
+        ]
+        return filtered
+    
+    
+    def get_ranges_with_overlap(self, counts, overlaps):
         """
-        Given a list of counts per territory, compute the start and end indices. 
-        
-        :param counts: List of the number of blocks per territory ie. [50,30,40] indicates 50 blocks for wayside 1, 30 blocks for wayside 2 and so on
+        Compute the contiguous block ranges for each territory, 
+        accounting for overlaps between consecutive territories.
 
-        :return: List of [start, end) index tuples. Start inclusive end not inclusive.
+        :param counts: List of number of blocks for each territory. 
+                    For example, [50, 40, 30] means territory 0 has 50 blocks, 
+                    territory 1 has 40 blocks, territory 2 has 30 blocks.
+        :param overlaps: List of overlap counts between each territory and the next.
+                        For example, [10, 5] means territory 0 and 1 overlap by 10 blocks,
+                        and territory 1 and 2 overlap by 5 blocks.
+        :return: List of (start, end) tuples for each territory. End is non-inclusive.
         """
+        if len(overlaps) != len(counts) - 1:
+            raise ValueError("Length of overlaps must be one less than length of counts.")
+
         ranges = []
-        start_index = 0  # 0 based indexing
-        for count in counts:
-            end_index = start_index + count - 1  # Last element in this range
-            ranges.append((start_index, end_index + 1))
-            start_index = end_index + 1  # Move start index to next range
+        # The first territory always starts at index 0.
+        start_index = 0
+        for i, count in enumerate(counts):
+            end_index = start_index + count
+            ranges.append((start_index, end_index))
+            # If there is another territory, subtract the appropriate overlap
+            if i < len(overlaps):
+                start_index = end_index - overlaps[i]
         return ranges
+
+
+
     
     
     @pyqtSlot()
@@ -109,7 +138,7 @@ class WaysideControllerCollection(QObject):
         Called when the ctc dispatches a train. Verifies that it is safe to dispatch the train
         """
         if self.track_model != None:
-            if self.track_model.dynamic_track.occupancies["$151"] == Occupancy.UNOCCUPIED:
+            if self.track_model.dynamic_track.occupancies["y151"] == Occupancy.UNOCCUPIED:
                 self.track_model.initialize_train()
 
         
