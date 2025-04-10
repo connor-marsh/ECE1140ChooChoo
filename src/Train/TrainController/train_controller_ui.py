@@ -564,7 +564,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Train Controller"))
         self.groupBox_6.setTitle(_translate("MainWindow", "Control Constants"))
         self.ki_line_edit.setPlaceholderText(_translate("MainWindow", "Default = 75"))
         self.label_23.setText(_translate("MainWindow", "Kp Value"))
