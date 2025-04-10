@@ -65,13 +65,13 @@ class CtcBackEnd(QObject):
 
         if self.active_line.blocks[62].occupancy:
             self.suggested_speed = {"K63" : 70}
-            auth = self.calculate_authority(63, 9)
+            auth = self.calculate_authority(151, 9)
             self.suggested_authority = {"K63" : auth}
             print("In ctc dispatch")
             self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside
         if self.active_line.blocks[8].occupancy:
             self.suggested_speed = {"C9" : 45}
-            auth = self.calculate_authority(9, 58)
+            auth = self.calculate_authority(9, 152)
             self.suggested_authority = {"C9" : auth}
             self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside 
 
@@ -173,8 +173,9 @@ class CtcBackEnd(QObject):
         #Train dispatch handler | called by front end
         if destination_type == 'station':
             #Dispatch to station
-            destination_set = int(self.active_line.G_STATIONS_BLOCKS[destination])
-            print("Trying to dispatch to: ", destination, " Block: ", self.active_line.G_STATIONS_BLOCKS[destination])
+            print("Dispatching to station: ", destination)
+            #destination_set = int(self.active_line.STATIONS_BLOCKS[destination])
+            print("Trying to dispatch to: ", destination, " Block: ", self.active_line.STATIONS_BLOCKS[destination])
         elif destination_type == 'block':
             #Dispatch to block
             destination_set = int(destination)
@@ -197,7 +198,7 @@ class CtcBackEnd(QObject):
             print("Full route: ", full_route)
         #self.active_line.add_train(self.train_count, destination_set, "manual", "inactive")
 
-        #self.train_queue.put(destination_block) #OUTDATED
+        self.train_queue.put(destination) #OUTDATED
         print("Train Entered into Queue")
 
     def dispatch_queue_handler(self):
@@ -205,7 +206,7 @@ class CtcBackEnd(QObject):
         if not self.train_queue.empty() and self.first_blocks_free():
             #get destination block from queue
             destination_block = self.train_queue.get()
-            self.active_line.add_train(self.train_count, destination_block, "manual")
+            self.active_line.add_train(self.train_count, destination_block, "manual", self.active_line.ENTRANCE_BLOCK)
             self.train_count += 1
             #Update active train list
             print("Train Leaving Queue")
@@ -252,7 +253,7 @@ class CtcBackEnd(QObject):
         
         if start_id == end_id:
             return 0
-        if start_id < 0 or start_id > 149:
+        if start_id < 0 or start_id > 151:
             print("-----ERROR! Invalid start block ID-----")
             return -1
         authority = 0
@@ -298,13 +299,13 @@ class CtcBackEnd(QObject):
 
 
 class DummyTrain:
-    def __init__(self, train_id, route, mode, status):
+    def __init__(self, train_id, route, mode, status, start_block):
         super().__init__()
         self.train_id = train_id
         self.route = route
         self.mode = mode
         self.status = status
-        self.current_block = 64 #Starting block for green line
+        self.current_block = start_block #Starting block for green line
         self.speed = 0
         self.authority = 0
 
@@ -361,12 +362,14 @@ class Track:
         self.routes = {}
 
         if name == "Green":
-            self.ENTRANCE_BLOCK = 63  #Entrance blocks for green line | Should be K63 but is 62 to account for 0-indexing
+            self.ENTRANCE_BLOCK = 151  #Entrance blocks for green line | Should be K63 but is 62 to account for 0-indexing
             self.JUMP_BLOCKS = { 
             (100, 1): (84, 0),   # Q100 -> N85, decrease
             (77, 0): (100, 1),   # N77 -> R101, increase
             (150, 1): (27, 0),   # Z150 -> F28, decrease
-            (1, 0): (12, 1)}     #A1 -> D13, increase
+            (1, 0): (12, 1),    #A1 -> D13, increase
+            (151, 1): (62, 1), #Yard -> K63, increase
+            (57, 1): (151, 1)} #I57 -> Yard, increase}     
             #More may be needed for Yard Entrace/exit
 
             self.STATIONS_BLOCKS = {
@@ -388,7 +391,7 @@ class Track:
                 "Overbrook-W": 123,
                 "Inglewood-W": 132,
                 "Central-W": 141,
-                "Yard": 58 #Placeholder, Needs changed
+                "Yard": 152 
             }
         #elif name == "Red":
         #    self.entrance_blocks = [1, 2, 3] #Entrance blocks for red line
@@ -400,9 +403,9 @@ class Track:
     def initialize_blocks(self):
         self.blocks = [TrackBlocks(block) for block in self.track_data.blocks]
 
-    def add_train(self, train_id, train_route, train_mode="manual", train_status="inactive"):
+    def add_train(self, train_id, train_route, train_mode="manual", train_status="inactive", start_block=152):
         #Adds train to active trains list
-        new_train = DummyTrain(train_id, train_route, train_mode, train_status)
+        new_train = DummyTrain(train_id, train_route, train_mode, train_status, start_block)
         self.active_trains.append(new_train) 
         
 

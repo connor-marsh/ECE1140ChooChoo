@@ -349,7 +349,7 @@ class CtcFrontEnd(QMainWindow):
             #new train needs to be dispatched
             if self.ctc_ui.sub_dispatch_station_select_radio.isChecked():
                 #dispatch to station
-                destination_station = self.ctc_ui.sub_station_combo.currentIndex()
+                destination_station = self.ctc_ui.sub_station_combo.currentText() #CHANGED FROM INDEX
                 self.backend.dispatch_handler(destination_station, 'station')
             elif self.ctc_ui.sub_dispatch_block_select_radio.isChecked():
                 #dispatch to block
