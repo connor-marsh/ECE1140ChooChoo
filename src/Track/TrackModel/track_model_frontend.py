@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsRectItem, QMainWindow
 from PyQt5.QtGui import QBrush, QPen, QColor, QPainter
-from PyQt5.QtCore import Qt, QRectF, QTimer
-from PyQt5.QtWidgets import QGraphicsPixmapItem
+from PyQt5.QtCore import Qt, QRectF, QTimer, pyqtSignal
+from PyQt5.QtWidgets import QGraphicsPixmapItem, QVBoxLayout
 from PyQt5.QtGui import QPixmap
 from Track.TrackModel.track_model_ui import Ui_MainWindow
 from Track.TrackModel.track_model_backend import TrackModel
@@ -178,6 +178,7 @@ ICON_PATHS = {
 }
 
 class TrackMapCanvas(QGraphicsView):
+    blockClicked = pyqtSignal(str)
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
@@ -228,7 +229,7 @@ class TrackMapCanvas(QGraphicsView):
         self.update_block_colors()
         self.add_infrastructure_icons()
 
-
+    # Allows interaction with physical map
     def mousePressEvent(self, event):
         print("[DEBUG] mousePressEvent triggered")
         scene_pos = self.mapToScene(event.pos())
@@ -240,10 +241,10 @@ class TrackMapCanvas(QGraphicsView):
         elif isinstance(item, QGraphicsRectItem) and item in self.block_lookup:
             block_id = self.block_lookup[item]
             print(f"[BLOCK CLICKED] Block ID: {block_id}")
-            if hasattr(self.parent(), "on_block_selected"):
-                self.parent().on_block_selected(block_id)
+            self.blockClicked.emit(block_id)
 
         super().mousePressEvent(event)
+
 
 
     def update_block_colors(self):
@@ -317,6 +318,19 @@ class TrackMapCanvas(QGraphicsView):
                 self.scene.addItem(icon)
                 self.infrastructure_icons.append(icon)
 
+            def zoom_in(self):
+                if self.scale_factor < self.max_scale:
+                    zoom_factor = 1.15
+                    self.scale(zoom_factor, zoom_factor)
+                    self.scale_factor *= zoom_factor
+
+            def zoom_out(self):
+                if self.scale_factor > self.min_scale:
+                    zoom_factor = 1 / 1.15
+                    self.scale(zoom_factor, zoom_factor)
+                    self.scale_factor *= zoom_factor
+
+
 
 
 
@@ -337,9 +351,26 @@ class TrackModelFrontEnd(QMainWindow):
         self.track_heater_status = False
 
         # Load Map Canvas into GraphicsView
-        self.map_canvas = TrackMapCanvas()
-        self.ui.track_map_display.setScene(self.map_canvas.scene)
-        self.ui.track_map_display.setRenderHint(QPainter.Antialiasing)
+        # Create a canvas and embed it into the track_map_display placeholder
+        self.map_canvas = TrackMapCanvas(self.ui.track_map_display)
+        self.map_canvas.blockClicked.connect(self.on_block_selected)
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.map_canvas)
+        self.ui.track_map_display.setLayout(layout)
+
+        # Buttons to zoom in and out
+        #self.ui.zoom_in_button.clicked.connect(self.map_canvas.zoom_in)
+        #self.ui.zoom_out_button.clicked.connect(self.map_canvas.zoom_out)
+
+        # Mapping combobox with physical blocks
+        self.block_number_to_id = {}
+        self.block_id_to_number = {}
+
+        # Populate mappings
+        for idx, (block_id, *_rest) in enumerate(HARDCODED_LAYOUT, start=1):
+            self.block_number_to_id[str(idx)] = block_id
+            self.block_id_to_number[block_id] = str(idx)
 
         self.map_canvas.load_from_backend(self.green_line, HARDCODED_LAYOUT)
         self.populate_block_combobox(HARDCODED_LAYOUT)
@@ -354,10 +385,19 @@ class TrackModelFrontEnd(QMainWindow):
 
         self.ui.block_number_selected.currentTextChanged.connect(self.on_combobox_selected)
 
-
+    # Displays the current block selected
     def on_block_selected(self, block_id):
+        print(f"[DEBUG] Looking for block_number of {block_id} -> {self.block_id_to_number.get(block_id)}")
         self.display_block_info(block_id)
-        self.ui.block_number_selected.setCurrentText(block_id)
+        block_number = self.block_id_to_number.get(block_id)
+        if block_number:
+            self.ui.block_number_selected.blockSignals(True)
+            self.ui.block_number_selected.setCurrentText(block_number)
+            self.ui.block_number_selected.blockSignals(False)
+        else:
+            print(f"[WARNING] No block number found for block_id: {block_id}")
+
+
         self.map_canvas.update_block_colors()
 
         selected_item = self.map_canvas.block_items.get(block_id)
@@ -365,7 +405,6 @@ class TrackModelFrontEnd(QMainWindow):
             for item in self.map_canvas.block_items.values():
                 item.setPen(QPen(Qt.black, 0.5))
             selected_item.setPen(QPen(Qt.red, 2))
-
 
     def display_block_info(self, block_id):
         block = next((b for b in self.green_line.track_data.blocks if b.id == block_id), None)
@@ -387,7 +426,7 @@ class TrackModelFrontEnd(QMainWindow):
         self.ui.track_temperature_value.setText(f"{temp:.1f}")
         self.ui.track_heater_value.setText("Enabled" if heater else "Disabled")
 
-        # Optional: Highlight occupancy/failure
+        # Highlighting Occupancy/Failures
         if fail != Failures.NONE:
             self.ui.block_selected_value.setStyleSheet("color: orange;")
         elif occ == Occupancy.OCCUPIED:
@@ -409,26 +448,30 @@ class TrackModelFrontEnd(QMainWindow):
     def update_map(self):
         self.map_canvas.update_block_colors()
 
-    def on_combobox_selected(self, block_id):
-        if block_id in self.map_canvas.block_items:
+    # Outlines physical selected block
+    def on_combobox_selected(self, block_number):
+        block_id = self.block_number_to_id.get(block_number)
+        if block_id and block_id in self.map_canvas.block_items:
             self.display_block_info(block_id)
             self.map_canvas.update_block_colors()
-            # Optional: visually highlight the selected block
             selected_item = self.map_canvas.block_items[block_id]
             for item in self.map_canvas.block_items.values():
                 item.setPen(QPen(Qt.black, 0.5))
             selected_item.setPen(QPen(Qt.red, 2))
 
+
+    # Populates the combobox to link with physical block
     def populate_block_combobox(self, layout_data):
         self.ui.block_number_selected.blockSignals(True)
         self.ui.block_number_selected.clear()
-        self.ui.block_number_selected.addItems([block_id for block_id, *_ in layout_data])
+        self.ui.block_number_selected.addItems([str(i) for i in range(1, len(layout_data) + 1)])
         self.ui.block_number_selected.blockSignals(False)
 
         if layout_data:
-            first_block = layout_data[0][0]
-            self.ui.block_number_selected.setCurrentText(first_block)
+            first_block = self.block_number_to_id["1"]
+            self.ui.block_number_selected.setCurrentText("1")
             self.display_block_info(first_block)
+
 
 
 
