@@ -181,7 +181,7 @@ class CtcBackEnd(QObject):
         elif destination_type == 'route':
             #Dispatch on a route
             full_route = []
-            last_block = 63 #Starting track block
+            last_block = self.active_line.ENTRANCE_BLOCK #Starting track block
             
             route_stations = (self.active_line.routes[destination]) #Get first block of route
             print("Train destination route: ", route_stations)
@@ -252,24 +252,28 @@ class CtcBackEnd(QObject):
         if start_id == end_id:
             return 0
         if start_id < 0 or start_id > 149:
-            print("Invalid start block ID")
+            print("-----ERROR! Invalid start block ID-----")
             return -1
         
         authority = 0
-        last_dir = direction #Initial direction
-        section_dir = self.active_line.sections[self.active_line.blocks[start_id].id[0]].increasing #0 for decreasing, 1 for increasing, 2 for bidirectional
+        #last_dir = direction #Initial direction
+        #section_dir = self.active_line.sections[self.active_line.blocks[start_id].id[0]].increasing #0 for decreasing, 1 for increasing, 2 for bidirectional
         #print("Block: ", self.active_line.blocks[start_id].id, "Direction: ", section_dir)
 
         while current_id != end_id:
             current_block = self.active_line.blocks[current_id]
             section_key = current_block.id[0]  #Gets section letter
-            #section_dir = self.active_line.sections[section_key].increasing
+            section_dir = self.active_line.sections[section_key].increasing
+
+            if section_dir != 2:
+                direction = section_dir
+
 
             jump_key = (current_id+1, direction)
             #print("Current Block: ", current_block.id, "Direction: ", direction, "Jump Key: ", jump_key)
 
             if jump_key in self.active_line.JUMP_BLOCKS:
-                #print("JUMP BLOCK DETECTED - ", current_block.id, "Direction: ", direction, "Jump Key: ", jump_key)
+                print("JUMP BLOCK DETECTED - ", current_block.id, "Direction: ", direction, "Jump Key: ", jump_key)
                 next_id, new_dir = self.active_line.JUMP_BLOCKS[jump_key]
                 next_dir = new_dir
             elif direction == 0:
@@ -284,7 +288,7 @@ class CtcBackEnd(QObject):
                 next_dir = direction
 
             authority += current_block.length #accumulate authority
-            #print("Current Block: ", self.active_line.blocks[current_id].id, "Next Block: ", self.active_line.blocks[next_id].id, "Direction: ", direction, "Total Authority: ", authority)
+            print("Current Block: ", self.active_line.blocks[current_id].id, "Next Block: ", self.active_line.blocks[next_id].id, "Direction: ", direction, "Total Authority: ", authority)
 
             current_id = next_id #Update current block
             direction = next_dir
@@ -294,7 +298,7 @@ class CtcBackEnd(QObject):
 
         #print("-----END REACHED-----")
         #print("Current Block: ", current_block.id, "Total Authority: ", authority)
-        return authority
+        return round(authority,2)
 
 
 class DummyTrain:
@@ -361,16 +365,14 @@ class Track:
         self.routes = {}
 
         if name == "Green":
-            self.ENTRANCE_BLOCK = 62  #Entrance blocks for green line | Should be K63 but is 62 to account for 0-indexing
+            self.ENTRANCE_BLOCK = 63  #Entrance blocks for green line | Should be K63 but is 62 to account for 0-indexing
             self.JUMP_BLOCKS = { 
             (100, 1): (84, 0),   # Q100 -> N85, decrease
             (77, 0): (100, 1),   # N77 -> R101, increase
             (150, 1): (27, 0),   # Z150 -> F28, decrease
             (1, 0): (12, 1)}     #A1 -> D13, increase
             #More may be needed for Yard Entrace/exit
-            #self.G_STATIONS = ("Pioneer", "Edgebrook", "Station", "Whited", "South Bank", "Central-I", "Inglewood-I", "Overbrook-I", "Glenbury-K", "Dormont-N", 
-                        #"MT Lebanon", "Poplar", "Castle Shannon", "Dormont-T", "Glenbury-U", "Overbrook-W", "Inglewood-W", "Central-W") #Hardcoded, try and find way to read from dictionary
-            #self.G_STATIONS_BLOCKS = (2, 9, 16, 22, 31, 39, 48, 57, 65, 73, 77, 88, 96, 105, 114, 123, 132, 141)
+
             self.STATIONS_BLOCKS = {
                 "Pioneer": 2,
                 "Edgebrook": 9,
@@ -382,7 +384,7 @@ class Track:
                 "Overbrook-I": 57,
                 "Glenbury-K": 65,
                 "Dormont-N": 73,
-                "MT Lebanon": 77,
+                "Mt. Lebanon": 77,
                 "Poplar": 88,
                 "Castle Shannon": 96,
                 "Dormont-T": 105,
@@ -390,7 +392,7 @@ class Track:
                 "Overbrook-W": 123,
                 "Inglewood-W": 132,
                 "Central-W": 141,
-                "Yard": 59 #Placeholder, Needs changed
+                "Yard": 58 #Placeholder, Needs changed
             }
         #elif name == "Red":
         #    self.entrance_blocks = [1, 2, 3] #Entrance blocks for red line
