@@ -85,20 +85,20 @@ class CtcBackEnd(QObject):
 
     def read_route_file(self, file_data):
         for _, row in file_data.iterrows():
-            route_name = row.iloc[0]  #Get the route name
+            #Get the route name
+            route_name = row.iloc[0]  #Think about storing for refrence?
+            print("Route Name: ", route_name)
             
-            #Get all the station names, starting from the second column,
+            #Get all the station names
             stations = row[1:].dropna().tolist()
 
             # Check if the route name already exists in the routes dictionary
             if route_name not in self.active_line.routes:
                 self.active_line.routes[route_name] = []  # Initialize an empty list for new routes
-#---------------------------------------------CURRENTLY YOU ARE TRYING TO PULL STATION NAMES AND GET AUTHORITY - Check if route names in list are on track, then convert to block id, then auth
-            # Append the stations to the list for the specific route
             self.active_line.routes[route_name].extend(stations)
 
-            # Debug print statement (optional)
-            print(f"{route_name}: {', '.join(stations)}")
+            #print(f"{route_name}: {', '.join(stations[0])}")
+
 
     def update_manual_suggested(self):
         if self.ctc_ui.sub_enter_speed_override.value() > 0:
@@ -172,16 +172,31 @@ class CtcBackEnd(QObject):
         #Train dispatch handler | called by front end
         if destination_type == 'station':
             #Dispatch to station
-            destination_block = int(self.active_line.G_STATIONS_BLOCKS[destination])
+            destination_set = int(self.active_line.G_STATIONS_BLOCKS[destination])
             print("Trying to dispatch to: ", destination, " Block: ", self.active_line.G_STATIONS_BLOCKS[destination])
         elif destination_type == 'block':
             #Dispatch to block
-            destination_block = int(destination)
+            destination_set = int(destination)
             print("Trying to dispatch to block", destination)
         elif destination_type == 'route':
-            pass
+            #Dispatch on a route
+            full_route = []
+            last_block = 63 #Starting track block
+            
+            route_stations = (self.active_line.routes[destination]) #Get first block of route
+            print("Train destination route: ", route_stations)
+            for stations in self.active_line.routes[destination]:
+                next_block = (self.active_line.STATIONS_BLOCKS[stations])
+                print("Station ", stations, "Block ", next_block)
+                auth = self.calculate_authority(last_block, next_block)
+                full_route.append(auth)
+                print("Auth to block", next_block, "from block", last_block, "is ", auth)
+                last_block = next_block #Update last block to current block
+                
+            print("Full route: ", full_route)
+        #self.active_line.add_train(self.train_count, destination_set, "manual", "inactive")
 
-        self.train_queue.put(destination_block)
+        #self.train_queue.put(destination_block) #OUTDATED
         print("Train Entered into Queue")
 
     def dispatch_queue_handler(self):
@@ -189,7 +204,7 @@ class CtcBackEnd(QObject):
         if not self.train_queue.empty() and self.first_blocks_free():
             #get destination block from queue
             destination_block = self.train_queue.get()
-            self.active_line.add_active_train(self.train_count, destination_block, "manual")
+            self.active_line.add_train(self.train_count, destination_block, "manual")
             self.train_count += 1
             #Update active train list
             print("Train Leaving Queue")
@@ -283,11 +298,12 @@ class CtcBackEnd(QObject):
 
 
 class DummyTrain:
-    def __init__(self, train_id, route, mode):
+    def __init__(self, train_id, route, mode, status):
         super().__init__()
         self.train_id = train_id
         self.route = route
         self.mode = mode
+        self.status = status
         self.current_block = 64 #Starting block for green line
         self.speed = 0
         self.authority = 0
@@ -338,10 +354,10 @@ class Track:
         self.blocks = []
         self.sections = self.track_data.sections
         self.switch_data = self.track_data.switches
-        self.station_names = self.track_data.stations.copy()
-        self.switch_states = [0,0,0,0,0,0] #hardcoded
-        self.lights = [0,0,0,0,0,0] #hardcoded
-        self.crossings = [0,0] #hardcoded
+        self.station_names = self.track_data.stations
+        self.switch_states = [0,0,0,0,0,0] 
+        self.lights = [0,0,0,0,0,0]
+        self.crossings = [0,0] 
         self.routes = {}
 
         if name == "Green":
@@ -352,9 +368,30 @@ class Track:
             (150, 1): (27, 0),   # Z150 -> F28, decrease
             (1, 0): (12, 1)}     #A1 -> D13, increase
             #More may be needed for Yard Entrace/exit
-            self.G_STATIONS = ("Pioneer", "Edgebrook", "Station", "Whited", "South Bank", "Central", "Inglewood", "Overbrook", "Glenbury", "Dormont", 
-                        "MT Lebanon", "Poplar", "Castle Shannon", "Dormont", "Glenbury", "Overbrook", "Inglewood", "Central") #Hardcoded, try and find way to read from dictionary
-            self.G_STATIONS_BLOCKS = (2, 9, 16, 22, 31, 39, 48, 57, 65, 73, 77, 88, 96, 105, 114, 123, 132, 141)
+            #self.G_STATIONS = ("Pioneer", "Edgebrook", "Station", "Whited", "South Bank", "Central-I", "Inglewood-I", "Overbrook-I", "Glenbury-K", "Dormont-N", 
+                        #"MT Lebanon", "Poplar", "Castle Shannon", "Dormont-T", "Glenbury-U", "Overbrook-W", "Inglewood-W", "Central-W") #Hardcoded, try and find way to read from dictionary
+            #self.G_STATIONS_BLOCKS = (2, 9, 16, 22, 31, 39, 48, 57, 65, 73, 77, 88, 96, 105, 114, 123, 132, 141)
+            self.STATIONS_BLOCKS = {
+                "Pioneer": 2,
+                "Edgebrook": 9,
+                "Station": 16,
+                "Whited": 22,
+                "South Bank": 31,
+                "Central-I": 39,
+                "Inglewood-I": 48,
+                "Overbrook-I": 57,
+                "Glenbury-K": 65,
+                "Dormont-N": 73,
+                "MT Lebanon": 77,
+                "Poplar": 88,
+                "Castle Shannon": 96,
+                "Dormont-T": 105,
+                "Glenbury-U": 114,
+                "Overbrook-W": 123,
+                "Inglewood-W": 132,
+                "Central-W": 141,
+                "Yard": 59 #Placeholder, Needs changed
+            }
         #elif name == "Red":
         #    self.entrance_blocks = [1, 2, 3] #Entrance blocks for red line
         else:
@@ -365,9 +402,9 @@ class Track:
     def initialize_blocks(self):
         self.blocks = [TrackBlocks(block) for block in self.track_data.blocks]
 
-    def add_active_train(self, train_id, train_route, train_mode="manual"):
+    def add_train(self, train_id, train_route, train_mode="manual", train_status="inactive"):
         #Adds train to active trains list
-        new_train = DummyTrain(train_id, train_route, train_mode)
+        new_train = DummyTrain(train_id, train_route, train_mode, train_status)
         self.active_trains.append(new_train) 
         
 

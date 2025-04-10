@@ -64,6 +64,7 @@ class CtcFrontEnd(QMainWindow):
         self.toggle_maintenance_mode()
         self.initialize_map()
         self.initialize_block_combo()
+        self.initialize_station_combo()
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.frontend_update)
         self.timer.start(50)  # 10 Hz update - change to slower update for performance??
@@ -182,6 +183,12 @@ class CtcFrontEnd(QMainWindow):
                 self.ctc_ui.sub_block_number_combo.addItem(str(i))
         else:
             QTimer.singleShot(100, self.initialize_block_combo) # If neither track active, retry in 100ms
+
+    def initialize_station_combo(self):
+        #initialize station combo box with station names
+        self.ctc_ui.sub_station_combo.clear()
+        for station in self.backend.active_line.STATIONS_BLOCKS.keys():
+            self.ctc_ui.sub_station_combo.addItem(station)
 
     def update_active_train_table(self):
         active_trains = self.backend.active_line.active_trains
@@ -331,7 +338,7 @@ class CtcFrontEnd(QMainWindow):
     def update_dispatch_button(self):
         # Updates button state based off selected buttons
         train_selected = self.ctc_ui.sub_dispatch_overide_new_radio.isChecked() or self.ctc_ui.sub_dispatch_overide_active_radio.isChecked()
-        destination_selected = self.ctc_ui.sub_dispatch_station_select_radio.isChecked() or self.ctc_ui.sub_dispatch_block_select_radio.isChecked()
+        destination_selected = self.ctc_ui.sub_dispatch_station_select_radio.isChecked() or self.ctc_ui.sub_dispatch_block_select_radio.isChecked() or self.ctc_ui.sub_dispatch_train_table.selectedItems()
         if train_selected and destination_selected:
             self.ctc_ui.sub_dispatch_confirm_button.setEnabled(True)
         else:
@@ -350,8 +357,15 @@ class CtcFrontEnd(QMainWindow):
                 self.backend.dispatch_handler(destination_block, 'block')
             elif self.ctc_ui.sub_dispatch_train_table.selectedItems():
                 #dispatch to selected route
-                pass
-            #elif For selected route from table | not implemented yet
+                selected_item = self.ctc_ui.sub_dispatch_train_table.selectedItems()[0]
+                row = selected_item.row()
+                route_name_item = self.ctc_ui.sub_dispatch_train_table.item(row, 1) 
+                
+                if route_name_item:
+                    route_name = route_name_item.text()
+                    print("Dispatching to route:", route_name)
+                    self.backend.dispatch_handler(route_name, 'route') 
+
         elif self.ctc_ui.sub_dispatch_overide_active_radio.isChecked():
             #existing train needs to be rerouted | not implemented yet
             print("Reroute Train Not Implemented")
