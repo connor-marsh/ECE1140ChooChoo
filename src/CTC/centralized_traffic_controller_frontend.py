@@ -109,14 +109,14 @@ class CtcFrontEnd(QMainWindow):
         self.update_route_table()
 
     def update_route_table(self):
-        self.ctc_ui.sub_dispatch_train_table.setRowCount(len(self.backend.routes))
-        max_stations = max(len(stations) for stations in self.backend.routes.values())
+        self.ctc_ui.sub_dispatch_train_table.setRowCount(len(self.backend.active_line.routes))
+        max_stations = max(len(stations) for stations in self.backend.active_line.routes.values())
 
         # Set the number of columns: 1 for ID, 1 for Route Name, then columns for each station
         self.ctc_ui.sub_dispatch_train_table.setColumnCount(max_stations + 2)
         self.ctc_ui.sub_dispatch_train_table.setHorizontalHeaderLabels(['ID', 'Route Name'] + [f'Station {i+1}' for i in range(max_stations)])
 
-        for row_idx, (route_name, stations) in enumerate(self.backend.routes.items()):
+        for row_idx, (route_name, stations) in enumerate(self.backend.active_line.routes.items()):
             # Add ID column (using row_idx to generate a unique ID for each route)
             self.ctc_ui.sub_dispatch_train_table.setItem(row_idx, 0, QTableWidgetItem(str(row_idx + 1)))  # IDs start from 1
 
@@ -348,6 +348,9 @@ class CtcFrontEnd(QMainWindow):
                 #dispatch to block
                 destination_block = self.ctc_ui.sub_block_number_combo.currentText()
                 self.backend.dispatch_handler(destination_block, 'block')
+            elif self.ctc_ui.sub_dispatch_train_table.selectedItems():
+                #dispatch to selected route
+                pass
             #elif For selected route from table | not implemented yet
         elif self.ctc_ui.sub_dispatch_overide_active_radio.isChecked():
             #existing train needs to be rerouted | not implemented yet
