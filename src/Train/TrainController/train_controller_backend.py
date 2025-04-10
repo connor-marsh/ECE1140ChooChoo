@@ -60,6 +60,7 @@ class TrainController(QMainWindow):
         self.beacon_data_recieved = False
         self.started_timer1 = False
         self.started_timer2 = False
+        self.stop_asap = False
         
         #TODO: these defaults should be fixed - currently hard-coded
         self.current_block = self.track_data.blocks[63-1]
@@ -152,7 +153,7 @@ class TrainController(QMainWindow):
             self.commanded_power = self.unramped_commanded_power
 
         # Check for failures
-        if (self.signal_failure or self.brake_failure or self.engine_failure):
+        if (self.signal_failure or self.brake_failure or self.engine_failure or self.stop_asap):
             self.emergency_brake = True
 
         # Check for invalid power commands
@@ -291,7 +292,12 @@ class TrainController(QMainWindow):
         if selected == "testbench" or selected == "train_model":
             self.actual_speed = selected_data.get("actual_speed", self.actual_speed)
             self.wayside_speed = selected_data.get("wayside_speed", self.wayside_speed)
-            self.wayside_authority = selected_data.get("wayside_authority", self.wayside_authority)
+            temp_authority = selected_data.get("wayside_authority", self.wayside_authority)
+            if (temp_authority != 0):
+                self.wayside_authority = temp_authority
+                self.stop_asap = False
+            else:
+                self.stop_asap = True
             self.position = selected_data.get("position", self.position)
 
             if self.beacon_data != selected_data.get("beacon_data", self.beacon_data):
