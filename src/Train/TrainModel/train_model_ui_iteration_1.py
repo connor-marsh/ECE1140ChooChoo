@@ -793,7 +793,7 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Train Model", None))
         self.FailureBox.setTitle(QCoreApplication.translate("MainWindow", u"Failure Box", None))
         self.FailBrake.setText(QCoreApplication.translate("MainWindow", u"Brake Failure", None))
         self.Enabled1.setText(QCoreApplication.translate("MainWindow", u"Enabled", None))

@@ -149,13 +149,11 @@ class TrainModel(QMainWindow):
         old_velocity = self.actual_speed
         # Calculate new velocity using the trapezoidal rule.
         new_velocity = old_velocity + (dt / 2.0) * (final_acceleration + self.previous_acceleration)
+        if new_velocity < 0:
+            new_velocity = 0
         # Calculate new position using the trapezoidal rule.
         new_position = self.position + (dt / 2.0) * (old_velocity + new_velocity)
         self.position = new_position
-        
-        # Check for overspeed and adjust velocity if necessary.
-        if new_velocity < 0:
-            new_velocity = 0
 
         # Clamp the speed to a maximum of 43.49 mph (≈19.44 m/s)
         max_speed_mps = 43.49 / self.MPS_TO_MPH
