@@ -39,9 +39,7 @@ class CtcBackEnd(QObject):
         #Read in signal from Track Model
         signals.communication.track_tickets.connect(self.update_tickets)  #int
         signals.communication.wayside_block_occupancies.connect(self.update_occupancy) #List
-        signals.communication.wayside_switches.connect(self.update_switches) #List
-        signals.communication.wayside_lights.connect(self.update_lights) #List
-        signals.communication.wayside_crossings.connect(self.update_crossings) #List
+        signals.communication.wayside_plc_outputs.connect(self.update_from_plc)
         
         
         self.suggested_speed = {} #key is block data is sent to
@@ -56,6 +54,7 @@ class CtcBackEnd(QObject):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.backend_update)
         self.timer.start(100)  # 10 Hz update
+
         
 
     def backend_update(self):
@@ -131,25 +130,27 @@ class CtcBackEnd(QObject):
                  self.active_line.blocks[i].occupancy = occupancies[block.id]
             
 
-    @pyqtSlot(dict)
-    def update_switches(self, switch_dict):
-        #Updates block switch status 
-        for i, block in enumerate(self.active_line.blocks):
-             if block.id in switch_dict:
-                 self.active_line.blocks[i].switch_state = switch_dict[block.id]
+    @pyqtSlot(list,list,list,list)
+    def update_from_plc(self, sorted_blocks, switches, lights, crossings):
+        switch_index = 0
+        light_index = 0
+        crossing_index = 0
 
-    @pyqtSlot(dict)
-    def update_lights(self, light_dict):
-        #Updates light list | called by wayside controller
-        for i, block in enumerate(self.active_line.blocks):
-             if block.id in light_dict:
-                 self.active_line.blocks[i].light_state = light_dict[block.id]
+        for block_index, block in enumerate(sorted_blocks): # each WAYSIDE sends its portion of the track sorted by territory
 
-    @pyqtSlot(dict)
-    def update_crossings(self, crossing_dict):
-        for i, block in enumerate(self.active_line.blocks):
-             if block.id in crossing_dict:
-                 self.active_line.blocks[i].crossing_state = crossing_dict[block.id]
+            if block.switch: # if the block has a switch
+                self.active_line.blocks[block_index].switch_state = switches[switch_index] # plc outputs have there own index since the first switch isnt at the first block etc.
+                switch_index += 1
+
+            if block.light:
+                self.active_line.blocks[block_index].light_state = lights[light_index]
+                light_index += 1
+            
+            if block.crossing:
+                self.active_line.blocks[block_index].crossing_state = crossings[crossing_index]
+                crossing_index += 1
+
+    
 
 
     def update_train_location(self, occupancy_list):
@@ -254,7 +255,6 @@ class CtcBackEnd(QObject):
         if start_id < 0 or start_id > 149:
             print("-----ERROR! Invalid start block ID-----")
             return -1
-        
         authority = 0
         #last_dir = direction #Initial direction
         #section_dir = self.active_line.sections[self.active_line.blocks[start_id].id[0]].increasing #0 for decreasing, 1 for increasing, 2 for bidirectional
@@ -278,13 +278,9 @@ class CtcBackEnd(QObject):
                 next_dir = new_dir
             elif direction == 0:
                 next_id = current_id - 1
-                if next_id < 0:
-                    print("JUMP BLOCK MISSED 1-13")
                 next_dir = direction
             elif direction == 1:
                 next_id = current_id + 1
-                if next_id >= 150:
-                    print("JUMP BLOCK MISSED 150-28")
                 next_dir = direction
 
             authority += current_block.length #accumulate authority

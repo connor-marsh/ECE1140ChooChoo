@@ -31,6 +31,9 @@ class TrainModelFrontEnd(QMainWindow):
         self.train_ui = TrainModelUI()
         self.train_ui.setupUi(self)
         
+        # flag to track announcements
+        self.station_announced = False
+
         # UI state dictionary to hold frontend-specific failure states and announcements (keyed by train id in dropdown)
         # Keys: Failure states, Announcement
         self.ui_states = {}
@@ -220,11 +223,14 @@ class TrainModelFrontEnd(QMainWindow):
             self.train_ui.button_emergency.setEnabled(not self.current_train.emergency_brake)
             self.train_ui.button_emergency.setChecked(self.current_train.emergency_brake)
             
-            # Leave emergency and failure states alone; their propagation happens in the handlers.
-            announcements = self.current_train.announcement
-            if hasattr(self.train_ui, "Announcement_2"):
-                self.train_ui.Announcement_2.setText(announcements)
+            # --- Announcement Display Logic ---
+            # Get the station name from the backend announcement field.
+            if self.current_train.announcement and self.current_train.actual_speed <= 0.1:
+                self.train_ui.Announcement_2.setText(f"Arrived at {self.current_train.announcement}")
                 self.train_ui.Announcement_2.setStyleSheet("font-size: 20px; font-weight: bold;")
+            else:
+                # Clear the announcement when the train moves.
+                self.train_ui.Announcement_2.setText("")
 
             if hasattr(self.train_ui, "Temperature"):
                 display_temp = self.current_train.actual_temperature * 9 / 5 + 32

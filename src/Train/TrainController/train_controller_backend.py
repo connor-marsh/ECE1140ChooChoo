@@ -53,8 +53,7 @@ class TrainController(QMainWindow):
         self.position = 0.0
         self.previous_position = 0.0
         self.block_distance_traveled = 0.0
-        self.next_station = "Edgebrook"
-        self.announcement = False
+        self.next_station = ""
         self.manual_mode = False
         self.target_speed = 0.0
         self.beacon_data_recieved = False
@@ -137,6 +136,57 @@ class TrainController(QMainWindow):
                 self.travel_direction = increasing
             self.current_section = self.current_block.id[0]
 
+    def update_auxiliary(self):
+        # Set the HVAC Signals
+        self.air_conditioning_signal = self.actual_temperature > self.desired_temperature
+        self.heating_signal = self.actual_temperature < self.desired_temperature
+
+        # Check time for lights
+        if (not self.manual_mode):
+            if (self.global_clock.hour >= 19 and self.global_clock.hour <= 24) or (self.global_clock.hour >= 0 and self.global_clock.hour < 7) or self.current_block.underground:
+                self.interior_lights = True
+                self.headlights = True
+            else:
+                self.interior_lights = False
+                self.headlights = False
+
+        # Close doors if we are moving
+        if (self.actual_speed > 0):
+            self.left_doors = False
+            self.right_doors = False
+
+        # ----- Dwelling Logic -----
+        # Detect if we're stopping at a station:
+        # A common condition might be:
+        #   - The wayside authority drops significantly (e.g., below a threshold)
+        #   - The train is in a station block (self.current_block.station is True)
+        #   - The train’s speed has reached zero.
+        # print(self.current_block.id)
+        # print(self.current_block.station)
+        if (self.wayside_authority > 300 and self.previous_authority < 300 and self.current_block.station and not self.dwell):
+            print("Stopping at station...")
+
+            # TODO: Announcements
+            # set the next station announcement based on station information
+            station = self.track_data.stations.get(self.current_block.id, None)
+            if station:
+                # update the next_station field to the station's name
+                self.next_station = station.name
+            else:
+                # arbitrary station name
+                self.next_station = "Unknown Station"
+
+            # Mark that we are in the stopping/dwell process
+            self.stopping = True
+            # Call start_dwell after a short delay (to let the stopping process complete)
+            QTimer.singleShot(int(500 / self.global_clock.time_multiplier), self.start_dwell)
+
+        self.previous_authority = self.wayside_authority
+ 
+        # While dwelling, we keep the service brakes active so that the train remains stationary
+        if self.dwell or self.stopping:
+            self.service_brake = True
+
     def update_safety(self):
         # Ramp up power for passenger comfort
         if self.unramped_commanded_power > self.commanded_power:
@@ -187,48 +237,6 @@ class TrainController(QMainWindow):
             self.commanded_power = 0.0 # Kill engine if emergency brake is activated
             self.integral_error = 0
 
-    def update_auxiliary(self):
-        # Set the HVAC Signals
-        self.air_conditioning_signal = self.actual_temperature > self.desired_temperature
-        self.heating_signal = self.actual_temperature < self.desired_temperature
-
-        # Check time for lights
-        if (not self.manual_mode):
-            if (self.global_clock.hour >= 19 and self.global_clock.hour <= 24) or (self.global_clock.hour >= 0 and self.global_clock.hour < 7) or self.current_block.underground:
-                self.interior_lights = True
-                self.headlights = True
-            else:
-                self.interior_lights = False
-                self.headlights = False
-
-        # Close doors if we are moving
-        if (self.actual_speed > 0):
-            self.left_doors = False
-            self.right_doors = False
-
-        # ----- Dwelling Logic -----
-        # Detect if we're stopping at a station:
-        # A common condition might be:
-        #   - The wayside authority drops significantly (e.g., below a threshold)
-        #   - The train is in a station block (self.current_block.station is True)
-        #   - The train’s speed has reached zero.
-        print(self.current_block.id)
-        print(self.current_block.station)
-        if (self.wayside_authority > 300 and self.previous_authority < 300 and self.current_block.station and not self.dwell):
-            print("Stopping at station...")
-            # Mark that we are in the stopping/dwell process
-            self.stopping = True
-            # Call start_dwell after a short delay (to let the stopping process complete)
-            QTimer.singleShot(int(500 / self.global_clock.time_multiplier), self.start_dwell)
-
-        self.previous_authority = self.wayside_authority
- 
-        # While dwelling, we keep the service brakes active so that the train remains stationary
-        if self.dwell or self.stopping:
-            self.service_brake = True
-        
-        #TODO: Announcements
-
     def start_dwell(self):
         self.dwell = True
         # Open doors if the train is stopped and not in manual mode.
@@ -248,6 +256,7 @@ class TrainController(QMainWindow):
         QTimer.singleShot(int(self.DWELL_TIME_MS / self.global_clock.time_multiplier), self.end_dwell)
 
     def end_dwell(self):
+        print("Leaving station")
         # Close Doors
         self.left_doors = False
         self.right_doors = False
