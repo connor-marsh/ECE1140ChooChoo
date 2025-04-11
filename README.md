@@ -1,4 +1,15 @@
-# ECE1140ChooChoo
+# ECE1140ChooChoo - Team Choo Choo Train System
+
+## MEMBERS:
+| Name | Module |
+| ----------- | ----------- | 
+| Aaron Kuchta | CTC |
+| Connor Murray | SW Track Controller |
+| PJ Granieri |  Track Model |
+| Iyan Nekib |  Train Model |
+| Aragya Goyal | SW Train Controller |
+| Connor Marsh | HW Train Controller |
+
 ### Installation Instructions
 Clone this repository locally
 Install anaconda, open an anaconda powershell prompt through the anaconda navigator.
@@ -11,3 +22,5 @@ To add a new module, run this command:
 Then to update the environment.yml file, run this command:
 `conda env export > environment.yml`
 ***Then remove the prefix line, which is specific to your computer. After that you are good to commit the new environment file.***
+
+
