@@ -214,10 +214,7 @@ class TrainControllerFrontend(QMainWindow):
         self.display_next_station()
 
     def display_next_station(self):
-        if self.current_train.actual_speed > 0:
-            self.ui.next_station_label.setText("")
-        else:
-            self.ui.next_station_label.setText(self.current_train.next_station)
+        self.ui.next_station_label.setText(self.current_train.next_station)
 
     def activate_service_brake(self):
         self.ui.service_brake_on_light.setStyleSheet("background-color: yellow; font-weight: bold; font-size: 16px;")
