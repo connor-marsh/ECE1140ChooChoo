@@ -76,7 +76,7 @@ class CtcFrontEnd(QMainWindow):
         self.update_throughput() #update throughput label
         self.update_map() #update track data table
         self.ctc_ui.active_train_number_label.setText(str(self.backend.train_count))
-        self.update_active_train_table()
+        #self.update_active_train_table() #Needs updated to work with new backend
         self.update_dispatch_button()
 
 
@@ -363,7 +363,7 @@ class CtcFrontEnd(QMainWindow):
                 
                 if route_name_item:
                     route_name = route_name_item.text()
-                    print("Dispatching to route:", route_name)
+                    #print("Dispatching to route:", route_name)
                     self.backend.dispatch_handler(route_name, 'route') 
 
         elif self.ctc_ui.sub_dispatch_overide_active_radio.isChecked():
