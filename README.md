@@ -50,4 +50,7 @@ Then to update the environment.yml file, run this command:
 
 ### Train Controller HW UI
 
-## 
+## Common User Errors
+1. hello
+2. hello 2
+3. hello 3
