@@ -164,23 +164,26 @@ class TrainController(QMainWindow):
         #   - The train’s speed has reached zero.
         # print(self.current_block.id)
         # print(self.current_block.station)
+        
+        # Extract station information from the track data
+        station = self.track_data.stations.get(self.current_block.id, None)
+        
         if (self.wayside_authority > 300 and self.previous_authority < 300 and self.current_block.station and not self.dwell):
             print("Stopping at station...")
 
-            # TODO: Announcements
             # set the next station announcement based on station information
-            station = self.track_data.stations.get(self.current_block.id, None)
             if station:
                 # update the next_station field to the station's name
                 self.next_station = station.name
-            else:
-                # arbitrary station name
-                self.next_station = "Unknown Station"
 
             # Mark that we are in the stopping/dwell process
             self.stopping = True
             # Call start_dwell after a short delay (to let the stopping process complete)
             QTimer.singleShot(int(500 / self.global_clock.time_multiplier), self.start_dwell)
+            
+        # if we are not at a station, reset the next station announcement
+        if not station: 
+            self.next_station = ""
 
         self.previous_authority = self.wayside_authority
  
