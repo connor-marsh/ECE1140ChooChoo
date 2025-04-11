@@ -338,7 +338,7 @@ class CtcFrontEnd(QMainWindow):
     def update_dispatch_button(self):
         # Updates button state based off selected buttons
         train_selected = self.ctc_ui.sub_dispatch_overide_new_radio.isChecked() or self.ctc_ui.sub_dispatch_overide_active_radio.isChecked()
-        destination_selected = self.ctc_ui.sub_dispatch_station_select_radio.isChecked() or self.ctc_ui.sub_dispatch_block_select_radio.isChecked() or self.ctc_ui.sub_dispatch_train_table.selectedItems()
+        destination_selected = (self.ctc_ui.sub_dispatch_station_select_radio.isChecked() and self.ctc_ui.sub_station_combo.currentText() != "") or (self.ctc_ui.sub_dispatch_block_select_radio.isChecked() and self.ctc_ui.sub_block_number_combo.currentText() != "") or self.ctc_ui.sub_dispatch_train_table.selectedItems()
         if train_selected and destination_selected:
             self.ctc_ui.sub_dispatch_confirm_button.setEnabled(True)
         else:

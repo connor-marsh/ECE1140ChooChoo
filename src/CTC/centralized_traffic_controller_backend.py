@@ -173,13 +173,16 @@ class CtcBackEnd(QObject):
         #Train dispatch handler | called by front end
         if destination_type == 'station':
             #Dispatch to station
-            print("Dispatching to station: ", destination)
-            #destination_set = int(self.active_line.STATIONS_BLOCKS[destination])
-            print("Trying to dispatch to: ", destination, " Block: ", self.active_line.STATIONS_BLOCKS[destination])
+            destination_set = int(self.active_line.STATIONS_BLOCKS[destination])
+            auth = self.calculate_authority(self.active_line.ENTRANCE_BLOCK, destination_set) #Calculate authority to block
+            print("Trying to dispatch to: ", destination, " Block: ", destination_set, "With Authority: ", auth)
+
         elif destination_type == 'block':
             #Dispatch to block
             destination_set = int(destination)
-            print("Trying to dispatch to block", destination)
+            auth = self.calculate_authority(self.active_line.ENTRANCE_BLOCK, destination_set) #Calculate authority to block
+            print("Trying to dispatch to block", destination, "With Authority: ", auth)
+            
         elif destination_type == 'route':
             #Dispatch on a route
             full_route = []
@@ -198,8 +201,8 @@ class CtcBackEnd(QObject):
             print("Full route: ", full_route)
         #self.active_line.add_train(self.train_count, destination_set, "manual", "inactive")
 
-        self.train_queue.put(destination) #OUTDATED
-        print("Train Entered into Queue")
+        #self.train_queue.put(destination) #OUTDATED
+        #print("Train Entered into Queue")
 
     def dispatch_queue_handler(self):
         # Handles train queue | called by update function
