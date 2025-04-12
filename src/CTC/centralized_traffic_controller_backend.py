@@ -165,7 +165,7 @@ class CtcBackEnd(QObject):
                     
             train.current_block = self.update_train_location()
             
-            # print("Current Block", train.current_block, "Route: ", train.get_next_stop())
+            #print("Current Block", train.current_block, "Route: ", train.get_next_stop())
 
 
     def first_blocks_free(self):
@@ -316,14 +316,18 @@ class CtcBackEnd(QObject):
                 next_id = current_id + 1
                 next_dir = direction
 
-            authority += current_block.length #accumulate authority
+
+            if next_id == end_id:
+                authority -= current_block.length #Add half block authority to stop in the middle of block
+            else:
+                authority += current_block.length #accumulate authority
             #print("Current Block: ", self.active_line.blocks[current_id].id, "Next Block: ", self.active_line.blocks[next_id].id, "Direction: ", direction, "Total Authority: ", authority)
 
             current_id = next_id #Update current block
             direction = next_dir
 
         #current_block = self.active_line.blocks[current_id] 
-        #authority += current_block.length
+        #authority += (current_block.length) #Add half block authority to stop in the middle of block
 
         #print("-----END REACHED-----")
         #print("Current Block: ", current_block.id, "Total Authority: ", authority)
