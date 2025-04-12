@@ -46,7 +46,7 @@ class WaysideControllerCollection(QObject):
 
         # my blocks are a list of lists i filter the main list by territory and then i use ranges to index them in my ui
         self.blocks = [self.get_blocks_for_territory(i + 1, track_data.blocks) for i in range(self.CONTROLLER_COUNT)]
-       
+
         # Will get the number corresponding to each wayside controller below (CONSTANTS)
         self.BLOCK_COUNTS = [] 
         self.SWITCH_COUNTS = []
