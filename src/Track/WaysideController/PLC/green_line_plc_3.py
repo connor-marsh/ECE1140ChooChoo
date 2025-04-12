@@ -35,18 +35,27 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     :returns switch_positions, light_signals, light_signals crossing_signals, previous_occupancies:
     """
     # For Wayside #3
-    # HAS 40 Blocks in its Territory
-    # Sections: L[0, 5) M[5, 8) N[8, 17) O[17, 20) P[20, 29) Q[29, 32) R[32, 33) S[33, 36) T[36, 41)
-    # Has 2 Switches
-    # Has X Lights
-    # Has 1 Crossing
+    # HAS 44 Blocks in its Territory
+    # Sections: L[0, 5) M[5, 8) N[8, 17) O[17, 20) P[20, 29) Q[29, 32) R[32, 33) S[33, 36) T[36, 41) U[41,44)
+    # Has 2 Switches N77 (77-76, 77-101), N85 (85-86, 85-100)
+    # Has 4 Lights M76, Q86, Q100, R101
+    # Has 1 Crossing T108
 
     train_in_o_p_q = any(block_occupancies[17:33])
     train_in_n = any(block_occupancies[8:17])
     train_in_m = any(block_occupancies[5:8])
-                    
+    train_in_t = any(block_occupancies[36:41])
+
     switch_positions[0] = train_in_n
+    light_signals[0] = not switch_positions[0]
+    light_signals[2] = not light_signals[0]
+
+
     switch_positions[1] = train_in_o_p_q and not (train_in_m and train_in_n)
+    light_signals[1] = not switch_positions[1]
+    light_signals[3] = not light_signals[1]
+
+    crossing_signals[0] = train_in_t
 
     return switch_positions, light_signals, crossing_signals
 

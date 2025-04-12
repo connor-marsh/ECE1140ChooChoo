@@ -21,7 +21,7 @@ class Block: # contains unchanging information about blocks
     speed_limit: float = 0 # speed limit in mph
     grade: float = 0 # percent grade
     underground: bool = False # is underground
-    territory: int = 0 # integer that is 1 based indexed for each wayside
+    territory: tuple = (0)# integer that is 1 based indexed for each wayside
     station: bool = False # has a station 
     switch: bool = False # has a switch
     switch_exit: bool = False # a block that a switch can fork/connect to
@@ -73,6 +73,7 @@ class TrackData():
             self.line_name = dictionary["Line"][0]
 
             self.populate_blocks(dictionary,dictionary2)
+            self.overlaps = [] # this is a list that counts the number of overlaps, overlap count between 1-2 is in index 0, 2-3 in index 2 etc
             self.count_territory()  
         
 
@@ -91,11 +92,16 @@ class TrackData():
         self.lights = {}
         self.crossings = {} 
         self.beacons = {}
+        
 
         for row in range(len(dictionary["Block Number"])):
             block_id = dictionary["Section"][row] + str(row + 1)
-            territory = dictionary["Territory"][row]
-            
+            if isinstance(dictionary["Territory"][row], str):
+                territories = dictionary["Territory"][row].split(",")
+                territories = tuple([int(t.strip()) for t in territories])
+            else:
+                territories = dictionary["Territory"][row]
+
             # Create Block object
             block = Block(
                 id=block_id,
@@ -108,19 +114,26 @@ class TrackData():
                 grade=dictionary["Block Grade (%)"][row],
                 length=dictionary["Block Length (y)"][row],
                 speed_limit=dictionary["Speed Limit (MPH)"][row],
-                territory=territory,
+                territory=territories,
                 switch_exit=pd.notna(dictionary["Switch Exit"][row])
             )
 
             self.blocks.append(block)
 
-            # Create and store objects that will go into the corresponding dictionaries
-            switch_obj = self.parse_switch(dictionary["Switch"][row], territory)
-            light_obj = Light(territory=territory) if dictionary["Light"][row] == 1 else None
-            crossing_obj = Crossing(territory=territory) if dictionary["Crossing"][row] else None
-            beacon_obj = Beacon(data=dictionary["Beacon Data"][row]) if dictionary["Beacon"][row] else None
-            station_obj = self.parse_station(dictionary["Station"][row], dictionary["Station Side"][row])
-            
+            # Create and store objects that will go into the corresponding dictionaries (devices like switches and lights only need to know their first territory)
+            if isinstance(territories, tuple):
+                switch_obj = self.parse_switch(dictionary["Switch"][row], territories[0])
+                light_obj = Light(territory=territories[0]) if dictionary["Light"][row] == 1 else None
+                crossing_obj = Crossing(territory=territories[0]) if dictionary["Crossing"][row] else None
+                beacon_obj = Beacon(data=dictionary["Beacon Data"][row]) if dictionary["Beacon"][row] else None
+                station_obj = self.parse_station(dictionary["Station"][row], dictionary["Station Side"][row])
+            else:
+                switch_obj = self.parse_switch(dictionary["Switch"][row], territories)
+                light_obj = Light(territory=territories) if dictionary["Light"][row] == 1 else None
+                crossing_obj = Crossing(territory=territories) if dictionary["Crossing"][row] else None
+                beacon_obj = Beacon(data=dictionary["Beacon Data"][row]) if dictionary["Beacon"][row] else None
+                station_obj = self.parse_station(dictionary["Station"][row], dictionary["Station Side"][row])
+
             if switch_obj:
                 self.switches[block_id] = switch_obj
             if light_obj:
@@ -135,7 +148,7 @@ class TrackData():
             if pd.notna(dictionary["Switch Exit"][row]) == True:
                 switch_exit_obj = SwitchExit(switch_entrance=dictionary["Switch Exit"][row])
                 self.switch_exits[block_id] = switch_exit_obj
-            
+
 
 
         self.sections = {}
@@ -194,13 +207,24 @@ class TrackData():
         # Using default dictionary so that key errors do not occur when adding in elements with keys that have not been created before
         temp_territory_counts = defaultdict(int)
         temp_device_counts = defaultdict(lambda: {"switches": 0, "lights": 0, "crossings": 0})
-        # Iterate through blocks and count the number of blocks in each terri
+        # Iterate through blocks and count the number of blocks in each territory
         for block in self.blocks:
-            temp_territory_counts[block.territory] += 1
-            temp_device_counts[block.territory]["switches"] += block.switch
-            temp_device_counts[block.territory]["lights"] += block.light
-            temp_device_counts[block.territory]["crossings"] += block.crossing
-        
+            if isinstance(block.territory, tuple):
+                if block.territory[0] > len(self.overlaps):
+                    self.overlaps.append(0)
+                for t in block.territory:
+                    temp_territory_counts[t] += 1
+
+                temp_device_counts[block.territory[0]]["switches"] += block.switch # should never happen though since overlaps shouldn't have devices?
+                temp_device_counts[block.territory[0]]["lights"] += block.light
+                temp_device_counts[block.territory[0]]["crossings"] += block.crossing
+                self.overlaps[block.territory[0] - 1] += 1
+            else:
+                temp_territory_counts[block.territory] += 1
+                temp_device_counts[block.territory]["switches"] += block.switch
+                temp_device_counts[block.territory]["lights"] += block.light
+                temp_device_counts[block.territory]["crossings"] += block.crossing
+
         # convert back to regular dictionaries
         self.territory_counts = dict(temp_territory_counts)
         self.device_counts = {k: dict(v) for k, v in temp_device_counts.items()} 
@@ -210,3 +234,6 @@ def init():
     lines = {}
     line = TrackData("src/Track/TrackModel/GreenLine_Layout.xlsx")
     lines[line.line_name] = line
+
+if __name__ == "__main__":
+    init()

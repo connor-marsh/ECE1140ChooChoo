@@ -79,6 +79,7 @@ class Train:
         self.dynamic_track = track_model.dynamic_track
         self.train_id = train_id
         self.current_block = initial_block
+        self.previous_block = initial_block
         self.current_section = initial_block.id[0] # just a string
         self.previous_switch_entrance = False
         self.previous_switch_exit = True
@@ -92,6 +93,7 @@ class Train:
         train_position = self.train_model.get_output_data()["position"]
         distance_within_block = train_position - self.distance_traveled
         if distance_within_block > self.current_block.length:
+            self.previous_block = self.current_block
             self.distance_traveled += self.current_block.length
             self.entered_new_section = False
             # Set old block to unoccupied
@@ -104,18 +106,13 @@ class Train:
                 switch = self.track_data.switches[self.current_block.id]
                 switchState=self.dynamic_track.switch_states[self.current_block.id]
                 nextBlock = switch.positions[1 if switchState else 0].split("-")[1]
-                if nextBlock == "Yard":
-                    self.track_model.remove_train(self.train_id)
-                    self.dynamic_track.occupancies[self.current_block.id]=Occupancy.UNOCCUPIED
-                    return
-                else:
-                    self.current_block = self.track_data.blocks[int(nextBlock)-1]
+                self.current_block = self.track_data.blocks[int(nextBlock)-1]
             elif self.current_block.switch_exit and not self.previous_switch_entrance:
                 # print("SWITCH")
                 self.previous_switch_exit=True
                 self.previous_switch_entrance=False
                 switch = self.track_data.switches[self.track_data.switch_exits[self.current_block.id].switch_entrance]
-                switchState=self.dynamic_track.switch_states[self.track_data.switch_exits[self.current_block.id].switch_entrance]
+                switchState = self.dynamic_track.switch_states[self.track_data.switch_exits[self.current_block.id].switch_entrance]
                 switchBlocks = switch.positions[1 if switchState else 0].split("-")
                 if switchBlocks[1] == self.current_block.id[1:]:
                     self.current_block = self.track_data.blocks[int(switchBlocks[0])-1]
@@ -137,6 +134,11 @@ class Train:
             else:
                 self.previous_switch_exit=False
                 self.previous_switch_entrance=False
+                # Check for despawn block
+                if self.current_block.id[0]=='y':
+                    self.track_model.remove_train(self.train_id)
+                    self.dynamic_track.occupancies[self.current_block.id]=Occupancy.UNOCCUPIED
+                    return
                 self.current_block = self.track_data.blocks[int(self.current_block.id[1:])+(self.travel_direction*2-1)-1]
             
             # Set new block to occupied
@@ -270,8 +272,12 @@ class TrackModel(QtWidgets.QMainWindow):
             send_to_train = {} # conglomerate in this to prevent calling set_input_data multiple times
             if train.current_block.id in wayside_speeds:
                 send_to_train["wayside_speed"]=wayside_speeds[train.current_block.id]
+            elif train.previous_block.id in wayside_speeds:
+                send_to_train["wayside_speed"]=wayside_speeds[train.previous_block.id]
             if train.current_block.id in wayside_authorities:
                 send_to_train["wayside_authority"]=wayside_authorities[train.current_block.id]
+            elif train.previous_block.id in wayside_authorities:
+                send_to_train["wayside_authority"]=wayside_authorities[train.previous_block.id]+train.previous_block.length
             if len(send_to_train)>0:
                 train.train_model.set_input_data(track_data=send_to_train)
         for block, maintenance in maintenances.items():
@@ -337,12 +343,11 @@ class TrackModel(QtWidgets.QMainWindow):
 
     # Wayside will call when to initialize a train
     def initialize_train(self):
-        start_block = self.track_data.blocks[63-1]
-        
-        # Verify block exists
-        # if not any(b.id == start_block for b in self.track_data.blocks):
-        #     print(f"[Train Init] Block {start_block} not found in static layout.")
-        #     return
+        # Yard spawn in block will be either the last or second to last block
+        if self.track_data.blocks[-2].id[0] == 'y':
+            start_block = self.track_data.blocks[-2]
+        else:
+            start_block = self.track_data.blocks[-1]
 
         # Increment and assign new train
         self.train_counter += 1
