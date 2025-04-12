@@ -75,8 +75,8 @@ class CtcFrontEnd(QMainWindow):
         self.update_clock() #update clock label
         self.update_throughput() #update throughput label
         self.update_map() #update track data table
-        self.ctc_ui.active_train_number_label.setText(str(self.backend.train_count))
-        #self.update_active_train_table() #Needs updated to work with new backend
+        self.ctc_ui.active_train_number_label.setText(str(self.backend.active_line.active_trains_count))
+        self.update_active_train_table() #Needs updated to work with new backend
         self.update_dispatch_button()
 
 
@@ -191,15 +191,19 @@ class CtcFrontEnd(QMainWindow):
             self.ctc_ui.sub_station_combo.addItem(station)
 
     def update_active_train_table(self):
-        active_trains = self.backend.active_line.active_trains
+        active_trains = self.backend.active_line.current_trains
         if len(active_trains) != 0:
             self.ctc_ui.main_active_trains_table.setRowCount(len(active_trains)) 
 
             for row, train in enumerate(active_trains):
                 train_id = str(train.train_id)
-                current_block = str(self.backend.active_line.blocks[train.current_block].id)
-                upcoming_stop = str("Edgebrook") #HARDCODED
-                remaining_stops = str("1")       #HARDCODED
+                current_block = str(train.current_block)
+                remaining_stops = str(len(train.route) - train.route_index) 
+                if int(remaining_stops) > 0:
+                    upcoming_stop = str(self.backend.active_line.blocks[train.route[train.route_index]-1].id) # Get the next block ID from the route
+                else:
+                    upcoming_stop = "None"
+                   
                 current_mode = str(train.mode)
 
                 id_item = QTableWidgetItem(train_id)
