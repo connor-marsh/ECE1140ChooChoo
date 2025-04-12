@@ -11,7 +11,7 @@ import queue
 import pandas as pd
 import openpyxl 
 from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QButtonGroup
 from PyQt5.QtGui import QColor
 
 from CTC.centralized_traffic_controller_ui import Ui_MainWindow as CtcUI
@@ -41,12 +41,13 @@ class CtcFrontEnd(QMainWindow):
         self.ctc_ui.sub_return_button3.clicked.connect(self.switch_to_home)
         self.ctc_ui.multiPageWidget.setCurrentIndex(0)# Set Starting page for stacked widget
 
-
         self.ctc_ui.main_switch_to_upload_button.clicked.connect(self.get_train_schedule)
-        #self.ctc_ui.main_upload_map_button.clicked.connect(self.get_map_data) # Now unused? Double check
 
         self.ctc_ui.maintenance_toggle.clicked.connect(self.toggle_maintenance_mode)
         self.ctc_ui.main_map_table.cellClicked.connect(self.on_map_row_clicked)
+        self.ctc_ui.sub_dispatch_train_table.cellClicked.connect(self.on_dispatch_row_clicked)
+        self.ctc_ui.sub_dispatch_station_select_radio.toggled.connect(self.destination_radio_selected)
+        self.ctc_ui.sub_dispatch_block_select_radio.toggled.connect(self.destination_radio_selected)
         #self.ctc_ui.main_line_slider.sliderReleased.connect(self.toggle_active_line) #Not implemented yet
         self.ctc_ui.main_switch_knob.valueChanged.connect(self.set_switch_state)
         #self.ctc_ui.sub_confirm_override_button.clicked.connect(self.update_suggested)
@@ -55,9 +56,15 @@ class CtcFrontEnd(QMainWindow):
         self.ctc_ui.sub_dispatch_confirm_button.clicked.connect(self.dispatch_pressed)
         #self.toggle_mode() #toggles manual mode, NEEDS CHANGED 
 
+        self.destination_radio_group = QButtonGroup(self)
+        self.destination_radio_group.addButton(self.ctc_ui.sub_dispatch_station_select_radio)
+        self.destination_radio_group.addButton(self.ctc_ui.sub_dispatch_block_select_radio)
+        self.destination_radio_group.setExclusive(True)  # default behavior
+
         self.toggle_maintenance_mode()
         self.initialize_map()
         self.initialize_block_combo()
+        self.initialize_station_combo()
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.frontend_update)
         self.timer.start(50)  # 10 Hz update - change to slower update for performance??
@@ -69,7 +76,8 @@ class CtcFrontEnd(QMainWindow):
         self.update_throughput() #update throughput label
         self.update_map() #update track data table
         self.ctc_ui.active_train_number_label.setText(str(self.backend.train_count))
-        self.update_active_train_table()
+        #self.update_active_train_table() #Needs updated to work with new backend
+        self.update_dispatch_button()
 
 
     #Stacked Widget Navigation
@@ -102,14 +110,14 @@ class CtcFrontEnd(QMainWindow):
         self.update_route_table()
 
     def update_route_table(self):
-        self.ctc_ui.sub_dispatch_train_table.setRowCount(len(self.backend.routes))
-        max_stations = max(len(stations) for stations in self.backend.routes.values())
+        self.ctc_ui.sub_dispatch_train_table.setRowCount(len(self.backend.active_line.routes))
+        max_stations = max(len(stations) for stations in self.backend.active_line.routes.values())
 
         # Set the number of columns: 1 for ID, 1 for Route Name, then columns for each station
         self.ctc_ui.sub_dispatch_train_table.setColumnCount(max_stations + 2)
         self.ctc_ui.sub_dispatch_train_table.setHorizontalHeaderLabels(['ID', 'Route Name'] + [f'Station {i+1}' for i in range(max_stations)])
 
-        for row_idx, (route_name, stations) in enumerate(self.backend.routes.items()):
+        for row_idx, (route_name, stations) in enumerate(self.backend.active_line.routes.items()):
             # Add ID column (using row_idx to generate a unique ID for each route)
             self.ctc_ui.sub_dispatch_train_table.setItem(row_idx, 0, QTableWidgetItem(str(row_idx + 1)))  # IDs start from 1
 
@@ -130,6 +138,25 @@ class CtcFrontEnd(QMainWindow):
         block_info = self.backend.active_line.blocks[row]
         self.update_block_data_labels(block_info)
 
+    def on_dispatch_row_clicked(self, row, column):
+        #break exclusivity to allow unchecking
+        self.destination_radio_group.setExclusive(False)
+
+        if self.ctc_ui.sub_dispatch_station_select_radio.isChecked():
+            self.ctc_ui.sub_dispatch_station_select_radio.setChecked(False)
+        elif self.ctc_ui.sub_dispatch_block_select_radio.isChecked():
+            self.ctc_ui.sub_dispatch_block_select_radio.setChecked(False)
+
+        #Restore exclusivity
+        self.destination_radio_group.setExclusive(True)
+        
+        #self.selected_route_row = row #SETUP LATER TO SELECT ROUTE
+
+    def destination_radio_selected(self):
+        destination_radio_selected = self.ctc_ui.sub_dispatch_station_select_radio.isChecked() or self.ctc_ui.sub_dispatch_block_select_radio.isChecked()
+        if destination_radio_selected:
+            self.ctc_ui.sub_dispatch_train_table.clearSelection()
+
     def update_block_data_labels(self, block_info):
         #update block id, length, speed limit | on main page as well as maintenance page
         self.ctc_ui.main_active_block_id.setText(str(block_info.id))
@@ -144,11 +171,24 @@ class CtcFrontEnd(QMainWindow):
         full_time = clock_time + " " + day_night
         self.ctc_ui.current_time_label.setText(full_time)
 
-    def initialize_block_combo(self): # HARDCODED
-        #initialize block combo box with block ids - currently 1-150
-        self.ctc_ui.sub_block_number_combo.clear()
-        for i in range(1, 151):
-            self.ctc_ui.sub_block_number_combo.addItem(str(i))
+    def initialize_block_combo(self): 
+        if self.backend.active_line.name == "Green":
+            #initialize block combo box with block ids - Green 1-150
+            self.ctc_ui.sub_block_number_combo.clear()
+            for i in range(1, 151):
+                self.ctc_ui.sub_block_number_combo.addItem(str(i))
+        elif self.backend.active_line.name == "Red":
+            #initialize block combo box with block ids - Red 1-76
+            for i in range(1, 77):
+                self.ctc_ui.sub_block_number_combo.addItem(str(i))
+        else:
+            QTimer.singleShot(100, self.initialize_block_combo) # If neither track active, retry in 100ms
+
+    def initialize_station_combo(self):
+        #initialize station combo box with station names
+        self.ctc_ui.sub_station_combo.clear()
+        for station in self.backend.active_line.STATIONS_BLOCKS.keys():
+            self.ctc_ui.sub_station_combo.addItem(station)
 
     def update_active_train_table(self):
         active_trains = self.backend.active_line.active_trains
@@ -295,18 +335,37 @@ class CtcFrontEnd(QMainWindow):
         #updates throughput label on UI
         self.ctc_ui.main_throughput_label.setText(str(self.backend.throughput))
 
+    def update_dispatch_button(self):
+        # Updates button state based off selected buttons
+        train_selected = self.ctc_ui.sub_dispatch_overide_new_radio.isChecked() or self.ctc_ui.sub_dispatch_overide_active_radio.isChecked()
+        destination_selected = (self.ctc_ui.sub_dispatch_station_select_radio.isChecked() and self.ctc_ui.sub_station_combo.currentText() != "") or (self.ctc_ui.sub_dispatch_block_select_radio.isChecked() and self.ctc_ui.sub_block_number_combo.currentText() != "") or self.ctc_ui.sub_dispatch_train_table.selectedItems()
+        if train_selected and destination_selected:
+            self.ctc_ui.sub_dispatch_confirm_button.setEnabled(True)
+        else:
+            self.ctc_ui.sub_dispatch_confirm_button.setEnabled(False)
+
     def dispatch_pressed(self):
         if self.ctc_ui.sub_dispatch_overide_new_radio.isChecked():
             #new train needs to be dispatched
             if self.ctc_ui.sub_dispatch_station_select_radio.isChecked():
                 #dispatch to station
-                destination_station = self.ctc_ui.sub_station_combo.currentIndex()
+                destination_station = self.ctc_ui.sub_station_combo.currentText() #CHANGED FROM INDEX
                 self.backend.dispatch_handler(destination_station, 'station')
             elif self.ctc_ui.sub_dispatch_block_select_radio.isChecked():
                 #dispatch to block
                 destination_block = self.ctc_ui.sub_block_number_combo.currentText()
                 self.backend.dispatch_handler(destination_block, 'block')
-            #elif For selected route from table | not implemented yet
+            elif self.ctc_ui.sub_dispatch_train_table.selectedItems():
+                #dispatch to selected route
+                selected_item = self.ctc_ui.sub_dispatch_train_table.selectedItems()[0]
+                row = selected_item.row()
+                route_name_item = self.ctc_ui.sub_dispatch_train_table.item(row, 1) 
+                
+                if route_name_item:
+                    route_name = route_name_item.text()
+                    #print("Dispatching to route:", route_name)
+                    self.backend.dispatch_handler(route_name, 'route') 
+
         elif self.ctc_ui.sub_dispatch_overide_active_radio.isChecked():
             #existing train needs to be rerouted | not implemented yet
             print("Reroute Train Not Implemented")
