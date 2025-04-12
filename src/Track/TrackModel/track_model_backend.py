@@ -79,6 +79,7 @@ class Train:
         self.dynamic_track = track_model.dynamic_track
         self.train_id = train_id
         self.current_block = initial_block
+        self.previous_block = initial_block
         self.current_section = initial_block.id[0] # just a string
         self.previous_switch_entrance = False
         self.previous_switch_exit = True
@@ -92,6 +93,7 @@ class Train:
         train_position = self.train_model.get_output_data()["position"]
         distance_within_block = train_position - self.distance_traveled
         if distance_within_block > self.current_block.length:
+            self.previous_block = self.current_block
             self.distance_traveled += self.current_block.length
             self.entered_new_section = False
             # Set old block to unoccupied
@@ -270,8 +272,12 @@ class TrackModel(QtWidgets.QMainWindow):
             send_to_train = {} # conglomerate in this to prevent calling set_input_data multiple times
             if train.current_block.id in wayside_speeds:
                 send_to_train["wayside_speed"]=wayside_speeds[train.current_block.id]
+            elif train.previous_block.id in wayside_speeds:
+                send_to_train["wayside_speed"]=wayside_speeds[train.previous_block.id]
             if train.current_block.id in wayside_authorities:
                 send_to_train["wayside_authority"]=wayside_authorities[train.current_block.id]
+            elif train.previous_block.id in wayside_authorities:
+                send_to_train["wayside_authority"]=wayside_authorities[train.previous_block.id]+train.previous_block.length
             if len(send_to_train)>0:
                 train.train_model.set_input_data(track_data=send_to_train)
         for block, maintenance in maintenances.items():

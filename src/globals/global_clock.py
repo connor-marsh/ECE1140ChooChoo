@@ -12,7 +12,11 @@ class GlobalClock(QMainWindow):
         
         # update speeds for the various modules
         self.time_multiplier = 30
+        self.ctc_dt = 100
+        self.wayside_dt = 100
+        self.track_dt = 100
         self.train_dt=1
+        
 
         self.time = QTime(6, 59, 0)
         self.timer = QTimer(self)
