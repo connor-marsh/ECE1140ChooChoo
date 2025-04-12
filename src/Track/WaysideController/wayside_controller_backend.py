@@ -76,6 +76,8 @@ class WaysideController(QObject):
 
                 if len(self.to_send_authorities) > 0 or len(self.to_send_speeds) > 0:
                     self.collection.track_model.update_from_comms_outputs(wayside_speeds=self.to_send_speeds, wayside_authorities=self.to_send_authorities)
+                    self.to_send_authorities = {}
+                    self.to_send_speeds = {}
 
 
     def set_occupancies(self, occupancies: dict):
@@ -101,8 +103,6 @@ class WaysideController(QObject):
     def handle_suggested_values(self, speeds, authorities):
         sorted_speeds = [] # converting the dictionaries sent by the ctc 
         sorted_authorities = [] # so that they match my ordering of the blocks by territory and are iterable lists
-        to_send_speeds = {}
-        to_send_authorities = {}
 
         blocks = self.collection.blocks[self.index] # specifies to the list which slice of the track this controller is looking at
         
@@ -113,23 +113,23 @@ class WaysideController(QObject):
 
             if speed != None:
                 newValue = False
+                if block.id[0]=='y': # dirty code that prevents race conditions on train creation
+                    newValue = True
                 if speed != self.suggested_speeds[i]:
                     newValue = True
                 if newValue:
-                    to_send_speeds[block.id] = speed
+                    self.to_send_speeds[block.id] = speed
             if authority != None:
                 newValue = False
+                if block.id[0]=='y': # dirty code that prevents race conditions on train creation
+                    newValue = True
                 if authority != self.suggested_authorities[i]:
                     newValue = True
                 if newValue:
-                    to_send_authorities[block.id] = authority
+                    self.to_send_authorities[block.id] = authority
 
             sorted_speeds.append(speed)
             sorted_authorities.append(authority) # after handling add them to the lists
-
-
-        self.to_send_authorities = to_send_authorities
-        self.to_send_speeds = to_send_speeds
 
         self.suggested_speeds = sorted_speeds # update the controllers suggested values
         self.suggested_authorities = sorted_authorities

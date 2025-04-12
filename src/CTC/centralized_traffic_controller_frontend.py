@@ -345,32 +345,37 @@ class CtcFrontEnd(QMainWindow):
             self.ctc_ui.sub_dispatch_confirm_button.setEnabled(False)
 
     def dispatch_pressed(self):
+        # Check if creating new train or rerouting existing train
         if self.ctc_ui.sub_dispatch_overide_new_radio.isChecked():
-            #new train needs to be dispatched
-            if self.ctc_ui.sub_dispatch_station_select_radio.isChecked():
-                #dispatch to station
-                destination_station = self.ctc_ui.sub_station_combo.currentText() #CHANGED FROM INDEX
-                self.backend.dispatch_handler(destination_station, 'station')
-            elif self.ctc_ui.sub_dispatch_block_select_radio.isChecked():
-                #dispatch to block
-                destination_block = self.ctc_ui.sub_block_number_combo.currentText()
-                self.backend.dispatch_handler(destination_block, 'block')
-            elif self.ctc_ui.sub_dispatch_train_table.selectedItems():
-                #dispatch to selected route
-                selected_item = self.ctc_ui.sub_dispatch_train_table.selectedItems()[0]
-                row = selected_item.row()
-                route_name_item = self.ctc_ui.sub_dispatch_train_table.item(row, 1) 
-                
-                if route_name_item:
-                    route_name = route_name_item.text()
-                    #print("Dispatching to route:", route_name)
-                    self.backend.dispatch_handler(route_name, 'route') 
-
+            createNewTrain = True
         elif self.ctc_ui.sub_dispatch_overide_active_radio.isChecked():
             #existing train needs to be rerouted | not implemented yet
             print("Reroute Train Not Implemented")
+            # TEMPORARY, SEND TRAIN TO YARD ASSUME ONLY 1 TRAIN ON TRACK
+            createNewTrain = False
         else:
             print("Select Dispatch Type Please")
+            return # We are done here if user didnt select type
+        
+        # Now check type of dispatch
+        if self.ctc_ui.sub_dispatch_station_select_radio.isChecked():
+            #dispatch to station
+            destination_station = self.ctc_ui.sub_station_combo.currentText() #CHANGED FROM INDEX
+            self.backend.dispatch_handler(destination_station, 'station', new_train=createNewTrain)
+        elif self.ctc_ui.sub_dispatch_block_select_radio.isChecked():
+            #dispatch to block
+            destination_block = self.ctc_ui.sub_block_number_combo.currentText()
+            self.backend.dispatch_handler(destination_block, 'block', new_train=createNewTrain)
+        elif self.ctc_ui.sub_dispatch_train_table.selectedItems():
+            #dispatch to selected route
+            selected_item = self.ctc_ui.sub_dispatch_train_table.selectedItems()[0]
+            row = selected_item.row()
+            route_name_item = self.ctc_ui.sub_dispatch_train_table.item(row, 1) 
+            
+            if route_name_item:
+                route_name = route_name_item.text()
+                #print("Dispatching to route:", route_name)
+                self.backend.dispatch_handler(route_name, 'route', new_train=createNewTrain) 
 
     #maintenance page - Change to send data to backend - UPDATE NEEDED, TRACK CLASS CHANGED
     def start_maintenance(self):
