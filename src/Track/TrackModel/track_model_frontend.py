@@ -1,10 +1,16 @@
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsRectItem, QMainWindow
 from PyQt5.QtGui import QBrush, QPen, QColor, QPainter
-from PyQt5.QtCore import Qt, QRectF, QTimer 
+from PyQt5.QtCore import Qt, QRectF, QTimer, pyqtSignal
+from PyQt5.QtWidgets import QGraphicsPixmapItem, QVBoxLayout
+from PyQt5.QtGui import QPixmap
 from Track.TrackModel.track_model_ui import Ui_MainWindow
 from Track.TrackModel.track_model_backend import TrackModel
 from Track.TrackModel.track_model_enums import Occupancy
 from Track.TrackModel.track_model_enums import Failures
+
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 # HARDCODED LAYOUT DATA: (block_id, x, y, width, height)
 HARDCODED_LAYOUT = [
@@ -162,7 +168,17 @@ HARDCODED_LAYOUT = [
     ("J0", 324, 137, 8, 59),
 ]
 
+# Icon file paths (relative to your project structure)
+ICON_PATHS = {
+    "train": os.path.join(BASE_DIR, "Resources/train_icon.png"),
+    "station": os.path.join(BASE_DIR, "Resources/station_icon.jpeg"),
+    "switch": os.path.join(BASE_DIR, "Resources/switch_icon.png"),
+    "traffic_light": os.path.join(BASE_DIR, "Resources/traffic_light_icon.png"),
+    "railway_crossing": os.path.join(BASE_DIR, "Resources/railway_crossing_icon.png")
+}
+
 class TrackMapCanvas(QGraphicsView):
+    blockClicked = pyqtSignal(str)
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
@@ -178,6 +194,9 @@ class TrackMapCanvas(QGraphicsView):
         self.block_items = {}
         self.block_lookup = {}
         self.backend = None
+
+        self.infrastructure_icons = []
+
 
     def wheelEvent(self, event):
         zoom_in_factor = 1.15
@@ -208,14 +227,25 @@ class TrackMapCanvas(QGraphicsView):
             self.block_lookup[rect] = label
 
         self.update_block_colors()
+        self.add_infrastructure_icons()
 
+    # Allows interaction with physical map
     def mousePressEvent(self, event):
-        item = self.itemAt(event.pos())
-        if isinstance(item, QGraphicsRectItem) and item in self.block_lookup:
+        print("[DEBUG] mousePressEvent triggered")
+        scene_pos = self.mapToScene(event.pos())
+        item = self.scene.itemAt(scene_pos, self.transform())
+
+        if isinstance(item, QGraphicsPixmapItem) and item.data(0):
+            icon_type = item.data(0)
+            print(f"[ICON CLICKED] {icon_type} at position ({item.pos().x():.1f}, {item.pos().y():.1f})")
+        elif isinstance(item, QGraphicsRectItem) and item in self.block_lookup:
             block_id = self.block_lookup[item]
-            if hasattr(self.parent(), "on_block_selected"):
-                self.parent().on_block_selected(block_id)
+            print(f"[BLOCK CLICKED] Block ID: {block_id}")
+            self.blockClicked.emit(block_id)
+
         super().mousePressEvent(event)
+
+
 
     def update_block_colors(self):
         if not self.backend:
@@ -229,6 +259,80 @@ class TrackMapCanvas(QGraphicsView):
                 item.setBrush(QBrush(QColor("green")))
             else:
                 item.setBrush(QBrush(QColor("gray")))
+
+    def add_infrastructure_icons(self):
+        self.infrastructure_icons.clear()
+        for block in self.backend.track_data.blocks:
+            block_id = block.id
+            rect = self.block_items.get(block_id)
+            if not rect:
+                continue
+            rect_pos = rect.sceneBoundingRect()
+            x, y = rect_pos.x(), rect_pos.y()
+
+            if getattr(block, "station", None):
+                path = ICON_PATHS["station"]
+                pixmap = QPixmap(path).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                icon = QGraphicsPixmapItem(pixmap)
+                icon.setData(0, "station")
+                icon.setPos(x + 10, y - 20)
+                icon.setAcceptedMouseButtons(Qt.LeftButton)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsSelectable, True)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsFocusable, True)
+                self.scene.addItem(icon)
+                self.infrastructure_icons.append(icon)
+
+            if getattr(block, "switch", False):
+                path = ICON_PATHS["switch"]
+                pixmap = QPixmap(path).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                icon = QGraphicsPixmapItem(pixmap)
+                icon.setData(0, "switch")
+                icon.setPos(x - 10, y - 10)
+                icon.setAcceptedMouseButtons(Qt.LeftButton)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsSelectable, True)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsFocusable, True)
+                self.scene.addItem(icon)
+                self.infrastructure_icons.append(icon)
+
+            if getattr(block, "light", False):
+                path = ICON_PATHS["traffic_light"]
+                pixmap = QPixmap(path).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                icon = QGraphicsPixmapItem(pixmap)
+                icon.setData(0, "traffic_light")
+                icon.setPos(x + 5, y + 5)
+                icon.setAcceptedMouseButtons(Qt.LeftButton)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsSelectable, True)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsFocusable, True)                
+                self.scene.addItem(icon)
+                self.infrastructure_icons.append(icon)
+
+            if getattr(block, "crossing", False):
+                path = ICON_PATHS["railway_crossing"]
+                pixmap = QPixmap(path).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                icon = QGraphicsPixmapItem(pixmap)
+                icon.setData(0, "railway_crossing")
+                icon.setPos(x - 20, y)
+                icon.setAcceptedMouseButtons(Qt.LeftButton)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsSelectable, True)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsFocusable, True)  
+                self.scene.addItem(icon)
+                self.infrastructure_icons.append(icon)
+
+            def zoom_in(self):
+                if self.scale_factor < self.max_scale:
+                    zoom_factor = 1.15
+                    self.scale(zoom_factor, zoom_factor)
+                    self.scale_factor *= zoom_factor
+
+            def zoom_out(self):
+                if self.scale_factor > self.min_scale:
+                    zoom_factor = 1 / 1.15
+                    self.scale(zoom_factor, zoom_factor)
+                    self.scale_factor *= zoom_factor
+
+
+
+
 
 class TrackModelFrontEnd(QMainWindow):
     def __init__(self, wayside_integrated=True):
@@ -247,12 +351,30 @@ class TrackModelFrontEnd(QMainWindow):
         self.track_heater_status = False
 
         # Load Map Canvas into GraphicsView
-        self.map_canvas = TrackMapCanvas()
-        self.ui.track_map_display.setScene(self.map_canvas.scene)
-        self.ui.track_map_display.setRenderHint(QPainter.Antialiasing)
+        # Create a canvas and embed it into the track_map_display placeholder
+        self.map_canvas = TrackMapCanvas(self.ui.track_map_display)
+        self.map_canvas.blockClicked.connect(self.on_block_selected)
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.map_canvas)
+        self.ui.track_map_display.setLayout(layout)
 
-        # Use hardcoded layout data
+        # Buttons to zoom in and out
+        #self.ui.zoom_in_button.clicked.connect(self.map_canvas.zoom_in)
+        #self.ui.zoom_out_button.clicked.connect(self.map_canvas.zoom_out)
+
+        # Mapping combobox with physical blocks
+        self.block_number_to_id = {}
+        self.block_id_to_number = {}
+
+        # Populate mappings
+        for idx, (block_id, *_rest) in enumerate(HARDCODED_LAYOUT, start=1):
+            self.block_number_to_id[str(idx)] = block_id
+            self.block_id_to_number[block_id] = str(idx)
+
         self.map_canvas.load_from_backend(self.green_line, HARDCODED_LAYOUT)
+        self.populate_block_combobox(HARDCODED_LAYOUT)
+
 
         # Button Hooks
         self.ui.import_track_layout_button.clicked.connect(lambda: self.map_canvas.load_from_backend(self.green_line, HARDCODED_LAYOUT))
@@ -261,9 +383,28 @@ class TrackModelFrontEnd(QMainWindow):
         self.ui.power_failure_toggle.clicked.connect(lambda: self.toggle_failure("power"))
         self.ui.reset_errors_button.clicked.connect(self.reset_failures)
 
+        self.ui.block_number_selected.currentTextChanged.connect(self.on_combobox_selected)
+
+    # Displays the current block selected
     def on_block_selected(self, block_id):
+        print(f"[DEBUG] Looking for block_number of {block_id} -> {self.block_id_to_number.get(block_id)}")
         self.display_block_info(block_id)
+        block_number = self.block_id_to_number.get(block_id)
+        if block_number:
+            self.ui.block_number_selected.blockSignals(True)
+            self.ui.block_number_selected.setCurrentText(block_number)
+            self.ui.block_number_selected.blockSignals(False)
+        else:
+            print(f"[WARNING] No block number found for block_id: {block_id}")
+
+
         self.map_canvas.update_block_colors()
+
+        selected_item = self.map_canvas.block_items.get(block_id)
+        if selected_item:
+            for item in self.map_canvas.block_items.values():
+                item.setPen(QPen(Qt.black, 0.5))
+            selected_item.setPen(QPen(Qt.red, 2))
 
     def display_block_info(self, block_id):
         block = next((b for b in self.green_line.track_data.blocks if b.id == block_id), None)
@@ -271,12 +412,27 @@ class TrackModelFrontEnd(QMainWindow):
             print(f"Block {block_id} not found.")
             return
 
+        occ = self.green_line.dynamic_track.occupancies.get(block_id, Occupancy.UNOCCUPIED)
+        fail = self.green_line.dynamic_track.failures.get(block_id, Failures.NONE)
+        heater = self.track_heater_status
+        temp = self.outside_temp
+
         self.ui.block_selected_value.setText(str(block_id))
-        self.ui.block_length_value.setText(str(block.length))
-        self.ui.speed_limit_value.setText(str(block.speed_limit))
+        self.ui.block_length_value.setText(f"{float(block.length):.2f}")
+        self.ui.speed_limit_value.setText(f"{float(block.speed_limit):.2f}")
         self.ui.underground_value.setText("Yes" if getattr(block, "underground", False) else "No")
-        self.ui.elevation_value.setText(str(block.grade))
-        self.ui.sum_elevation_value.setText(str(block.grade))  # You can replace with actual sum elevation if available
+        self.ui.elevation_value.setText(f"{block.grade}")
+        self.ui.sum_elevation_value.setText(f"{block.grade}")  # Replace if cumulative is different
+        self.ui.track_temperature_value.setText(f"{temp:.1f}")
+        self.ui.track_heater_value.setText("Enabled" if heater else "Disabled")
+
+        # Highlighting Occupancy/Failures
+        if fail != Failures.NONE:
+            self.ui.block_selected_value.setStyleSheet("color: orange;")
+        elif occ == Occupancy.OCCUPIED:
+            self.ui.block_selected_value.setStyleSheet("color: green;")
+        else:
+            self.ui.block_selected_value.setStyleSheet("color: black;")
 
     def toggle_failure(self, kind):
         block_id = self.ui.block_selected_value.text()
@@ -291,6 +447,34 @@ class TrackModelFrontEnd(QMainWindow):
 
     def update_map(self):
         self.map_canvas.update_block_colors()
+
+    # Outlines physical selected block
+    def on_combobox_selected(self, block_number):
+        block_id = self.block_number_to_id.get(block_number)
+        if block_id and block_id in self.map_canvas.block_items:
+            self.display_block_info(block_id)
+            self.map_canvas.update_block_colors()
+            selected_item = self.map_canvas.block_items[block_id]
+            for item in self.map_canvas.block_items.values():
+                item.setPen(QPen(Qt.black, 0.5))
+            selected_item.setPen(QPen(Qt.red, 2))
+
+
+    # Populates the combobox to link with physical block
+    def populate_block_combobox(self, layout_data):
+        self.ui.block_number_selected.blockSignals(True)
+        self.ui.block_number_selected.clear()
+        self.ui.block_number_selected.addItems([str(i) for i in range(1, len(layout_data) + 1)])
+        self.ui.block_number_selected.blockSignals(False)
+
+        if layout_data:
+            first_block = self.block_number_to_id["1"]
+            self.ui.block_number_selected.setCurrentText("1")
+            self.display_block_info(first_block)
+
+
+
+
 
 
 if __name__ == "__main__":
