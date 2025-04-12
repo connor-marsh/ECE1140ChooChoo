@@ -159,24 +159,24 @@ class CtcBackEnd(QObject):
 
     def active_train_handler(self):
         for train in self.active_line.current_trains:
-            if train.status == "active":
-                #print("Train ID: ", train.train_id, "Current Block: ", train.current_block)
-                if train.current_block == self.active_line.ENTRANCE_BLOCK:
-                    self.suggested_speed = {"y151" : 70}
-                    auth = self.calculate_authority(151, 9)
-                    self.suggested_authority = {"y151" : auth}
-                    print("Sending start suggestions")
-                    self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside
-                if train.current_block == self.active_line.blocks[train.route[train.route_index]-1].id: #INCORRECT : Currently checking ex. (Current = y151, route = 9) NEEDS TO BE SAME TYPE
+            #print("Train ID: ", train.train_id, "Current Block: ", train.current_block)
+            if train.current_block == self.active_line.ENTRANCE_BLOCK:
+                self.suggested_speed = {"y151" : 70}
+                auth = self.calculate_authority(151, 9)
+                self.suggested_authority = {"y151" : auth}
+                print("Sending start suggestions")
+                self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside
+            if train.get_next_stop(): ## make sure there are stops left
+                if train.current_block == self.active_line.blocks[train.get_next_stop()-1].id:
                     self.suggested_speed = {"C9" : 70}
                     auth = self.calculate_authority(9, 152)
                     self.suggested_authority = {"C9" : auth}
                     print("Sending edgebrook suggestions")
                     self.send_suggestions(self.suggested_speed, self.suggested_authority) #Send suggestions to wayside
                     train.route_index += 1
-                train.current_block = self.update_train_location()
-                print("Current Block", train.current_block, "Route: ", self.active_line.blocks[train.route[train.route_index]-1].id) #FIX INDEXING ERROR
-
+            train.current_block = self.update_train_location()
+            
+            print("Current Block", train.current_block, "Route: ", train.get_next_stop())
                         
     def first_blocks_free(self):
         #Checks if first blocks are free | called by dispatch queue handler
@@ -221,9 +221,7 @@ class CtcBackEnd(QObject):
                 
             #print("Full route: ", full_route)
 
-        new_train = DummyTrain(self.train_count, full_route, "manual", "inactive", 151)
-        self.train_count += 1 #Increment train count
-        self.active_line.add_train_object(new_train) #Add train to active line trains
+        new_train = DummyTrain(self.train_count, full_route, "manual", 151)
         self.train_queue.put(new_train) 
         #print("Train Entered into Queue")
 
@@ -232,8 +230,8 @@ class CtcBackEnd(QObject):
         if not self.train_queue.empty() and self.first_blocks_free():
             #get train object from queue
             dispatching_train = self.train_queue.get()
-            dispatching_train.status = "active"
-
+            self.active_line.add_train_object(dispatching_train) #Add train to active line trains
+            self.train_count += 1 #Increment train count
             self.send_dispatch_train() 
  
     def send_dispatch_train(self):
@@ -327,13 +325,12 @@ class CtcBackEnd(QObject):
 
 
 class DummyTrain:
-    def __init__(self, train_id, route, mode, status, start_block):
+    def __init__(self, train_id, route, mode, start_block):
         super().__init__()
         self.train_id = train_id
         self.route = route
         self.route_index = 0
         self.mode = mode
-        self.status = status
         self.current_block = start_block 
         self.speed = 0
         self.authority = 0
@@ -349,6 +346,15 @@ class DummyTrain:
 
     def set_route(self, route):
         self.route = route
+
+    def get_next_stop(self):
+        # encapsulates this functionality
+        # returns none if there are no stops left
+        if self.route_index < len(self.route):
+            return self.route[self.route_index]
+        else:
+            return None
+
 
     
 class TrackBlocks:
@@ -432,9 +438,9 @@ class Track:
     def initialize_blocks(self):
         self.blocks = [TrackBlocks(block) for block in self.track_data.blocks]
 
-    def add_train_data(self, train_id, train_route, train_mode, train_status, start_block):
+    def add_train_data(self, train_id, train_route, train_mode, start_block):
         #Adds train to active trains list
-        new_train = DummyTrain(train_id, train_route, train_mode, train_status, start_block)
+        new_train = DummyTrain(train_id, train_route, train_mode, start_block)
         self.current_trains.append(new_train) 
         
 
