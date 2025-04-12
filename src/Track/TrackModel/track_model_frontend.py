@@ -12,7 +12,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-# HARDCODED LAYOUT DATA: (block_id, x, y, width, height)
+# HARDCODED LAYOUT DATA: (block_id, x, y, width, height) GREEN LINE
 HARDCODED_LAYOUT = [
     ("A1", 174, 7, 13, 14),
     ("A2", 181, 16, 13, 14),
@@ -164,8 +164,8 @@ HARDCODED_LAYOUT = [
     ("Y148", 56, 133, 8, 11),
     ("Y149", 56, 122, 8, 11),
     ("Z150", 56, 99, 25, 28),# Originally 27, 28
-    ("I0", 259, 148, 59, 8), # Originally 259, 141, 59, 21
-    ("J0", 324, 137, 8, 59),
+    ("y151", 259, 148, 59, 8), # Originally 259, 141, 59, 21, SPAWN block
+    ("y152", 324, 137, 8, 59), # EXIT block
 ]
 
 # Icon file paths (relative to your project structure)
@@ -179,6 +179,7 @@ ICON_PATHS = {
 
 class TrackMapCanvas(QGraphicsView):
     blockClicked = pyqtSignal(str)
+    iconClicked = pyqtSignal(str, str)  # (icon_type, block_id)
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
@@ -196,6 +197,7 @@ class TrackMapCanvas(QGraphicsView):
         self.backend = None
 
         self.infrastructure_icons = []
+        self.train_icons = {}  # key: train_id, value: QGraphicsPixmapItem
 
 
     def wheelEvent(self, event):
@@ -236,26 +238,15 @@ class TrackMapCanvas(QGraphicsView):
 
         if isinstance(item, QGraphicsPixmapItem) and item.data(0):
             icon_type = item.data(0)
-            if icon_type == "switch":
-                block_id = item.data(1)  # Get block ID from icon
-                switch_state = self.backend.dynamic_track.switch_states.get(block_id)
-                switch = self.backend.track_data.switches.get(block_id)
-
-                if switch and switch_state is not None:
-                    state_label = switch.positions[1 if switch_state else 0]
-                    print(f"[SWITCH CLICKED] Block {block_id}: {state_label}")
-                else:
-                    print(f"[SWITCH CLICKED] No switch info for block {block_id}")
-            else:
-                print(f"[ICON CLICKED] {icon_type} at position ({item.pos().x():.1f}, {item.pos().y():.1f})")
-
+            block_id = item.data(1)
+            self.iconClicked.emit(icon_type, block_id)  # 🚀 Modular handoff to frontend
 
         elif isinstance(item, QGraphicsRectItem) and item in self.block_lookup:
             block_id = self.block_lookup[item]
-            print(f"[BLOCK CLICKED] Block ID: {block_id}")
             self.blockClicked.emit(block_id)
 
         super().mousePressEvent(event)
+
 
 
     def update_block_colors(self):
@@ -285,7 +276,8 @@ class TrackMapCanvas(QGraphicsView):
                 path = ICON_PATHS["station"]
                 pixmap = QPixmap(path).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 icon = QGraphicsPixmapItem(pixmap)
-                icon.setData(0, "station")
+                icon.setData(0, "station")    # icon type
+                icon.setData(1, block_id)     # block ID
                 icon.setPos(x + 10, y - 20)
                 icon.setAcceptedMouseButtons(Qt.LeftButton)
                 icon.setFlag(QGraphicsPixmapItem.ItemIsSelectable, True)
@@ -311,7 +303,8 @@ class TrackMapCanvas(QGraphicsView):
                 path = ICON_PATHS["traffic_light"]
                 pixmap = QPixmap(path).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 icon = QGraphicsPixmapItem(pixmap)
-                icon.setData(0, "traffic_light")
+                icon.setData(0, "traffic_light")    # icon type
+                icon.setData(1, block_id)           # block ID
                 icon.setPos(x + 5, y + 5)
                 icon.setAcceptedMouseButtons(Qt.LeftButton)
                 icon.setFlag(QGraphicsPixmapItem.ItemIsSelectable, True)
@@ -323,7 +316,8 @@ class TrackMapCanvas(QGraphicsView):
                 path = ICON_PATHS["railway_crossing"]
                 pixmap = QPixmap(path).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 icon = QGraphicsPixmapItem(pixmap)
-                icon.setData(0, "railway_crossing")
+                icon.setData(0, "railway_crossing")     # icon type
+                icon.setData(1, block_id)               # block ID
                 icon.setPos(x - 20, y)
                 icon.setAcceptedMouseButtons(Qt.LeftButton)
                 icon.setFlag(QGraphicsPixmapItem.ItemIsSelectable, True)
@@ -342,6 +336,35 @@ class TrackMapCanvas(QGraphicsView):
                     zoom_factor = 1 / 1.15
                     self.scale(zoom_factor, zoom_factor)
                     self.scale_factor *= zoom_factor
+
+    def update_train_icons(self, train_data):
+
+        for train_id, block_id in train_data.items():
+            if block_id not in self.block_items:
+                continue
+
+            block_rect = self.block_items[block_id].sceneBoundingRect()
+            x = block_rect.x() + block_rect.width() / 2 - 8
+            y = block_rect.y() + block_rect.height() / 2 - 8
+
+            if train_id not in self.train_icons:
+                # First time: create the icon
+                path = ICON_PATHS["train"]
+                pixmap = QPixmap(path).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                icon = QGraphicsPixmapItem(pixmap)
+                icon.setZValue(10)  # Ensure it sits above blocks
+                self.scene.addItem(icon)
+                self.train_icons[train_id] = icon
+
+            self.train_icons[train_id].setPos(x, y)
+
+        # Optionally remove old train icons (trains that were removed)
+        current_ids = set(train_data.keys())
+        for train_id in list(self.train_icons.keys()):
+            if train_id not in current_ids:
+                self.scene.removeItem(self.train_icons[train_id])
+                del self.train_icons[train_id]
+
 
 
 
@@ -397,6 +420,10 @@ class TrackModelFrontEnd(QMainWindow):
         self.ui.reset_errors_button.clicked.connect(self.reset_failures)
 
         self.ui.block_number_selected.currentTextChanged.connect(self.on_combobox_selected)
+
+        # Signal for icon being clicked
+        self.map_canvas.iconClicked.connect(self.on_icon_clicked)
+
 
     # Displays the current block selected
     def on_block_selected(self, block_id):
@@ -485,6 +512,47 @@ class TrackModelFrontEnd(QMainWindow):
             self.ui.block_number_selected.setCurrentText("1")
             self.display_block_info(first_block)
 
+    # Displays specific infrasturcture information
+    def on_icon_clicked(self, icon_type, block_id):
+        if icon_type == "station":
+            station = self.green_line.track_data.stations.get(block_id)
+            if station:
+                boarding_side = (
+                    "Left" if station.doors == 0 else
+                    "Right" if station.doors == 1 else
+                    "Both"
+                )
+                print(f"[STATION INFO]")
+                print(f"  Block: {block_id}")
+                print(f"  Name: {station.name}")
+                print(f"  Boarding Side: {boarding_side}")
+                print(f"  Ticket Sales: IMPLEMENT")
+                print(f"  Passengers Boarding: IMPLEMENT")
+                print(f"  Passengers Departing: IMPLEMENT")
+            else:
+                print(f"[STATION CLICKED] No station found for block {block_id}")
+
+        elif icon_type == "switch":
+            switch = self.green_line.track_data.switches.get(block_id)
+            state = self.green_line.dynamic_track.switch_states.get(block_id)
+            if switch and state is not None:
+                route = switch.positions[1 if state else 0]
+                print(f"[SWITCH INFO]")
+                print(f"  Block: {block_id}")
+                print(f"  Current Route: {route}")
+            else:
+                print(f"[SWITCH CLICKED] No switch found for block {block_id}")
+
+        elif icon_type == "railway_crossing":
+            print(f"[CROSSING CLICKED] Block: {block_id}")
+            # You could print active/inactive here later
+
+        elif icon_type == "traffic_light":
+            print(f"[TRAFFIC LIGHT CLICKED] Block: {block_id}")
+            # Could add red/green status here too
+
+        else:
+            print(f"[ICON CLICKED] Unknown icon type: {icon_type} on block {block_id}")
 
 
 if __name__ == "__main__":
