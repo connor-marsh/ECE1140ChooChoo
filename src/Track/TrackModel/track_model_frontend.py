@@ -164,8 +164,8 @@ HARDCODED_LAYOUT = [
     ("Y148", 56, 133, 8, 11),
     ("Y149", 56, 122, 8, 11),
     ("Z150", 56, 99, 25, 28),# Originally 27, 28
-    ("y151", 259, 148, 59, 8), # Originally 259, 141, 59, 21, SPAWN block
-    ("y152", 324, 137, 8, 59), # EXIT block
+    ("y151", 324, 137, 8, 59), # Entrance block
+    ("y152", 259, 148, 59, 8), # Originally 259, 141, 59, 21, DESPAWN block
 ]
 
 # Icon file paths (relative to your project structure)
@@ -180,6 +180,8 @@ ICON_PATHS = {
 class TrackMapCanvas(QGraphicsView):
     blockClicked = pyqtSignal(str)
     iconClicked = pyqtSignal(str, str)  # (icon_type, block_id)
+    trainIconClicked = pyqtSignal(int)  # train_id
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
@@ -198,6 +200,7 @@ class TrackMapCanvas(QGraphicsView):
 
         self.infrastructure_icons = []
         self.train_icons = {}  # key: train_id, value: QGraphicsPixmapItem
+        
 
 
     def wheelEvent(self, event):
@@ -238,16 +241,18 @@ class TrackMapCanvas(QGraphicsView):
 
         if isinstance(item, QGraphicsPixmapItem) and item.data(0):
             icon_type = item.data(0)
+            if icon_type == "train":
+                train_id = item.data(1)
+                self.trainIconClicked.emit(train_id)
+                return
             block_id = item.data(1)
-            self.iconClicked.emit(icon_type, block_id)  # 🚀 Modular handoff to frontend
+            self.iconClicked.emit(icon_type, block_id)
 
         elif isinstance(item, QGraphicsRectItem) and item in self.block_lookup:
             block_id = self.block_lookup[item]
             self.blockClicked.emit(block_id)
 
         super().mousePressEvent(event)
-
-
 
     def update_block_colors(self):
         if not self.backend:
@@ -338,6 +343,7 @@ class TrackMapCanvas(QGraphicsView):
                     self.scale_factor *= zoom_factor
 
     def update_train_icons(self, train_data):
+        current_ids = set(train_data.keys())
 
         for train_id, block_id in train_data.items():
             if block_id not in self.block_items:
@@ -348,25 +354,24 @@ class TrackMapCanvas(QGraphicsView):
             y = block_rect.y() + block_rect.height() / 2 - 8
 
             if train_id not in self.train_icons:
-                # First time: create the icon
                 path = ICON_PATHS["train"]
                 pixmap = QPixmap(path).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 icon = QGraphicsPixmapItem(pixmap)
-                icon.setZValue(10)  # Ensure it sits above blocks
+                icon.setZValue(10)
+                icon.setData(0, "train")
+                icon.setData(1, train_id)
+                icon.setAcceptedMouseButtons(Qt.LeftButton)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsSelectable, True)
+                icon.setFlag(QGraphicsPixmapItem.ItemIsFocusable, True)
                 self.scene.addItem(icon)
                 self.train_icons[train_id] = icon
 
             self.train_icons[train_id].setPos(x, y)
 
-        # Optionally remove old train icons (trains that were removed)
-        current_ids = set(train_data.keys())
-        for train_id in list(self.train_icons.keys()):
-            if train_id not in current_ids:
-                self.scene.removeItem(self.train_icons[train_id])
-                del self.train_icons[train_id]
-
-
-
+        for tid in list(self.train_icons.keys()):
+            if tid not in current_ids:
+                self.scene.removeItem(self.train_icons[tid])
+                del self.train_icons[tid]
 
 
 
@@ -421,9 +426,9 @@ class TrackModelFrontEnd(QMainWindow):
 
         self.ui.block_number_selected.currentTextChanged.connect(self.on_combobox_selected)
 
-        # Signal for icon being clicked
+        # Signals for icons being clicked
         self.map_canvas.iconClicked.connect(self.on_icon_clicked)
-
+        self.map_canvas.trainIconClicked.connect(self.on_train_icon_clicked)
 
     # Displays the current block selected
     def on_block_selected(self, block_id):
@@ -461,8 +466,42 @@ class TrackModelFrontEnd(QMainWindow):
         self.ui.block_length_value.setText(f"{float(block.length):.2f}")
         self.ui.speed_limit_value.setText(f"{float(block.speed_limit):.2f}")
         self.ui.underground_value.setText("Yes" if getattr(block, "underground", False) else "No")
-        self.ui.elevation_value.setText(f"{block.grade}")
-        self.ui.sum_elevation_value.setText(f"{block.grade}")  # Replace if cumulative is different
+        self.ui.elevation_value.setText(f"{block.grade:.2f}")
+        self.ui.grade_value.setText(f"{block.grade:.2f}")
+
+        # Wayside Authority
+        authority = self.green_line.runtime_status.get(block_id, {}).get("wayside_authority", "N/A")
+        self.ui.wayside_authority_value.setText(f"{authority}" if authority != "N/A" else "N/A")
+
+        # Wayside Speed
+        speed = self.green_line.runtime_status.get(block_id, {}).get("wayside_speed", "N/A")
+        self.ui.wayside_speed_value.setText(f"{speed}" if speed != "N/A" else "N/A")
+
+        # Travel Direction from Excel (section info)
+        section_id = block_id[0]
+        section = self.green_line.track_data.sections.get(section_id)
+        if section:
+            if section.increasing == 0:
+                direction = "Descending"
+            elif section.increasing == 1:
+                direction = "Ascending"
+            elif section.increasing == 2:
+                direction = "Bidirectional"
+            else:
+                direction = "Unknown"
+        else:
+            direction = "Unknown"
+        self.ui.direction_of_travel_value.setText(direction)
+
+        # Beacon Data
+        beacon = self.green_line.track_data.beacons.get(block_id)
+        self.ui.beacon_value.setText(beacon.data if beacon else "None")
+
+        # Railway Crossing Status
+        crossing_state = self.green_line.dynamic_track.crossing_states.get(block_id, False)
+        self.ui.railway_crossing_value.setText("Active" if crossing_state else "Inactive")
+
+        # Environmental Info
         self.ui.track_temperature_value.setText(f"{temp:.1f}")
         self.ui.track_heater_value.setText("Enabled" if heater else "Disabled")
 
@@ -473,6 +512,7 @@ class TrackModelFrontEnd(QMainWindow):
             self.ui.block_selected_value.setStyleSheet("color: green;")
         else:
             self.ui.block_selected_value.setStyleSheet("color: black;")
+
 
     def toggle_failure(self, kind):
         block_id = self.ui.block_selected_value.text()
@@ -486,7 +526,19 @@ class TrackModelFrontEnd(QMainWindow):
         self.map_canvas.update_block_colors()
 
     def update_map(self):
+        # Update block colors based on occupancy/failure
         self.map_canvas.update_block_colors()
+
+        # Build a dict of train_id -> current block_id directly from backend
+        train_data = {
+            train.train_id: train.current_block.id
+            for train in self.green_line.trains
+            if train.current_block  # Ensure valid block
+        }
+
+        # Update train icons on the map
+        self.map_canvas.update_train_icons(train_data)
+
 
     # Outlines physical selected block
     def on_combobox_selected(self, block_number):
@@ -553,6 +605,27 @@ class TrackModelFrontEnd(QMainWindow):
 
         else:
             print(f"[ICON CLICKED] Unknown icon type: {icon_type} on block {block_id}")
+
+    # Displays train specific information
+    def on_train_icon_clicked(self, train_id):
+        if 0 <= train_id < len(self.green_line.trains):
+            train = self.green_line.trains[train_id]
+            data = train.train_model.get_output_data()
+            position = data.get("position", 0.0)
+            speed = data.get("actual_speed", 0.0)
+            wayside_speed = data.get("wayside_speed", 0.0)
+            authority = data.get("wayside_authority", 0.0)
+
+            print(f"[TRAIN {train_id} INFO]")
+            print(f"  Current Block: {train.current_block.id}")
+            print(f"  Passengers On Board: {train.passenger_count}")
+            print(f"  Actual Speed (mph): {speed:.2f}")
+            print(f"  Wayside Speed (mph): {wayside_speed:.2f}")
+            print(f"  Wayside Authority (yd): {authority:.2f}")
+            print(f"  Direction: {'Ascending' if train.travel_direction else 'Descending'}")
+        else:
+            print(f"[TRAIN CLICKED] Train {train_id} not found.")
+
 
 
 if __name__ == "__main__":
