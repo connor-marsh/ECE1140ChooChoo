@@ -241,6 +241,9 @@ class CtcBackEnd(QObject):
         if train.get_next_stop():
             new_speed = speed
             auth = self.calculate_authority(int(train.current_block[1:]), train.get_next_stop())
+            # if going to yard go a little extra
+            if self.active_line.blocks[train.get_next_stop()-1].id[0]=='y':
+                auth += 300
         else:
             new_speed = 0
             auth = 0
