@@ -303,47 +303,6 @@ class TrackModel(QtWidgets.QMainWindow):
         print(f"[Beacon] Beacon data sent on block {block_id}: {beacon_data.decode()}")
 
         return beacon_data
-
-    # WIP - probably going to delete,Sending section data to frontend, can probably scrap
-    # Returns a list of block keys that belong to the given section, could scrap if only blocks shown and not section divides
-    def send_section_data(self, section_id):
-        section_blocks = []
-
-        for block_key in self.block_data:
-            # Example: "GreenA1"
-            line_len = len(self.name)  # "Red" or "Green"
-            section_char = block_key[line_len]  # Should be one letter: 'A', 'B', etc.
-
-            if section_char == section_id:
-                section_blocks.append(block_key)
-
-        print(f"[{self.name}] Section '{section_id}' contains blocks: {section_blocks}")
-        return section_blocks
-
-    # Sends block information
-    # Returns the Block for the specified block key
-    def send_block_data(self, block_id_str):
-        block = next((b for b in self.track_data.blocks if b.id == block_id_str), None)
-        if not block:
-            print(f"[{self.name}] Block {block_id_str} not found.")
-            return None
-
-        return {
-            "block_id": block.id,
-            "length": block.length,
-            "grade": block.grade,
-            "speed_limit": block.speed_limit,
-            "underground": block.underground,
-            "station": block.station,
-            "switch": block.switch,
-            "light": block.light,
-            "crossing": block.crossing,
-            "beacon": block.beacon,
-            "occupancy": self.runtime_status.get(block.id, {}).get("occupancy", Occupancy.UNOCCUPIED).name,
-            "failure": self.runtime_status.get(block.id, {}).get("failure", Failures.NONE).name,
-            "is_occupied_display": self.runtime_status.get(block.id, {}).get("is_occupied_display", False),
-        }
-
         
     # Sending Wayside Commanded Speed and Authority to Train
     # Triple redundancy, so send 3 times

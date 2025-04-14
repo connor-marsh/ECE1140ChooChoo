@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>600</width>
-    <height>800</height>
+    <height>890</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,8 +22,8 @@
      <rect>
       <x>10</x>
       <y>490</y>
-      <width>200</width>
-      <height>210</height>
+      <width>211</width>
+      <height>361</height>
      </rect>
     </property>
     <property name="title">
@@ -34,7 +34,7 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>120</width>
+       <width>135</width>
        <height>20</height>
       </rect>
      </property>
@@ -57,7 +57,7 @@
     <widget class="QLabel" name="block_selected_value">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>150</x>
        <y>30</y>
        <width>50</width>
        <height>20</height>
@@ -78,7 +78,7 @@
       <rect>
        <x>10</x>
        <y>60</y>
-       <width>120</width>
+       <width>135</width>
        <height>20</height>
       </rect>
      </property>
@@ -97,7 +97,7 @@
       <rect>
        <x>10</x>
        <y>90</y>
-       <width>120</width>
+       <width>135</width>
        <height>20</height>
       </rect>
      </property>
@@ -111,12 +111,12 @@
       <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="underground_display">
+    <widget class="QLabel" name="wayside_speed_display">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>120</y>
-       <width>120</width>
+       <width>135</width>
        <height>20</height>
       </rect>
      </property>
@@ -124,18 +124,18 @@
       <enum>QFrame::Shape::Box</enum>
      </property>
      <property name="text">
-      <string>Underground</string>
+      <string>Wayside Speed (mph)</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="elevation_display">
+    <widget class="QLabel" name="wayside_authority_display">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>150</y>
-       <width>120</width>
+       <width>135</width>
        <height>20</height>
       </rect>
      </property>
@@ -143,18 +143,18 @@
       <enum>QFrame::Shape::Box</enum>
      </property>
      <property name="text">
-      <string>Elevation (yd)</string>
+      <string>Wayside Authority (yd)</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="sum_elevation_display">
+    <widget class="QLabel" name="grade_display">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>180</y>
-       <width>120</width>
+       <width>135</width>
        <height>20</height>
       </rect>
      </property>
@@ -162,7 +162,7 @@
       <enum>QFrame::Shape::Box</enum>
      </property>
      <property name="text">
-      <string>Sum. Elevation (yd)</string>
+      <string>Grade (%)</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -171,7 +171,7 @@
     <widget class="QLabel" name="block_length_value">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>150</x>
        <y>60</y>
        <width>50</width>
        <height>20</height>
@@ -190,7 +190,7 @@
     <widget class="QLabel" name="speed_limit_value">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>150</x>
        <y>90</y>
        <width>50</width>
        <height>20</height>
@@ -206,10 +206,10 @@
       <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="underground_value">
+    <widget class="QLabel" name="wayside_speed_value">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>150</x>
        <y>120</y>
        <width>50</width>
        <height>20</height>
@@ -225,10 +225,10 @@
       <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="elevation_value">
+    <widget class="QLabel" name="wayside_authority_value">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>150</x>
        <y>150</y>
        <width>50</width>
        <height>20</height>
@@ -244,10 +244,10 @@
       <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="sum_elevation_value">
+    <widget class="QLabel" name="grade_value">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>150</x>
        <y>180</y>
        <width>50</width>
        <height>20</height>
@@ -258,6 +258,196 @@
      </property>
      <property name="text">
       <string>0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="elevation_value">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>210</y>
+       <width>50</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::Box</enum>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="underground_display">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>240</y>
+       <width>135</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::Box</enum>
+     </property>
+     <property name="text">
+      <string>Underground</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="elevation_display">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>210</y>
+       <width>135</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::Box</enum>
+     </property>
+     <property name="text">
+      <string>Elevation (yd)</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="underground_value">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>240</y>
+       <width>50</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::Box</enum>
+     </property>
+     <property name="text">
+      <string>No</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="railway_crossing_value">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>330</y>
+       <width>50</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::Box</enum>
+     </property>
+     <property name="text">
+      <string>No</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="beacon_value">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>300</y>
+       <width>50</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::Box</enum>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="railway_crossing_display">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>330</y>
+       <width>135</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::Box</enum>
+     </property>
+     <property name="text">
+      <string>Railway Crossing</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="beacon_display">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>300</y>
+       <width>135</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::Box</enum>
+     </property>
+     <property name="text">
+      <string>Beacon</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="direction_of_travel_value">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>270</y>
+       <width>50</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::Box</enum>
+     </property>
+     <property name="text">
+      <string>West</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="direction_of_travel_display">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>270</y>
+       <width>135</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::Box</enum>
+     </property>
+     <property name="text">
+      <string>Direction of Travel</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -283,22 +473,6 @@
     </property>
     <property name="text">
      <string>Import Track Layout</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="clock_value">
-    <property name="geometry">
-     <rect>
-      <x>310</x>
-      <y>25</y>
-      <width>275</width>
-      <height>60</height>
-     </rect>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::Shape::Panel</enum>
-    </property>
-    <property name="text">
-     <string>Clock:</string>
     </property>
    </widget>
    <widget class="QGroupBox" name="track_layout_map">
@@ -327,7 +501,7 @@
    <widget class="QGroupBox" name="group_failure_modes">
     <property name="geometry">
      <rect>
-      <x>370</x>
+      <x>380</x>
       <y>490</y>
       <width>210</width>
       <height>145</height>
@@ -449,9 +623,9 @@
    <widget class="QLabel" name="track_heater_value">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>740</y>
-      <width>100</width>
+      <x>530</x>
+      <y>680</y>
+      <width>60</width>
       <height>20</height>
      </rect>
     </property>
@@ -468,9 +642,9 @@
    <widget class="QLabel" name="track_heater_display">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>740</y>
-      <width>230</width>
+      <x>380</x>
+      <y>680</y>
+      <width>142</width>
       <height>20</height>
      </rect>
     </property>
@@ -487,9 +661,9 @@
    <widget class="QLabel" name="track_temperature_value">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>710</y>
-      <width>100</width>
+      <x>530</x>
+      <y>650</y>
+      <width>60</width>
       <height>20</height>
      </rect>
     </property>
@@ -506,9 +680,9 @@
    <widget class="QLabel" name="track_temperature_display">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>710</y>
-      <width>230</width>
+      <x>380</x>
+      <y>650</y>
+      <width>142</width>
       <height>20</height>
      </rect>
     </property>
@@ -1305,9 +1479,9 @@
    <widget class="QLCDNumber" name="clock_display_value">
     <property name="geometry">
      <rect>
-      <x>360</x>
-      <y>40</y>
-      <width>91</width>
+      <x>320</x>
+      <y>50</y>
+      <width>101</width>
       <height>30</height>
      </rect>
     </property>
@@ -1315,10 +1489,10 @@
    <widget class="QLabel" name="clock_am_display">
     <property name="geometry">
      <rect>
-      <x>550</x>
-      <y>45</y>
-      <width>21</width>
-      <height>21</height>
+      <x>430</x>
+      <y>55</y>
+      <width>20</width>
+      <height>20</height>
      </rect>
     </property>
     <property name="text">
@@ -1328,9 +1502,9 @@
    <widget class="QGroupBox" name="group_map_key">
     <property name="geometry">
      <rect>
-      <x>220</x>
+      <x>229</x>
       <y>490</y>
-      <width>140</width>
+      <width>141</width>
       <height>210</height>
      </rect>
     </property>
@@ -1674,14 +1848,63 @@
    <widget class="QGroupBox" name="group_infrasturcture">
     <property name="geometry">
      <rect>
-      <x>370</x>
-      <y>640</y>
-      <width>210</width>
-      <height>121</height>
+      <x>230</x>
+      <y>700</y>
+      <width>351</width>
+      <height>151</height>
      </rect>
     </property>
     <property name="title">
-     <string>Infrastructure</string>
+     <string>Selected Object Information</string>
+    </property>
+    <widget class="QGraphicsView" name="infrastructure_view">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>20</y>
+       <width>350</width>
+       <height>130</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QLabel" name="clock_display">
+    <property name="geometry">
+     <rect>
+      <x>320</x>
+      <y>30</y>
+      <width>58</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Clock:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="simulation_display">
+    <property name="geometry">
+     <rect>
+      <x>470</x>
+      <y>30</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Simulation Speed:</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="simulation_value">
+    <property name="geometry">
+     <rect>
+      <x>470</x>
+      <y>50</y>
+      <width>113</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>1</string>
     </property>
    </widget>
   </widget>
