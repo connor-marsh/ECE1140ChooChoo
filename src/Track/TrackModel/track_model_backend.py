@@ -308,22 +308,6 @@ class TrackModel(QtWidgets.QMainWindow):
         print(f"[Beacon] Beacon data sent on block {block_id}: {beacon_data.decode()}")
 
         return beacon_data
-
-    # WIP - probably going to delete,Sending section data to frontend, can probably scrap
-    # Returns a list of block keys that belong to the given section, could scrap if only blocks shown and not section divides
-    def send_section_data(self, section_id):
-        section_blocks = []
-
-        for block_key in self.block_data:
-            # Example: "GreenA1"
-            line_len = len(self.name)  # "Red" or "Green"
-            section_char = block_key[line_len]  # Should be one letter: 'A', 'B', etc.
-
-            if section_char == section_id:
-                section_blocks.append(block_key)
-
-        print(f"[{self.name}] Section '{section_id}' contains blocks: {section_blocks}")
-        return section_blocks
         
     # Sending Wayside Commanded Speed and Authority to Train
     # Triple redundancy, so send 3 times
