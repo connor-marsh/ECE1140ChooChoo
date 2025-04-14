@@ -7,6 +7,7 @@ from Track.TrackModel.track_model_ui import Ui_MainWindow
 from Track.TrackModel.track_model_backend import TrackModel
 from Track.TrackModel.track_model_enums import Occupancy
 from Track.TrackModel.track_model_enums import Failures
+import globals.global_clock as global_clock
 
 import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -381,9 +382,8 @@ class TrackModelFrontEnd(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.update_timer = QTimer(self)
-        self.update_timer.timeout.connect(self.update_map)
-        self.update_timer.start(100)  # every 100 ms
+        self.global_clock = global_clock.clock
+        self.ui.simulation_value.setText(str(self.global_clock.time_multiplier))
 
         # Backend Setup
         #self.red_line
@@ -429,6 +429,22 @@ class TrackModelFrontEnd(QMainWindow):
         # Signals for icons being clicked
         self.map_canvas.iconClicked.connect(self.on_icon_clicked)
         self.map_canvas.trainIconClicked.connect(self.on_train_icon_clicked)
+
+        self.map_timer = QTimer(self)
+        self.map_timer.timeout.connect(self.update_map)
+        self.map_timer.start(100)  # every 100 ms
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update)
+        self.timer.start(500) # doesnt need to be fast
+
+    def update(self):
+        try:
+            simUpdateSpeed = int(self.ui.simulation_value.text())
+        except ValueError:
+            simUpdateSpeed = self.global_clock.time_multiplier
+        if simUpdateSpeed >= 1 and simUpdateSpeed <= self.global_clock.MAX_MULTIPLIER:
+            self.global_clock.time_multiplier = simUpdateSpeed
 
     # Displays the current block selected
     def on_block_selected(self, block_id):
