@@ -1,4 +1,4 @@
-def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signals, previous_occupancies, exit_blocks):
+def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signals, previous_occupancies, exit_blocks, clamps):
     """
     User-defined logic for controlling track switches.
 
@@ -46,16 +46,29 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     train_in_m = any(block_occupancies[5:8])
     train_in_t = any(block_occupancies[36:41])
 
+
     switch_positions[0] = train_in_n
     light_signals[0] = not switch_positions[0]
     light_signals[2] = not light_signals[0]
 
 
-    switch_positions[1] = train_in_o_p_q and not (train_in_m and train_in_n)
+    switch_positions[1] = train_in_o_p_q and not train_in_n
     light_signals[1] = not switch_positions[1]
     light_signals[3] = not light_signals[1]
 
     crossing_signals[0] = train_in_t
 
-    return switch_positions, light_signals, crossing_signals
+    # switch to position 77-101 and train in m
+    if switch_positions[0] and train_in_m:
+        clamps[5:8] = [True]*len(clamps[5:8])
+    else:
+        clamps[5:8] = [False]*len(clamps[5:8])
+    
+    # switch to position 85-86 and there is a train in off section
+    if not switch_positions[1] and train_in_o_p_q:
+        clamps[29:32] = [True]*len(clamps[29:32])
+    else:
+        clamps[29:32] = [False]*len(clamps[29:32])
+
+    return switch_positions, light_signals, crossing_signals, clamps
 

@@ -1,4 +1,4 @@
-def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signals, previous_occupancies, exit_blocks):
+def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signals, previous_occupancies, exit_blocks, clamps):
     """
     User-defined logic for controlling track switches, lights, and crossing signals.
 
@@ -32,6 +32,8 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
         - True for exit blocks indicates: SELECTED
         - False for exit blocks indicates: NOT SELECTED
     
+    :param clamps: a list of booleans where true indicates the block should be clamped
+
     :returns switch_positions, light_signals, light_signals crossing_signals, previous_occupancies:
     """
 
@@ -60,5 +62,16 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     light_signals[3] = not light_signals[2]
 
     crossing_signals[0] = train_in_e
-    return switch_positions, light_signals, crossing_signals
+
+    # if the switch position is in the wrong position 13-12 and there is a train in the off section
+    if not switch_positions[0] and train_in_a_b_c:
+        clamps[6:12] = [True]*len(clamps[6:12]) # clamp the blocks in c just in case
+    else:
+        clamps[6:12] = [False]*len(clamps[6:12])
+    # if the switch is in the wrong position 28-29 and there is a train in the section incoming
+    if not switch_positions[1] and train_in_y_z:
+        clamps[50:54] = [True]*len(clamps[50:54]) # clamp the blocks in y and z in case
+    else:
+        clamps[50:54] = [False]*len(clamps[50:54])
+    return switch_positions, light_signals, crossing_signals, clamps
     
