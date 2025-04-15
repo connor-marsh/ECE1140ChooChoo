@@ -195,6 +195,10 @@ class TrackMapCanvas(QGraphicsView):
         self.max_scale = 5.0
         self.offset_x = 66
 
+        # Start semi-scaled out - cover whole map layout
+        self.scale(0.8, 0.8)
+        self.scale_factor = 0.8
+
         self.block_items = {}
         self.block_lookup = {}
         self.backend = None
@@ -400,9 +404,6 @@ class TrackModelFrontEnd(QMainWindow):
         layout.addWidget(self.map_canvas)
         self.ui.track_map_display.setLayout(layout)
 
-        # Buttons to zoom in and out
-        #self.ui.zoom_in_button.clicked.connect(self.map_canvas.zoom_in)
-        #self.ui.zoom_out_button.clicked.connect(self.map_canvas.zoom_out)
 
         # Mapping combobox with physical blocks
         self.block_number_to_id = {}
