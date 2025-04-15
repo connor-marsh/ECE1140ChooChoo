@@ -169,7 +169,7 @@ HARDCODED_LAYOUT = [
     ("y152", 259, 148, 59, 8), # Originally 259, 141, 59, 21, DESPAWN block
 ]
 
-# Icon file paths (relative to your project structure)
+# Icon file paths
 ICON_PATHS = {
     "train": os.path.join(BASE_DIR, "Resources/train_icon.png"),
     "station": os.path.join(BASE_DIR, "Resources/station_icon.jpeg"),
@@ -590,13 +590,21 @@ class TrackModelFrontEnd(QMainWindow):
                     "Right" if station.doors == 1 else
                     "Both"
                 )
+
+                # Retrieve live values from backend runtime_status
+                status = self.green_line.runtime_status.get(block_id, {})
+                ticket_sales = status.get("ticket_sales", "N/A")
+                boarding = status.get("boarding", "N/A")
+                departing = status.get("departing", "N/A")
+
                 print(f"[STATION INFO]")
                 print(f"  Block: {block_id}")
                 print(f"  Name: {station.name}")
                 print(f"  Boarding Side: {boarding_side}")
-                print(f"  Ticket Sales: IMPLEMENT")
-                print(f"  Passengers Boarding: IMPLEMENT")
-                print(f"  Passengers Departing: IMPLEMENT")
+                print(f"  Ticket Sales: {ticket_sales}")
+                print(f"  Passengers Boarding: {boarding}")
+                print(f"  Passengers Departing: {departing}")
+
             else:
                 print(f"[STATION CLICKED] No station found for block {block_id}")
 
@@ -613,14 +621,15 @@ class TrackModelFrontEnd(QMainWindow):
 
         elif icon_type == "railway_crossing":
             print(f"[CROSSING CLICKED] Block: {block_id}")
-            # You could print active/inactive here later
+            # TODO add active/inactive state display here
 
         elif icon_type == "traffic_light":
             print(f"[TRAFFIC LIGHT CLICKED] Block: {block_id}")
-            # Could add red/green status here too
+            # TODO add red/green state display here
 
         else:
             print(f"[ICON CLICKED] Unknown icon type: {icon_type} on block {block_id}")
+
 
     # Displays train specific information
     def on_train_icon_clicked(self, train_id):
