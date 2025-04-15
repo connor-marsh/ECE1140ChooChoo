@@ -163,10 +163,19 @@ class Train:
                     station_id = self.current_block.id
                     ticket_sales = self.track_model.station_ticket_sales.get(station_id, 0)
 
-                    passengers_boarding = random.randint(1, ticket_sales)
-                    passengers_leaving = random.randint(0, min(10, self.passenger_count))
+                    MAX_PASSENGERS = 148
+                    MAX_BOARDING = random.randint(10, 25)  # adjustable range - change as needed
 
+                    # Ensure space is freed up if near or at capacity
+                    min_required_to_leave = max(0, (self.passenger_count + MAX_BOARDING) - MAX_PASSENGERS)
+                    max_possible_to_leave = min(25, self.passenger_count)
+
+                    passengers_leaving = random.randint(min_required_to_leave, max_possible_to_leave) if max_possible_to_leave >= min_required_to_leave else self.passenger_count
                     self.passenger_count -= passengers_leaving
+
+                    available_space = MAX_PASSENGERS - self.passenger_count
+                    passengers_boarding = min(MAX_BOARDING, available_space)
+
                     self.passenger_count += passengers_boarding
 
                     print(f"[Station {station_id}] {passengers_leaving} passengers deboarded.")
@@ -190,6 +199,7 @@ class Train:
                     self.track_model.runtime_status[station_id]["ticket_sales"] = self.track_model.station_ticket_sales[station_id]
                     self.track_model.runtime_status[station_id]["boarding"] = passengers_boarding
                     self.track_model.runtime_status[station_id]["departing"] = passengers_leaving
+
 
 
             # Move to new section
