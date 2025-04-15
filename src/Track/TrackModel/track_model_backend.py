@@ -135,7 +135,7 @@ class Train:
                 self.previous_switch_exit=False
                 self.previous_switch_entrance=False
                 # Check for despawn block
-                if self.current_block.id[0]=='y':
+                if self.current_block==self.track_data.DESPAWN_BLOCK:
                     self.track_model.remove_train(self.train_id)
                     self.dynamic_track.occupancies[self.current_block.id]=Occupancy.UNOCCUPIED
                     return
@@ -328,15 +328,13 @@ class TrackModel(QtWidgets.QMainWindow):
     # Wayside will call when to initialize a train
     def initialize_train(self):
         # Yard spawn in block will be either the last or second to last block
-        if self.track_data.blocks[-2].id[0] == 'y':
-            start_block = self.track_data.blocks[-2]
-        else:
-            start_block = self.track_data.blocks[-1]
+        
+        spawn_block = self.track_data.SPAWN_BLOCK
 
         # Increment and assign new train
         self.train_counter += 1
         train_id = self.train_counter-1
-        new_train = Train(train_id=train_id, track_model=self, initial_block=start_block)
+        new_train = Train(train_id=train_id, track_model=self, initial_block=spawn_block)
         self.train_collection.create_train()
         new_train.train_model = self.train_collection.train_list[-1]
 
@@ -344,10 +342,10 @@ class TrackModel(QtWidgets.QMainWindow):
         self.trains.append(new_train)
 
         # Mark the block as occupied
-        self.dynamic_track.occupancies[start_block.id]=Occupancy.OCCUPIED
-        # self.update_block_occupancy(start_block, "Occupied")
+        self.dynamic_track.occupancies[spawn_block.id]=Occupancy.OCCUPIED
+        # self.update_block_occupancy(spawn_block, "Occupied")
 
-        print(f"[Train Init] Train {train_id} initialized on {start_block}.")
+        print(f"[Train Init] Train {train_id} initialized on {spawn_block}.")
     def remove_train(self, train_id):
         for i in range(train_id+1, self.train_counter):
             self.trains[i].train_id-=1

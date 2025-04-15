@@ -159,8 +159,10 @@ class CtcBackEnd(QObject):
                     train.route_index += 1 # You made it to the stop
                     
                     # if we made it the last stop, the get_suggestion_values will suggest 0 speed and authority
-                    suggested_speed, suggested_authority = self.get_suggestion_values(train)
-                    self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
+                    # unless the last stop is the yard
+                    if train.current_block != self.active_line.track_data.DESPAWN_BLOCK.id:
+                        suggested_speed, suggested_authority = self.get_suggestion_values(train)
+                        self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
                     
             train.current_block = self.update_train_location()
             

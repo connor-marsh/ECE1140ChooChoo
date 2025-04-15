@@ -92,6 +92,8 @@ class TrackData():
         self.lights = {}
         self.crossings = {} 
         self.beacons = {}
+        self.SPAWN_BLOCK = ""
+        self.DESPAWN_BLOCK = ""
         
 
         for row in range(len(dictionary["Block Number"])):
@@ -149,7 +151,11 @@ class TrackData():
                 switch_exit_obj = SwitchExit(switch_entrance=dictionary["Switch Exit"][row])
                 self.switch_exits[block_id] = switch_exit_obj
 
-
+        if self.blocks[-2].id[0]=='y':
+            self.SPAWN_BLOCK = self.blocks[-2]
+            self.DESPAWN_BLOCK = self.blocks[-1]
+        else:
+            self.SPAWN_BLOCK = self.DESPAWN_BLOCK = self.blocks[-1]
 
         self.sections = {}
 
