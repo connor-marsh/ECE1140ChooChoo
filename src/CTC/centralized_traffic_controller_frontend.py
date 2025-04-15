@@ -65,6 +65,7 @@ class CtcFrontEnd(QMainWindow):
         self.initialize_map()
         self.initialize_block_combo()
         self.initialize_station_combo()
+        self.initialize_train_schedule()
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.frontend_update)
         self.timer.start(50)  # 10 Hz update - change to slower update for performance??
@@ -96,13 +97,19 @@ class CtcFrontEnd(QMainWindow):
     def open_file_dialog(self):
         # Opens file dialog
         file_name, _ = QFileDialog.getOpenFileName(self, 'Open File', '', 'Excel Files (*.xlsx)')
-
+    
         if not file_name:
             return None  # If no file is selected, return None
             
         file_data = pd.read_excel(file_name, header=None)
         return file_data
     
+    def initialize_train_schedule(self):
+        file_name = "src/CTC/Green_Line_Schedule.xlsx"
+        route_schedules = pd.read_excel(file_name, header=None)
+        self.backend.process_route_data(route_schedules)
+        self.update_route_table()
+
     def get_train_schedule(self):
         #open file dialog
         route_schedules = self.open_file_dialog()
