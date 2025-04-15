@@ -158,11 +158,9 @@ class CtcBackEnd(QObject):
                 if train.current_block == self.active_line.blocks[train.get_next_stop()-1].id:
                     train.route_index += 1 # You made it to the stop
                     
-                    # if we made it the last stop, the get_suggestion_values will suggest 0 speed and authority
-                    # unless the last stop is the yard
-                    if train.current_block != self.active_line.track_data.DESPAWN_BLOCK.id:
-                        suggested_speed, suggested_authority = self.get_suggestion_values(train)
-                        self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
+                    # if we made it the last stop, the get_suggestion_values will be empty dicts
+                    suggested_speed, suggested_authority = self.get_suggestion_values(train)
+                    self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
                     
             train.current_block = self.update_train_location()
             
@@ -246,12 +244,10 @@ class CtcBackEnd(QObject):
             # if going to yard go a little extra
             if self.active_line.blocks[train.get_next_stop()-1].id[0]=='y':
                 auth += 300
-        else:
-            new_speed = 0
-            auth = 0
-        suggested_speed = {train.current_block : new_speed}
-        suggested_authority = {train.current_block : auth}
-        return suggested_speed, suggested_authority
+            suggested_speed = {train.current_block : new_speed}
+            suggested_authority = {train.current_block : auth}
+            return suggested_speed, suggested_authority
+        return {}, {}
 
     def send_suggestions(self, suggested_speeds, suggested_authorities):
         signals.communication.ctc_suggested.emit(suggested_speeds, suggested_authorities) #Dict, Dict
@@ -321,17 +317,17 @@ class CtcBackEnd(QObject):
                 next_dir = direction
 
 
-            if next_id == end_id:
-                authority -= current_block.length 
-            else:
+            if next_id != end_id:
                 authority += current_block.length #accumulate authority
             #print("Current Block: ", self.active_line.blocks[current_id].id, "Next Block: ", self.active_line.blocks[next_id].id, "Direction: ", direction, "Total Authority: ", authority)
 
             current_id = next_id #Update current block
             direction = next_dir
 
-        #current_block = self.active_line.blocks[current_id] 
-        #authority += (current_block.length) #Add half block authority to stop in the middle of block
+        # current_block = self.active_line.blocks[current_id] 
+        # authority += (current_block.length) #Add half block authority to stop in the middle of block
+
+
 
         #print("-----END REACHED-----")
         #print("Current Block: ", current_block.id, "Total Authority: ", authority)
