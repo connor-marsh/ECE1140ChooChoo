@@ -342,8 +342,7 @@ class TrackModel(QtWidgets.QMainWindow):
             if train.current_block.id in wayside_authorities:
                 send_to_train["wayside_authority"]=wayside_authorities[train.current_block.id]
             
-            if len(send_to_train)>0:
-                train.train_model.set_input_data(track_data=send_to_train)
+            train.train_model.set_input_data(track_data=send_to_train)
         for block, maintenance in maintenances.items():
             if maintenance:
                 self.dynamic_track.occupancies[block]=Occupancy.MAINTENANCE

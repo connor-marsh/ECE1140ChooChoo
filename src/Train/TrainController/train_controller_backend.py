@@ -307,6 +307,8 @@ class TrainController(QMainWindow):
             temp_authority = selected_data.get("wayside_authority", self.wayside_authority)
             if (temp_authority != 0 or self.wayside_authority == 0):
                 self.wayside_authority = temp_authority
+                if self.stop_asap and not self.manual_mode:
+                    self.emergency_brake = False
                 self.stop_asap = False
             else:
                 self.stop_asap = True

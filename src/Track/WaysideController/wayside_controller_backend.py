@@ -60,18 +60,28 @@ class WaysideController(QObject):
     @pyqtSlot()
     def update(self):
         if self.program != None:
+            # prev_clamps = [True if value else False for value in self.clamps]
+            prev_clamps = self.clamps[:]
+            new_unclamp = False
+
             self.execute_cycle() # make it so that it calls programmers code 3 times and checks
-            # if we clamped authority
-            #   update authority dict
-            #   update authority list
-            # send occupancies to ctc                      
+                  
             if self.collection.track_model != None:
                 blocks = self.collection.blocks[self.index]
-
+                
                 for i, clamp in enumerate(self.clamps):
-                    if clamp and self.block_occupancies[i]:
+                    if clamp:
                         self.to_send_authorities[blocks[i].id] = 0
                         self.commanded_authorities[i] = 0 # set ui
+                    elif not clamp and prev_clamps[i]:
+                        self.commanded_authorities[i] = None
+                        if blocks[i].id in self.to_send_authorities:
+                            del self.to_send_authorities[blocks[i].id]
+                        new_unclamp = True
+                   # elif not clamp and prev_clamps[i]:
+                    #    if blocks[i].id in self.to_send_authorities:
+                      #      del self.to_send_authorities[blocks[i].id]
+                       # new_unclamp = True
 
                 self.collection.track_model.update_from_plc_outputs(sorted_blocks=blocks,
                                                                     switch_states=self.switch_positions,light_states=self.light_signals,
@@ -81,7 +91,9 @@ class WaysideController(QObject):
                 Signals.communication.wayside_block_occupancies.emit(self.to_send_occupancies)
                 Signals.communication.wayside_plc_outputs.emit(blocks,self.switch_positions,self.light_signals,self.crossing_signals)
 
-                if len(self.to_send_authorities) > 0 or len(self.to_send_speeds) > 0:
+                if len(self.to_send_authorities) > 0 or len(self.to_send_speeds) > 0 or new_unclamp:
+                    if new_unclamp: print("sending empty", self.index)
+                    else: print("sending not empty", self.index)
                     self.collection.track_model.update_from_comms_outputs(wayside_speeds=self.to_send_speeds, wayside_authorities=self.to_send_authorities)
                     self.to_send_authorities = {}
                     self.to_send_speeds = {}
@@ -93,34 +105,27 @@ class WaysideController(QObject):
 
         :param occupancies: A dictionary of block occupancies with keyed with the block id
         """
-        sorted_occupancies = []
         if self.collection.track_model != None:
-            for block in self.collection.blocks[self.index]: # index the blocks only in the range of this controller
+            for i, block in enumerate(self.collection.blocks[self.index]): # index the blocks only in the range of this controller
                 occupancy = occupancies.get(block.id, Occupancy.UNOCCUPIED) # read from the dictionary
 
                 if occupancy == Occupancy.UNOCCUPIED:
-                    sorted_occupancies.append(False)
+                    self.block_occupancies[i] = False
                     self.to_send_occupancies[block.id] = False
                 else:
-                    sorted_occupancies.append(True) # will have to change this with failures but should be fine for now
+                    self.block_occupancies[i] = True # will have to change this with failures but should be fine for now
                     self.to_send_occupancies[block.id] = True
-            self.block_occupancies = sorted_occupancies
+
+                
 
     @pyqtSlot(dict, dict)
     def handle_suggested_values(self, speeds, authorities):
-        sorted_speeds = [] # converting the dictionaries sent by the ctc 
-        sorted_authorities = [] # so that they match my ordering of the blocks by territory and are iterable lists
-
         blocks = self.collection.blocks[self.index] # specifies to the list which slice of the track this controller is looking at
         
         # need to enumerate so that I can tell if the current block is occupied or not
         for i, block in enumerate(blocks): # only look at the blocks in this controller's range
             speed = speeds.get(block.id, None) # default to None in the case that there is no value sent
             authority = authorities.get(block.id, None)
-
-            if not self.block_occupancies[i]: # if the block is unoccupied clear values in list
-                self.suggested_authorities[i] = None
-                self.suggested_speeds[i] = None
             
             if speed != None: # just suggest the speed doesn't need to be one shot
                 newValue = False
@@ -140,7 +145,7 @@ class WaysideController(QObject):
                     self.to_send_authorities[block.id] = authority
                     self.commanded_authorities[i] = authority # set ui
 
-
+           
 
         
         
