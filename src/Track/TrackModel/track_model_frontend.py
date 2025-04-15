@@ -582,8 +582,10 @@ class TrackModelFrontEnd(QMainWindow):
 
     # Displays specific infrasturcture information
     def on_icon_clicked(self, icon_type, block_id):
+        line = self.map_canvas.backend
+
         if icon_type == "station":
-            station = self.green_line.track_data.stations.get(block_id)
+            station = line.track_data.stations.get(block_id)
             if station:
                 boarding_side = (
                     "Left" if station.doors == 0 else
@@ -591,8 +593,8 @@ class TrackModelFrontEnd(QMainWindow):
                     "Both"
                 )
 
-                # Retrieve live values from backend runtime_status
-                status = self.green_line.runtime_status.get(block_id, {})
+                # Get live backend values from runtime_status
+                status = line.runtime_status.get(block_id, {})
                 ticket_sales = status.get("ticket_sales", "N/A")
                 boarding = status.get("boarding", "N/A")
                 departing = status.get("departing", "N/A")
@@ -604,13 +606,12 @@ class TrackModelFrontEnd(QMainWindow):
                 print(f"  Ticket Sales: {ticket_sales}")
                 print(f"  Passengers Boarding: {boarding}")
                 print(f"  Passengers Departing: {departing}")
-
             else:
                 print(f"[STATION CLICKED] No station found for block {block_id}")
 
         elif icon_type == "switch":
-            switch = self.green_line.track_data.switches.get(block_id)
-            state = self.green_line.dynamic_track.switch_states.get(block_id)
+            switch = line.track_data.switches.get(block_id)
+            state = line.dynamic_track.switch_states.get(block_id)
             if switch and state is not None:
                 route = switch.positions[1 if state else 0]
                 print(f"[SWITCH INFO]")
@@ -620,15 +621,20 @@ class TrackModelFrontEnd(QMainWindow):
                 print(f"[SWITCH CLICKED] No switch found for block {block_id}")
 
         elif icon_type == "railway_crossing":
-            print(f"[CROSSING CLICKED] Block: {block_id}")
-            # TODO add active/inactive state display here
+            crossing_state = line.dynamic_track.crossing_states.get(block_id, False)
+            print(f"[CROSSING INFO]")
+            print(f"  Block: {block_id}")
+            print(f"  State: {'Active' if crossing_state else 'Inactive'}")
 
         elif icon_type == "traffic_light":
-            print(f"[TRAFFIC LIGHT CLICKED] Block: {block_id}")
-            # TODO add red/green state display here
+            light_state = line.dynamic_track.light_states.get(block_id, False)
+            print(f"[TRAFFIC LIGHT INFO]")
+            print(f"  Block: {block_id}")
+            print(f"  State: {'Green' if light_state else 'Red'}")
 
         else:
             print(f"[ICON CLICKED] Unknown icon type: {icon_type} on block {block_id}")
+
 
 
     # Displays train specific information
