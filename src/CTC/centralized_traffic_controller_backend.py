@@ -150,9 +150,10 @@ class CtcBackEnd(QObject):
     def active_train_handler(self):
         for train in self.active_line.current_trains:
             # print("Train ID: ", train.train_id, "Current Block: ", train.current_block)
-            if int(train.current_block[1:]) == self.active_line.ENTRANCE_BLOCK:
+            if int(train.current_block[1:]) == self.active_line.ENTRANCE_BLOCK and not train.send_auth_once:
                 suggested_speed, suggested_authority = self.get_suggestion_values(train)
                 self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
+                train.send_auth_once = True # Only send once when entering the line
             if train.get_next_stop(): # make sure there are stops left
                 # Did you make it to the stop
                 if train.current_block == self.active_line.blocks[train.get_next_stop()-1].id:
@@ -275,6 +276,8 @@ class CtcBackEnd(QObject):
             - Adapt for red line
             - Adapt for yard entrance/exit blocks
         '''
+        print(start_id)
+        print(end_id)
         start_id = start_id - 1 #Convert to 0-indexed
         end_id = end_id - 1 #Convert to 0-indexed
         current_id = start_id
@@ -317,15 +320,15 @@ class CtcBackEnd(QObject):
                 next_dir = direction
 
 
-            if next_id != end_id:
-                authority += current_block.length #accumulate authority
+            # if next_id != end_id:
+            authority += current_block.length #accumulate authority
             #print("Current Block: ", self.active_line.blocks[current_id].id, "Next Block: ", self.active_line.blocks[next_id].id, "Direction: ", direction, "Total Authority: ", authority)
 
             current_id = next_id #Update current block
             direction = next_dir
 
-        # current_block = self.active_line.blocks[current_id] 
-        # authority += (current_block.length) #Add half block authority to stop in the middle of block
+        current_block = self.active_line.blocks[current_id] 
+        authority += (current_block.length) #Add half block authority to stop in the middle of block
 
 
 
@@ -344,6 +347,9 @@ class DummyTrain:
         self.current_block = start_block 
         self.speed = 0
         self.authority = 0
+
+        # Debugging
+        self.send_auth_once = False
 
     def set_current_block(self, block_id):
         self.current_block = block_id
