@@ -65,13 +65,15 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
 
     # if the switch position is in the wrong position 13-12 and there is a train in the off section
     if not switch_positions[0] and train_in_a_b_c:
-        clamps[10:12] = [True]*len(clamps[10:12]) # clamp the blocks in c just in case
+        clamps[0:2] = [True]*len(clamps[0:2]) # clamp the blocks in a just in case
     else:
-        clamps[10:12] = [False]*len(clamps[10:12])
+        clamps[0:2] = [False]*len(clamps[0:2])
     # if the switch is in the wrong position 28-29 and there is a train in the section incoming
     if not switch_positions[1] and train_in_y_z:
-        clamps[52:54] = [True]*len(clamps[52:54]) # clamp the blocks in y and z in case
+        clamps[52:54] = [True]*len(clamps[52:54]) # clamp the blocks in z in case
     else:
         clamps[52:54] = [False]*len(clamps[52:54])
+
+
     return switch_positions, light_signals, crossing_signals, clamps
     

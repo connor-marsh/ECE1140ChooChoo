@@ -60,26 +60,20 @@ class WaysideController(QObject):
     @pyqtSlot()
     def update(self):
         if self.program != None:
-            # prev_clamps = [True if value else False for value in self.clamps]
-            prev_clamps = self.clamps[:]
-            unclamped_flag = False
+            prev_clamps = self.clamps[:] # only need previous clamps temporarily
+            self.previous_occupancies = self.block_occupancies[:] # get what the previous occupancies are
             self.execute_cycle() # make it so that it calls programmers code 3 times and checks
                   
             if self.collection.track_model != None:
                 blocks = self.collection.blocks[self.index]
                 
                 for i, clamp in enumerate(self.clamps):
-                    if clamp:
+                    if clamp and self.block_occupancies[i]:
                         self.to_send_authorities[blocks[i].id] = 0
                         self.commanded_authorities[i] = 0 # set ui
-                    elif not clamp and prev_clamps[i]:
+                    elif not clamp and prev_clamps[i] and self.block_occupancies[i]:
                         self.commanded_authorities[i] = None
                         self.to_send_authorities[blocks[i].id] = None
-                        unclamped_flag = True
-                   # elif not clamp and prev_clamps[i]:
-                    #    if blocks[i].id in self.to_send_authorities:
-                      #      del self.to_send_authorities[blocks[i].id]
-                       # new_unclamp = True
 
                 self.collection.track_model.update_from_plc_outputs(sorted_blocks=blocks,
                                                                     switch_states=self.switch_positions,light_states=self.light_signals,
@@ -89,9 +83,7 @@ class WaysideController(QObject):
                 Signals.communication.wayside_block_occupancies.emit(self.to_send_occupancies)
                 Signals.communication.wayside_plc_outputs.emit(blocks,self.switch_positions,self.light_signals,self.crossing_signals)
 
-                if len(self.to_send_authorities) > 0 or len(self.to_send_speeds) > 0 and unclamped_flag:
-                    if unclamped_flag: print("clamp removed", len(self.to_send_authorities))
-                    else: print("sending value", self.index)
+                if len(self.to_send_authorities) > 0 or len(self.to_send_speeds) > 0:
                     self.collection.track_model.update_from_comms_outputs(wayside_speeds=self.to_send_speeds, wayside_authorities=self.to_send_authorities)
                     self.to_send_authorities = {}
                     self.to_send_speeds = {}
