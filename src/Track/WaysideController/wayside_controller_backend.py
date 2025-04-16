@@ -113,7 +113,7 @@ class WaysideController(QObject):
 
             if speed != None:
                 newValue = False
-                if block.id[0]=='y': # dirty code that prevents race conditions on train creation
+                if block==self.collection.track_data.SPAWN_BLOCK: # dirty code that prevents race conditions on train creation
                     newValue = True
                 if speed != self.suggested_speeds[i]:
                     newValue = True
@@ -121,7 +121,7 @@ class WaysideController(QObject):
                     self.to_send_speeds[block.id] = speed
             if authority != None:
                 newValue = False
-                if block.id[0]=='y': # dirty code that prevents race conditions on train creation
+                if block==self.collection.track_data.SPAWN_BLOCK: # dirty code that prevents race conditions on train creation
                     newValue = True
                 if authority != self.suggested_authorities[i]:
                     newValue = True

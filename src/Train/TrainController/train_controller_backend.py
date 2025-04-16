@@ -305,7 +305,7 @@ class TrainController(QMainWindow):
             self.actual_speed = selected_data.get("actual_speed", self.actual_speed)
             self.wayside_speed = selected_data.get("wayside_speed", self.wayside_speed)
             temp_authority = selected_data.get("wayside_authority", self.wayside_authority)
-            if (temp_authority != 0):
+            if (temp_authority != 0 or self.wayside_authority == 0):
                 self.wayside_authority = temp_authority
                 self.stop_asap = False
             else:

@@ -196,7 +196,11 @@ class TrackMapCanvas(QGraphicsView):
         self.offset_x = 66
 
         # Start semi-scaled out - cover whole map layout
+<<<<<<< HEAD
         self.scale(0.9, 0.9)
+=======
+        self.scale(0.8, 0.8)
+>>>>>>> 2e131719e017380714c315e39b187a7327aaf93e
         self.scale_factor = 0.8
 
         self.block_items = {}
@@ -431,9 +435,12 @@ class TrackModelFrontEnd(QMainWindow):
         self.map_canvas.iconClicked.connect(self.on_icon_clicked)
         self.map_canvas.trainIconClicked.connect(self.on_train_icon_clicked)
 
+<<<<<<< HEAD
         # Max Multiplier
         MAX_MULTIPLIER = 50
 
+=======
+>>>>>>> 2e131719e017380714c315e39b187a7327aaf93e
         self.map_timer = QTimer(self)
         self.map_timer.timeout.connect(self.update_map)
         self.map_timer.start(100)  # every 100 ms

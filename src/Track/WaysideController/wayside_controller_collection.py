@@ -35,17 +35,17 @@ class WaysideControllerCollection(QObject):
 
 
         # get references to the data from the corresponding track
-        track_data = init_track_data.lines[self.LINE_NAME]
-        self.overlaps = track_data.overlaps
-        self.switches = track_data.switches # dictionaries don't require sorting duh
-        self.lights = track_data.lights
-        self.crossings = track_data.crossings
+        self.track_data = init_track_data.lines[self.LINE_NAME]
+        self.overlaps = self.track_data.overlaps
+        self.switches = self.track_data.switches # dictionaries don't require sorting duh
+        self.lights = self.track_data.lights
+        self.crossings = self.track_data.crossings
 
         self.controllers = [] # A collection of wayside has controllers
-        self.CONTROLLER_COUNT = len(track_data.territory_counts) # get the number of controllers (CONSTANT)
+        self.CONTROLLER_COUNT = len(self.track_data.territory_counts) # get the number of controllers (CONSTANT)
 
         # my blocks are a list of lists i filter the main list by territory and then i use ranges to index them in my ui
-        self.blocks = [self.get_blocks_for_territory(i + 1, track_data.blocks) for i in range(self.CONTROLLER_COUNT)]
+        self.blocks = [self.get_blocks_for_territory(i + 1, self.track_data.blocks) for i in range(self.CONTROLLER_COUNT)]
 
         # Will get the number corresponding to each wayside controller below (CONSTANTS)
         self.BLOCK_COUNTS = [] 
@@ -55,10 +55,10 @@ class WaysideControllerCollection(QObject):
 
         from Track.WaysideController.wayside_controller_backend import WaysideController # lazy import
         for i in range(self.CONTROLLER_COUNT): # for each controller they will have a specific number of blocks, switches, lights, and crossings associated with it
-            block_count = track_data.territory_counts[i + 1]
-            switch_count = track_data.device_counts[i + 1]['switches']
-            light_count = track_data.device_counts[i + 1]['lights']
-            crossing_count = track_data.device_counts[i + 1]['crossings']
+            block_count = self.track_data.territory_counts[i + 1]
+            switch_count = self.track_data.device_counts[i + 1]['switches']
+            light_count = self.track_data.device_counts[i + 1]['lights']
+            crossing_count = self.track_data.device_counts[i + 1]['crossings']
             self.BLOCK_COUNTS.append(block_count)
             self.SWITCH_COUNTS.append(switch_count)
             self.LIGHT_COUNTS.append(light_count)

@@ -13,6 +13,10 @@ from Track.TrackModel.test_bench_track_model import Ui_MainWindow as TBTrackMode
 from Train.train_collection import TrainCollection
 from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
 
+# Import global clock & signals
+import globals.global_clock  as global_clock
+import globals.signals as signals
+
 # Ensure proper scaling on high-DPI screens
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
@@ -135,7 +139,7 @@ class Train:
                 self.previous_switch_exit=False
                 self.previous_switch_entrance=False
                 # Check for despawn block
-                if self.current_block.id[0]=='y':
+                if self.current_block==self.track_data.DESPAWN_BLOCK:
                     self.track_model.remove_train(self.train_id)
                     self.dynamic_track.occupancies[self.current_block.id]=Occupancy.UNOCCUPIED
                     return
@@ -151,7 +155,52 @@ class Train:
                 self.train_model.set_input_data(track_data=send_to_train)
 
             # Check for station in new block, if its there, add and remove passengers from train
-            # TODO
+            if hasattr(self.current_block, "station") and self.current_block.station:
+                train_output = self.train_model.get_output_data()
+                actual_speed = train_output.get("actual_speed", 1.0)
+
+                if actual_speed == 0.0:
+                    station_id = self.current_block.id
+                    ticket_sales = self.track_model.station_ticket_sales.get(station_id, 0)
+
+                    MAX_PASSENGERS = 148
+                    MAX_BOARDING = random.randint(10, 25)  # adjustable range - change as needed
+
+                    # Ensure space is freed up if near or at capacity
+                    min_required_to_leave = max(0, (self.passenger_count + MAX_BOARDING) - MAX_PASSENGERS)
+                    max_possible_to_leave = min(25, self.passenger_count)
+
+                    passengers_leaving = random.randint(min_required_to_leave, max_possible_to_leave) if max_possible_to_leave >= min_required_to_leave else self.passenger_count
+                    self.passenger_count -= passengers_leaving
+
+                    available_space = MAX_PASSENGERS - self.passenger_count
+                    passengers_boarding = min(MAX_BOARDING, available_space)
+
+                    self.passenger_count += passengers_boarding
+
+                    print(f"[Station {station_id}] {passengers_leaving} passengers deboarded.")
+                    print(f"[Station {station_id}] {passengers_boarding} passengers boarded.")
+                    print(f"[Train {self.train_id}] now has {self.passenger_count} passengers.")
+
+                    # Update station's total ticket sales
+                    self.track_model.station_ticket_sales[station_id] += passengers_boarding
+
+                    # Send to Train Model
+                    self.train_model.set_input_data(track_data={
+                        "boarding_passengers": passengers_boarding,
+                        "departing_passengers": passengers_leaving
+                    })
+
+                    # Emit ticket sales to CTC via signal
+                    signals.communication.track_tickets.emit(self.track_model.station_ticket_sales[station_id])
+
+                    # Log for frontend runtime display
+                    self.track_model.runtime_status.setdefault(station_id, {})
+                    self.track_model.runtime_status[station_id]["ticket_sales"] = self.track_model.station_ticket_sales[station_id]
+                    self.track_model.runtime_status[station_id]["boarding"] = passengers_boarding
+                    self.track_model.runtime_status[station_id]["departing"] = passengers_leaving
+
+
 
             # Move to new section
             if self.current_block.id[0] != self.current_section:
@@ -210,6 +259,19 @@ class TrackModel(QtWidgets.QMainWindow):
                 self.dynamic_track.light_states[block.id] = False
             if block.crossing:
                 self.dynamic_track.crossing_states[block.id] = False
+
+        # Initializing Ticket Sales at Stations
+        self.station_ticket_sales = {}
+        for block in self.track_data.blocks:
+            if getattr(block, "station", None):  # Only for blocks with a station
+                self.station_ticket_sales[block.id] = random.randint(10, 100)
+                self.runtime_status[block.id] = {
+                    "ticket_sales": self.station_ticket_sales[block.id],
+                    "boarding": 0,
+                    "departing": 0
+                }
+
+
 
         self.prev_time = None
         self.timer = QtCore.QTimer(self)
@@ -328,15 +390,13 @@ class TrackModel(QtWidgets.QMainWindow):
     # Wayside will call when to initialize a train
     def initialize_train(self):
         # Yard spawn in block will be either the last or second to last block
-        if self.track_data.blocks[-2].id[0] == 'y':
-            start_block = self.track_data.blocks[-2]
-        else:
-            start_block = self.track_data.blocks[-1]
+        
+        spawn_block = self.track_data.SPAWN_BLOCK
 
         # Increment and assign new train
         self.train_counter += 1
         train_id = self.train_counter-1
-        new_train = Train(train_id=train_id, track_model=self, initial_block=start_block)
+        new_train = Train(train_id=train_id, track_model=self, initial_block=spawn_block)
         self.train_collection.create_train()
         new_train.train_model = self.train_collection.train_list[-1]
 
@@ -344,10 +404,10 @@ class TrackModel(QtWidgets.QMainWindow):
         self.trains.append(new_train)
 
         # Mark the block as occupied
-        self.dynamic_track.occupancies[start_block.id]=Occupancy.OCCUPIED
-        # self.update_block_occupancy(start_block, "Occupied")
+        self.dynamic_track.occupancies[spawn_block.id]=Occupancy.OCCUPIED
+        # self.update_block_occupancy(spawn_block, "Occupied")
 
-        print(f"[Train Init] Train {train_id} initialized on {start_block}.")
+        print(f"[Train Init] Train {train_id} initialized on {spawn_block}.")
     def remove_train(self, train_id):
         for i in range(train_id+1, self.train_counter):
             self.trains[i].train_id-=1
