@@ -150,13 +150,16 @@ class CtcBackEnd(QObject):
     def active_train_handler(self):
         for train in self.active_line.current_trains:
             # print("Train ID: ", train.train_id, "Current Block: ", train.current_block)
-            if int(train.current_block[1:]) == self.active_line.ENTRANCE_BLOCK:
+            if int(train.current_block[1:]) == self.active_line.ENTRANCE_BLOCK and not train.received_first_auth:
                 suggested_speed, suggested_authority = self.get_suggestion_values(train)
                 self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
+                train.received_first_auth = True # Only send once when entering the line
             if train.get_next_stop(): # make sure there are stops left
                 # Did you make it to the stop
                 if train.current_block == self.active_line.blocks[train.get_next_stop()-1].id:
                     train.route_index += 1 # You made it to the stop
+                    # Now that the train has reached its first stop, enable middle-of-block adjustment.
+                    train.middle_adjust = True
                     
                     # if we made it the last stop, the get_suggestion_values will be empty dicts
                     suggested_speed, suggested_authority = self.get_suggestion_values(train)
@@ -240,10 +243,11 @@ class CtcBackEnd(QObject):
     def get_suggestion_values(self, train, speed=70):
         if train.get_next_stop():
             new_speed = speed
-            auth = self.calculate_authority(int(train.current_block[1:]), train.get_next_stop())
+            auth = self.calculate_authority(int(train.current_block[1:]), train.get_next_stop(), adjust=train.middle_adjust)
             # if going to yard go a little extra
             if self.active_line.blocks[train.get_next_stop()-1].id[0]=='y':
                 auth += 300
+            print(f"auth: {auth}")
             suggested_speed = {train.current_block : new_speed}
             suggested_authority = {train.current_block : auth}
             return suggested_speed, suggested_authority
@@ -261,12 +265,14 @@ class CtcBackEnd(QObject):
         #print("Switch on Block ", switch_id, " set to ", switch_state)
 
     
-    def calculate_authority(self, start_id, end_id, direction=1):
+    def calculate_authority(self, start_id, end_id, direction=1, adjust=False):
         '''
         Parameters:
             start_id: The block ID to start from (1-150)
             end_id: The block ID to end on (1-150)
             direction: Starting movment direction, 0 for decreasing, 1 for increasing
+            adjust: Boolean flag. If True, subtract half of the start block length and half of the
+                    destination block length to account for the train being in the middle of a block.
 
         Returns: 
             Authority needed to reach end from start
@@ -275,6 +281,8 @@ class CtcBackEnd(QObject):
             - Adapt for red line
             - Adapt for yard entrance/exit blocks
         '''
+        print(start_id)
+        print(end_id)
         start_id = start_id - 1 #Convert to 0-indexed
         end_id = end_id - 1 #Convert to 0-indexed
         current_id = start_id
@@ -324,10 +332,15 @@ class CtcBackEnd(QObject):
             current_id = next_id #Update current block
             direction = next_dir
 
-        # current_block = self.active_line.blocks[current_id] 
-        # authority += (current_block.length) #Add half block authority to stop in the middle of block
-
-
+        current_block = self.active_line.blocks[current_id] 
+        authority += (current_block.length) #Add half block authority to stop in the middle of block
+        
+        # if adjustment is required, subtract half the starting block and add half the destination block lengths.
+        if adjust:
+            authority = authority - (self.active_line.blocks[start_id].length / 2) + (self.active_line.blocks[end_id].length / 2)
+        # Else just add half the destination blocks length
+        else:
+            authority = authority + (self.active_line.blocks[end_id].length / 2)
 
         #print("-----END REACHED-----")
         #print("Current Block: ", current_block.id, "Total Authority: ", authority)
@@ -344,6 +357,12 @@ class DummyTrain:
         self.current_block = start_block 
         self.speed = 0
         self.authority = 0
+
+        # Debugging
+        self.received_first_auth = False
+        
+        # Flag to indicate if we should adjust for the train being in the middle of a block.
+        self.middle_adjust = False
 
     def set_current_block(self, block_id):
         self.current_block = block_id
