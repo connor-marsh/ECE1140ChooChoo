@@ -197,6 +197,7 @@ class TrackMapCanvas(QGraphicsView):
 
         # Start semi-scaled out - cover whole map layout
         self.scale(0.8, 0.8)
+
         self.scale_factor = 0.8
 
         self.block_items = {}
@@ -378,7 +379,120 @@ class TrackMapCanvas(QGraphicsView):
                 self.scene.removeItem(self.train_icons[tid])
                 del self.train_icons[tid]
 
+###############################################################################
+# Dynamic Infrastructure Display Class
+###############################################################################
 
+class InfrastructureDisplay(QGraphicsView):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedSize(350, 130)
+        self.scene = QGraphicsScene()
+        self.setScene(self.scene)
+
+        self.name_text = None
+        self.icon_item = None
+        self.label_items = []
+        self.value_items = []
+
+        self.switch_graphics = {}
+        self.init_display()
+
+    def init_display(self):
+        self.scene.clear()
+
+        self.name_text = self.scene.addText("")
+        self.name_text.setPos(5, 5)
+
+        self.icon_item = QGraphicsPixmapItem()
+        self.icon_item.setPos(5, 25)
+        self.scene.addItem(self.icon_item)
+
+        for i in range(5):
+            y = 6 + i * 24
+            label = self.scene.addText("")
+            label.setPos(114, y)
+            value = self.scene.addText("")
+            value.setPos(279, y)
+            self.label_items.append(label)
+            self.value_items.append(value)
+
+        self.switch_graphics = {
+            "icon": QGraphicsPixmapItem(),
+            "entrance_text": self.scene.addText(""),
+            "exit_top_text": self.scene.addText(""),
+            "exit_bottom_text": self.scene.addText("")
+        }
+
+        # Position switch image
+        self.switch_graphics["icon"].setPos(120, 10)
+        self.scene.addItem(self.switch_graphics["icon"])
+
+        # Position labels (no rectangles, just text)
+        self.switch_graphics["entrance_text"].setPos(65, 25)      # Entrance
+        self.switch_graphics["exit_top_text"].setPos(260, 25)     # Top exit (horizontal)
+        self.switch_graphics["exit_bottom_text"].setPos(260, 88)  # Bottom exit (vertical drop from top)
+
+        # Initially hidden
+        for item in self.switch_graphics.values():
+            item.setVisible(False)
+
+    def update_display(self, icon_type, data_dict):
+        # Clear generic text/icons
+        self.name_text.setPlainText("")
+        self.icon_item.setPixmap(QPixmap())
+
+        for label, value in zip(self.label_items, self.value_items):
+            label.setPlainText("")
+            value.setPlainText("")
+
+        for item in self.switch_graphics.values():
+            item.setVisible(False)
+
+        # Non-switch display
+        if icon_type != "switch":
+            self.name_text.setPlainText(data_dict.get("name", ""))
+            icon_path = data_dict.get("icon_path")
+            if icon_path and os.path.exists(icon_path):
+                pixmap = QPixmap(icon_path).scaled(96, 96, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                self.icon_item.setPixmap(pixmap)
+            for i in range(5):
+                line_key = f"line{i+1}"
+                label, value = data_dict.get(line_key, ("", ""))
+                self.label_items[i].setPlainText(label)
+                self.value_items[i].setPlainText(value)
+            return
+
+        # Switch display logic
+        icon_path = data_dict.get("icon_path")
+        if icon_path and os.path.exists(icon_path):
+            pixmap = QPixmap(icon_path).scaled(110, 110, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            self.switch_graphics["icon"].setPixmap(pixmap)
+            self.switch_graphics["icon"].setVisible(True)
+
+        # Strip section from entrance (e.g., I57 → 57)
+        entrance_block = str(data_dict.get("entrance", ""))
+        entrance_display = ''.join(filter(str.isdigit, entrance_block))
+
+        # Exit blocks (use as-is)
+        exit_top = str(data_dict.get("exit_top", ""))
+        exit_bottom = str(data_dict.get("exit_bottom", ""))
+
+        self.switch_graphics["entrance_text"].setPlainText(entrance_display)
+        self.switch_graphics["exit_top_text"].setPlainText(exit_top)
+        self.switch_graphics["exit_bottom_text"].setPlainText(exit_bottom)
+
+        self.switch_graphics["entrance_text"].setVisible(True)
+        self.switch_graphics["exit_top_text"].setVisible(True)
+        self.switch_graphics["exit_bottom_text"].setVisible(True)
+
+
+
+
+
+###############################################################################
+# Track Frontend
+###############################################################################
 
 class TrackModelFrontEnd(QMainWindow):
     def __init__(self, wayside_integrated=True):
@@ -403,6 +517,23 @@ class TrackModelFrontEnd(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.map_canvas)
         self.ui.track_map_display.setLayout(layout)
+
+        # Dynamic Infrastructure Display
+        self.infrastructure_display = InfrastructureDisplay()
+        infra_layout = QVBoxLayout()
+        infra_layout.setContentsMargins(0, 0, 0, 0)
+        infra_layout.addWidget(self.infrastructure_display)
+
+
+        # If group_infrasturcture has no layout, set one
+        if not self.ui.group_infrasturcture.layout():
+            self.ui.group_infrasturcture.setLayout(QVBoxLayout())
+
+        # Now it's safe to remove and replace
+        self.ui.group_infrasturcture.layout().removeWidget(self.ui.infrastructure_view)
+        self.ui.infrastructure_view.deleteLater()
+        self.ui.group_infrasturcture.layout().addLayout(infra_layout)
+
 
 
         # Mapping combobox with physical blocks
@@ -636,6 +767,82 @@ class TrackModelFrontEnd(QMainWindow):
         else:
             print(f"[ICON CLICKED] Unknown icon type: {icon_type} on block {block_id}")
 
+        payload = self.build_infrastructure_display_payload(icon_type, block_id)
+        if payload:
+            self.infrastructure_display.update_display(icon_type, payload)
+
+
+    # Sends Dynamic Infrastructure payload data
+    def build_infrastructure_display_payload(self, icon_type, block_id):
+        backend = self.green_line
+        status = backend.runtime_status.get(block_id, {})
+        payload = {"name": "", "icon_path": "", "line1": ("", ""), "line2": ("", ""), "line3": ("", ""), "line4": ("", ""), "line5": ("", "")}
+
+        if icon_type == "station":
+            station = backend.track_data.stations.get(block_id)
+            if not station:
+                return None
+            boarding_side = "Left" if station.doors == 0 else "Right" if station.doors == 1 else "Both"
+            train_present = status.get("train_present", False)
+
+            # Determine icon
+            if station.doors == 0:
+                icon = "station_icon_left_train.png" if train_present else "station_icon_left_no_train.png"
+            elif station.doors == 1:
+                icon = "station_icon_right_train.png" if train_present else "station_icon_right_no_train.png"
+            else:
+                icon = "station_icon_both_train.png" if train_present else "station_icon_both_no_train.png"
+
+            payload.update({
+                "name": station.name,
+                "icon_path": os.path.join(BASE_DIR, "Resources", icon),
+                "line1": ("Ticket Sales", str(status.get("ticket_sales", "N/A"))),
+                "line2": ("Boarding", str(status.get("boarding", "N/A"))),
+                "line3": ("Departing", str(status.get("departing", "N/A")))
+            })
+
+        elif icon_type == "switch":
+            switch = backend.track_data.switches.get(block_id)
+            if not switch:
+                return None
+            state = backend.dynamic_track.switch_states.get(block_id, False)
+            route = switch.positions[1 if state else 0]
+
+            direction_icon = "switch_icon_up.png" if route > block_id else "switch_icon_down.png"
+
+            payload.update({
+                "name": "Switch",
+                "icon_path": os.path.join(BASE_DIR, "Resources", direction_icon),
+                "entrance": block_id,
+                "exit_top": max(switch.positions),
+                "exit_bottom": min(switch.positions)
+
+
+            })
+
+        elif icon_type == "railway_crossing":
+            crossing_state = backend.dynamic_track.crossing_states.get(block_id, False)
+            payload.update({
+                "name": "Railway Crossing",
+                "icon_path": os.path.join(BASE_DIR, "Resources", 
+                    "railway_crossing_icon_active.png" if crossing_state else "railway_crossing_icon_inactive.png"),
+                "line1": ("State", "Active" if crossing_state else "Inactive")
+            })
+
+        elif icon_type == "traffic_light":
+            light_state = backend.dynamic_track.light_states.get(block_id, False)
+            payload.update({
+                "name": "Traffic Light",
+                "icon_path": os.path.join(BASE_DIR, "Resources", 
+                    "traffic_light_icon_green.png" if light_state else "traffic_light_icon_red.png"),
+                "line1": ("State", "Green" if light_state else "Red")
+            })
+
+        elif icon_type == "train":
+            # You'd call this only from on_train_icon_clicked(), otherwise skip
+            return None
+
+        return payload
 
 
     # Displays train specific information
@@ -643,20 +850,29 @@ class TrackModelFrontEnd(QMainWindow):
         if 0 <= train_id < len(self.green_line.trains):
             train = self.green_line.trains[train_id]
             data = train.train_model.get_output_data()
-            position = data.get("position", 0.0)
+
+            block_id = train.current_block.id if train.current_block else "N/A"
+            passengers = train.passenger_count
             speed = data.get("actual_speed", 0.0)
             wayside_speed = data.get("wayside_speed", 0.0)
             authority = data.get("wayside_authority", 0.0)
+            direction = "Ascending" if train.travel_direction else "Descending"
 
-            print(f"[TRAIN {train_id} INFO]")
-            print(f"  Current Block: {train.current_block.id}")
-            print(f"  Passengers On Board: {train.passenger_count}")
-            print(f"  Actual Speed (mph): {speed:.2f}")
-            print(f"  Wayside Speed (mph): {wayside_speed:.2f}")
-            print(f"  Wayside Authority (yd): {authority:.2f}")
-            print(f"  Direction: {'Ascending' if train.travel_direction else 'Descending'}")
+            payload = {
+                "name": f"Train {train_id}",
+                "icon_path": ICON_PATHS["train"],
+                "line1": ("Location", str(block_id)),
+                "line2": ("Passengers", str(passengers)),
+                "line3": ("Actual Speed", f"{speed:.2f} mph"),
+                "line4": ("Wayside Speed", f"{wayside_speed:.2f} mph"),
+                "line5": ("Authority", f"{authority:.2f} yd")
+            }
+
+            self.infrastructure_display.update_display("train", payload)
+
         else:
             print(f"[TRAIN CLICKED] Train {train_id} not found.")
+
 
 
 
