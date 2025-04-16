@@ -184,6 +184,7 @@ class TrainModelFrontEnd(QMainWindow):
             velocity_mph = self.current_train.actual_speed * self.current_train.MPS_TO_MPH
             cmd_speed_mph = self.current_train.wayside_speed * self.current_train.MPS_TO_MPH
             wayside_authority_yd = self.current_train.wayside_authority# * self.current_train.M_TO_YARD
+            distance_yd = self.current_train.position * self.current_train.M_TO_YARD
             
             acceleration_fts2 = self.current_train.current_acceleration * 3.281
             commanded_power = self.current_train.commanded_power
@@ -191,7 +192,8 @@ class TrainModelFrontEnd(QMainWindow):
             self.train_ui.AccValue.display(acceleration_fts2)
             self.train_ui.SpeedValue.display(velocity_mph)
             self.train_ui.CommandedSpeedValue.display(cmd_speed_mph)
-            self.train_ui.SpeedLimitValue.display(wayside_authority_yd)
+            self.train_ui.WaysideAuthValue.display(wayside_authority_yd)
+            self.train_ui.DistanceTravelledValue.display(distance_yd)
             self.train_ui.PowerValue.display(commanded_power / 1000.0)
 
             try:
