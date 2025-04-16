@@ -62,8 +62,7 @@ class WaysideController(QObject):
         if self.program != None:
             # prev_clamps = [True if value else False for value in self.clamps]
             prev_clamps = self.clamps[:]
-            new_unclamp = False
-
+            unclamped_flag = False
             self.execute_cycle() # make it so that it calls programmers code 3 times and checks
                   
             if self.collection.track_model != None:
@@ -75,9 +74,8 @@ class WaysideController(QObject):
                         self.commanded_authorities[i] = 0 # set ui
                     elif not clamp and prev_clamps[i]:
                         self.commanded_authorities[i] = None
-                        if blocks[i].id in self.to_send_authorities:
-                            del self.to_send_authorities[blocks[i].id]
-                        new_unclamp = True
+                        self.to_send_authorities[blocks[i].id] = None
+                        unclamped_flag = True
                    # elif not clamp and prev_clamps[i]:
                     #    if blocks[i].id in self.to_send_authorities:
                       #      del self.to_send_authorities[blocks[i].id]
@@ -91,9 +89,9 @@ class WaysideController(QObject):
                 Signals.communication.wayside_block_occupancies.emit(self.to_send_occupancies)
                 Signals.communication.wayside_plc_outputs.emit(blocks,self.switch_positions,self.light_signals,self.crossing_signals)
 
-                if len(self.to_send_authorities) > 0 or len(self.to_send_speeds) > 0 or new_unclamp:
-                    if new_unclamp: print("sending empty", self.index)
-                    else: print("sending not empty", self.index)
+                if len(self.to_send_authorities) > 0 or len(self.to_send_speeds) > 0 and unclamped_flag:
+                    if unclamped_flag: print("clamp removed", len(self.to_send_authorities))
+                    else: print("sending value", self.index)
                     self.collection.track_model.update_from_comms_outputs(wayside_speeds=self.to_send_speeds, wayside_authorities=self.to_send_authorities)
                     self.to_send_authorities = {}
                     self.to_send_speeds = {}
@@ -127,6 +125,10 @@ class WaysideController(QObject):
             speed = speeds.get(block.id, None) # default to None in the case that there is no value sent
             authority = authorities.get(block.id, None)
             
+            if not self.block_occupancies[i]:
+                self.suggested_authorities[i] = None
+                self.suggested_speeds[i] = None
+
             if speed != None: # just suggest the speed doesn't need to be one shot
                 newValue = False
                 if speed != self.suggested_speeds[i]:

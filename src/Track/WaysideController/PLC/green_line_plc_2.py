@@ -59,9 +59,9 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
 
     # if switch position facing the yard and train in j
     if not switch_positions[1] and train_in_j:
-        clamps[22:27] = [True]*len(clamps[22:27])
+        clamps[25:27] = [True]*len(clamps[25:27])
     else:
-        clamps[22:27] = [False]*len(clamps[22:27])
+        clamps[25:27] = [False]*len(clamps[25:27])
 
     return switch_positions, light_signals, crossing_signals, clamps
 

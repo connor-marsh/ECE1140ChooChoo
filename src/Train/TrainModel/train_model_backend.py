@@ -203,15 +203,19 @@ class TrainModel(QMainWindow):
             self.wayside_speed = selected_data.get("wayside_speed", self.wayside_speed*self.MPS_TO_MPH) / self.MPS_TO_MPH
             self.wayside_authority = selected_data.get("wayside_authority", self.wayside_authority)
             if "wayside_authority" in selected_data.keys():
-                self.wayside_authority = selected_data["wayside_authority"]
+                wayside_authority = selected_data["wayside_authority"]
+                if self.wayside_authority == None:
+                    print("Unclamping", self.unclamped_authority, "block", self.position)
+                    self.wayside_authority = self.unclamped_authority
+                else:
+                    self.wayside_authority = wayside_authority
                 if self.wayside_authority != 0:
                     self.unclamped_authority = self.wayside_authority
+                
                 authDict = {}
                 authDict["wayside_authority"] = self.wayside_authority
                 self.controller.set_input_data(train_model_data=authDict)
-            else:
-                print("Unclamping", self.unclamped_authority)
-                self.wayside_authority = self.unclamped_authority
+            
             self.beacon_data = selected_data.get("beacon_data", self.beacon_data)
             grade = selected_data.get("grade", self.grade)
             if grade > 60:
