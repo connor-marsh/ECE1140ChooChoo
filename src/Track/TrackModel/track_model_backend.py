@@ -95,31 +95,36 @@ class Train:
 
     def update(self):
         train_position = self.train_model.get_output_data()["position"]
+        train_length = 35.21435
         distance_within_block = train_position - self.distance_traveled
+
+        # Unoccupy the previous block only if the entire train has entered the current block
+        if self.previous_block and distance_within_block >= train_length:
+            self.dynamic_track.occupancies[self.previous_block.id] = Occupancy.UNOCCUPIED
+
         if distance_within_block > self.current_block.length:
             self.previous_block = self.current_block
             self.distance_traveled += self.current_block.length
             self.entered_new_section = False
-            # Set old block to unoccupied
-            self.dynamic_track.occupancies[self.current_block.id]=Occupancy.UNOCCUPIED
+
             # Move to new block
             if self.current_block.switch and not self.previous_switch_exit:
                 # print("SWITCH")
-                self.previous_switch_entrance=True
-                self.previous_switch_exit=False
+                self.previous_switch_entrance = True
+                self.previous_switch_exit = False
                 switch = self.track_data.switches[self.current_block.id]
-                switchState=self.dynamic_track.switch_states[self.current_block.id]
+                switchState = self.dynamic_track.switch_states[self.current_block.id]
                 nextBlock = switch.positions[1 if switchState else 0].split("-")[1]
-                self.current_block = self.track_data.blocks[int(nextBlock)-1]
+                self.current_block = self.track_data.blocks[int(nextBlock) - 1]
             elif self.current_block.switch_exit and not self.previous_switch_entrance:
                 # print("SWITCH")
-                self.previous_switch_exit=True
-                self.previous_switch_entrance=False
+                self.previous_switch_exit = True
+                self.previous_switch_entrance = False
                 switch = self.track_data.switches[self.track_data.switch_exits[self.current_block.id].switch_entrance]
                 switchState = self.dynamic_track.switch_states[self.track_data.switch_exits[self.current_block.id].switch_entrance]
                 switchBlocks = switch.positions[1 if switchState else 0].split("-")
                 if switchBlocks[1] == self.current_block.id[1:]:
-                    self.current_block = self.track_data.blocks[int(switchBlocks[0])-1]
+                    self.current_block = self.track_data.blocks[int(switchBlocks[0]) - 1]
                 else:
                     print("TRAIN CRASH FROM SWITCH POSITION")
                     print("TRAIN CRASH FROM SWITCH POSITION")
@@ -136,17 +141,17 @@ class Train:
                     print("TRAIN CRASH FROM SWITCH POSITION")
                     print("TRAIN CRASH FROM SWITCH POSITION")
             else:
-                self.previous_switch_exit=False
-                self.previous_switch_entrance=False
+                self.previous_switch_exit = False
+                self.previous_switch_entrance = False
                 # Check for despawn block
-                if self.current_block==self.track_data.DESPAWN_BLOCK:
+                if self.current_block == self.track_data.DESPAWN_BLOCK:
                     self.track_model.remove_train(self.train_id)
-                    self.dynamic_track.occupancies[self.current_block.id]=Occupancy.UNOCCUPIED
+                    self.dynamic_track.occupancies[self.current_block.id] = Occupancy.UNOCCUPIED
                     return
-                self.current_block = self.track_data.blocks[int(self.current_block.id[1:])+(self.travel_direction*2-1)-1]
-            
+                self.current_block = self.track_data.blocks[int(self.current_block.id[1:]) + (self.travel_direction * 2 - 1) - 1]
+
             # check if new block is occupied (i.e. a crash occurs)
-            if self.dynamic_track.occupancies[self.current_block.id]==Occupancy.OCCUPIED:
+            if self.dynamic_track.occupancies[self.current_block.id] == Occupancy.OCCUPIED:
                 print("TRAIN CRASH FROM OCCUPANCIES")
                 print("TRAIN CRASH FROM OCCUPANCIES")
                 print("TRAIN CRASH FROM OCCUPANCIES")
@@ -157,10 +162,10 @@ class Train:
                 print("TRAIN CRASH FROM OCCUPANCIES")
             else:
                 # Set new block to occupied
-                self.dynamic_track.occupancies[self.current_block.id]=Occupancy.OCCUPIED
+                self.dynamic_track.occupancies[self.current_block.id] = Occupancy.OCCUPIED
 
             # Check for beacon data in new block, if its there, send to train model
-            if self.track_data.blocks[int(self.current_block.id[1:])-1].beacon:
+            if self.track_data.blocks[int(self.current_block.id[1:]) - 1].beacon:
                 send_to_train = {}
                 send_to_train["beacon_data"] = self.track_data.beacons[self.current_block.id].data
                 self.train_model.set_input_data(track_data=send_to_train)
