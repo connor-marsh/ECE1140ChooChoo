@@ -145,8 +145,19 @@ class Train:
                     return
                 self.current_block = self.track_data.blocks[int(self.current_block.id[1:])+(self.travel_direction*2-1)-1]
             
-            # Set new block to occupied
-            self.dynamic_track.occupancies[self.current_block.id]=Occupancy.OCCUPIED
+            # check if new block is occupied (i.e. a crash occurs)
+            if self.dynamic_track.occupancies[self.current_block.id]==Occupancy.OCCUPIED:
+                print("TRAIN CRASH FROM OCCUPANCIES")
+                print("TRAIN CRASH FROM OCCUPANCIES")
+                print("TRAIN CRASH FROM OCCUPANCIES")
+                print("TRAIN CRASH FROM OCCUPANCIES")
+                print("TRAIN CRASH FROM OCCUPANCIES")
+                print("TRAIN CRASH FROM OCCUPANCIES")
+                print("TRAIN CRASH FROM OCCUPANCIES")
+                print("TRAIN CRASH FROM OCCUPANCIES")
+            else:
+                # Set new block to occupied
+                self.dynamic_track.occupancies[self.current_block.id]=Occupancy.OCCUPIED
 
             # Check for beacon data in new block, if its there, send to train model
             if self.track_data.blocks[int(self.current_block.id[1:])-1].beacon:
