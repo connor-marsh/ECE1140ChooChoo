@@ -346,6 +346,7 @@ class TrackModel(QtWidgets.QMainWindow):
                 # print(f"[Wayside Update] Crossing at Block {crossing_keys[i]} is now {status}.")
 
     def update_from_comms_outputs(self, wayside_speeds={}, wayside_authorities={}, maintenances={}):
+        print("AUTH DICT", wayside_authorities)
         for train in self.trains:
             send_to_train = {} # conglomerate in this to prevent calling set_input_data multiple times
             if train.previous_block.id in wayside_speeds:
@@ -353,7 +354,7 @@ class TrackModel(QtWidgets.QMainWindow):
             if train.current_block.id in wayside_speeds:
                 send_to_train["wayside_speed"]=wayside_speeds[train.current_block.id]
             if train.previous_block.id in wayside_authorities:
-                if wayside_authorities[train.previous_block.id] != 0 or wayside_authorities[train.previous_block.id] != None:
+                if wayside_authorities[train.previous_block.id] != 0 and wayside_authorities[train.previous_block.id] != None:
                     send_to_train["wayside_authority"]=wayside_authorities[train.previous_block.id]+train.previous_block.length
             if train.current_block.id in wayside_authorities:
                 send_to_train["wayside_authority"]=wayside_authorities[train.current_block.id]
