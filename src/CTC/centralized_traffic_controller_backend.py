@@ -338,6 +338,9 @@ class CtcBackEnd(QObject):
         # if adjustment is required, subtract half the starting block and add half the destination block lengths.
         if adjust:
             authority = authority - (self.active_line.blocks[start_id].length / 2) + (self.active_line.blocks[end_id].length / 2)
+        # Else just add half the destination blocks length
+        else:
+            authority = authority + (self.active_line.blocks[end_id].length / 2)
 
         #print("-----END REACHED-----")
         #print("Current Block: ", current_block.id, "Total Authority: ", authority)
