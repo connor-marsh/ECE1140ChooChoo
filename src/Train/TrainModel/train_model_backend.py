@@ -45,7 +45,6 @@ class TrainModel(QMainWindow):
         else:
             self.controller = None
         self.position = 0.0
-        self.distance_travelled = 0.0
         self.actual_speed = 0.0
         self.current_acceleration = 0.0
         self.previous_acceleration = 0.0
@@ -155,9 +154,6 @@ class TrainModel(QMainWindow):
         # Calculate new position using the trapezoidal rule.
         new_position = self.position + (dt / 2.0) * (old_velocity + new_velocity)
         self.position = new_position
-        
-        # Calculate distance travelled in yards.
-        self.distance_travelled += (self.position - self.distance_travelled)
 
         # Clamp the speed to a maximum of 43.49 mph (≈19.44 m/s)
         max_speed_mps = 43.49 / self.MPS_TO_MPH
