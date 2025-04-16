@@ -46,6 +46,7 @@ class WaysideController(QObject):
         self.index = index # allows the controller to lookup information about the track based on which territory it is
         self.collection = collection_reference # 
         self.maintenance_mode = False # A boolean that indicates when the wayside controller is in maintenance mode.
+        self.clamps = [False] * block_count # a list of blocks that should have their authority clamped by the plc
         self.program = None # python file uploaded by programmer
 
         Signals.communication.ctc_suggested.connect(self.handle_suggested_values) # connect signals
@@ -59,13 +60,21 @@ class WaysideController(QObject):
     @pyqtSlot()
     def update(self):
         if self.program != None:
+            prev_clamps = self.clamps[:] # only need previous clamps temporarily
+            self.previous_occupancies = self.block_occupancies[:] # get what the previous occupancies are
             self.execute_cycle() # make it so that it calls programmers code 3 times and checks
-            # if we clamped authority
-            #   update authority dict
-            #   update authority list
-            # send occupancies to ctc                      
+                  
             if self.collection.track_model != None:
                 blocks = self.collection.blocks[self.index]
+                
+                for i, clamp in enumerate(self.clamps):
+                    if clamp and self.block_occupancies[i]:
+                        self.to_send_authorities[blocks[i].id] = 0
+                        self.commanded_authorities[i] = 0 # set ui
+                    elif not clamp and prev_clamps[i] and self.block_occupancies[i]:
+                        self.commanded_authorities[i] = None
+                        self.to_send_authorities[blocks[i].id] = None
+
                 self.collection.track_model.update_from_plc_outputs(sorted_blocks=blocks,
                                                                     switch_states=self.switch_positions,light_states=self.light_signals,
                                                                     crossing_states=self.crossing_signals)
@@ -86,56 +95,51 @@ class WaysideController(QObject):
 
         :param occupancies: A dictionary of block occupancies with keyed with the block id
         """
-        sorted_occupancies = []
         if self.collection.track_model != None:
-            for block in self.collection.blocks[self.index]: # index the blocks only in the range of this controller
+            for i, block in enumerate(self.collection.blocks[self.index]): # index the blocks only in the range of this controller
                 occupancy = occupancies.get(block.id, Occupancy.UNOCCUPIED) # read from the dictionary
 
                 if occupancy == Occupancy.UNOCCUPIED:
-                    sorted_occupancies.append(False)
+                    self.block_occupancies[i] = False
                     self.to_send_occupancies[block.id] = False
                 else:
-                    sorted_occupancies.append(True) # will have to change this with failures but should be fine for now
+                    self.block_occupancies[i] = True # will have to change this with failures but should be fine for now
                     self.to_send_occupancies[block.id] = True
-            self.block_occupancies = sorted_occupancies
+
+                
 
     @pyqtSlot(dict, dict)
     def handle_suggested_values(self, speeds, authorities):
-        sorted_speeds = [] # converting the dictionaries sent by the ctc 
-        sorted_authorities = [] # so that they match my ordering of the blocks by territory and are iterable lists
-
         blocks = self.collection.blocks[self.index] # specifies to the list which slice of the track this controller is looking at
         
         # need to enumerate so that I can tell if the current block is occupied or not
         for i, block in enumerate(blocks): # only look at the blocks in this controller's range
             speed = speeds.get(block.id, None) # default to None in the case that there is no value sent
             authority = authorities.get(block.id, None)
+            
+            if not self.block_occupancies[i]:
+                self.suggested_authorities[i] = None
+                self.suggested_speeds[i] = None
 
-            if speed != None:
+            if speed != None: # just suggest the speed doesn't need to be one shot
                 newValue = False
-                if block==self.collection.track_data.SPAWN_BLOCK: # dirty code that prevents race conditions on train creation
-                    newValue = True
                 if speed != self.suggested_speeds[i]:
                     newValue = True
-                if newValue:
-                    self.to_send_speeds[block.id] = speed
+                if newValue: # for oneshot
+                    self.suggested_speeds[i] = speed # set the value in the ui list
+                    self.commanded_speeds[i] = speed if speed <= block.speed_limit else block.speed_limit # clamp to speed limit
+                    self.to_send_speeds[block.id] = speed # "commanded speed"
+
             if authority != None:
                 newValue = False
-                if block==self.collection.track_data.SPAWN_BLOCK: # dirty code that prevents race conditions on train creation
-                    newValue = True
                 if authority != self.suggested_authorities[i]:
                     newValue = True
-                if newValue:
+                if newValue: # for oneshot
+                    self.suggested_authorities[i] = authority # set ui 
                     self.to_send_authorities[block.id] = authority
+                    self.commanded_authorities[i] = authority # set ui
 
-            sorted_speeds.append(speed)
-            sorted_authorities.append(authority) # after handling add them to the lists
-
-        self.suggested_speeds = sorted_speeds # update the controllers suggested values
-        self.suggested_authorities = sorted_authorities
-        self.commanded_speeds = self.suggested_speeds
-        self.commanded_authorities = self.suggested_authorities
-
+           
 
         
         
@@ -155,7 +159,7 @@ class WaysideController(QObject):
             
             # Verify that the program has a valid plc_logic function
             if not hasattr(module, "plc_logic") or not callable(module.plc_logic):
-                raise ValueError("Error: The PLC program must define a callable 'plc_logic(block_occupancies, switch_positions, light_signals, crossing_signals, previous_occupancies, exit_blocks)' function.")
+                raise ValueError("Error: The PLC program must define a callable 'plc_logic(block_occupancies, switch_positions, light_signals, crossing_signals, previous_occupancies, exit_blocks, clamps)' function.")
 
           
             self.program = module
@@ -192,12 +196,16 @@ class WaysideController(QObject):
         
         if not isinstance(self.exit_blocks, list) or not all(isinstance(value, bool) for value in self.exit_blocks):
             raise TypeError("Error: Exit blocks must be a list of boolean values (True/False).")
+        
+        if not isinstance(self.clamps, list) or not all(isinstance(value, bool) for value in self.clamps):
+            raise TypeError("Error: Clamps must be a list of boolean values (True/False).")
 
     def test_program_logic(self):
         """Test if the user-defined PLC logic function modifies only booleans."""
-        test_switches, test_lights, test_crossings = self.program.plc_logic(self.block_occupancies, self.switch_positions, 
+        test_switches, test_lights, test_crossings, test_clamps = self.program.plc_logic(self.block_occupancies, self.switch_positions, 
                                                                                            self.light_signals, self.crossing_signals, 
-                                                                                           self.previous_occupancies, self.exit_blocks)
+                                                                                           self.previous_occupancies, self.exit_blocks,
+                                                                                           self.clamps)
 
         # Verify outputs after execution
         if not all(isinstance(value, bool) for value in test_switches):
@@ -209,8 +217,8 @@ class WaysideController(QObject):
         if not all(isinstance(value, bool) for value in test_crossings):
             raise TypeError("Error: The PLC logic function must only modify crossing signals as boolean (True/False).")
         
-        #if not all(isinstance(value, bool) for value in test_previous):
-            #raise TypeError("Error: The PLC logic function must only modify occupancies as boolean (True/False).")
+        if not all(isinstance(value, bool) for value in test_clamps):
+            raise TypeError("Error: The PLC logic function must only modify clamps as boolean (True/False).")
 
 
 
@@ -218,9 +226,10 @@ class WaysideController(QObject):
         """Runs one PLC scan cycle"""
         if self.program and hasattr(self.program, "plc_logic"):
             # Run the user-defined PLC logic
-            self.switch_positions, self.light_signals, self.crossing_signals = self.program.plc_logic(self.block_occupancies, self.switch_positions, 
-                                                                                                                         self.light_signals, self.crossing_signals, 
-                                                                                                                                 self.previous_occupancies, self.exit_blocks)
+            self.switch_positions, self.light_signals, self.crossing_signals, self.clamps = self.program.plc_logic(self.block_occupancies, self.switch_positions, 
+                                                                                                                   self.light_signals, self.crossing_signals, 
+                                                                                                                   self.previous_occupancies, self.exit_blocks,
+                                                                                                                   self.clamps)
        
             #compare these lists of values with the currently stored ones
             #figure out block id's based on index
