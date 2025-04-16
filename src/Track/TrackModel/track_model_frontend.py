@@ -7,6 +7,7 @@ from Track.TrackModel.track_model_ui import Ui_MainWindow
 from Track.TrackModel.track_model_backend import TrackModel
 from Track.TrackModel.track_model_enums import Occupancy
 from Track.TrackModel.track_model_enums import Failures
+import globals.global_clock as global_clock
 
 import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -168,7 +169,7 @@ HARDCODED_LAYOUT = [
     ("y152", 259, 148, 59, 8), # Originally 259, 141, 59, 21, DESPAWN block
 ]
 
-# Icon file paths (relative to your project structure)
+# Icon file paths
 ICON_PATHS = {
     "train": os.path.join(BASE_DIR, "Resources/train_icon.png"),
     "station": os.path.join(BASE_DIR, "Resources/station_icon.jpeg"),
@@ -193,6 +194,10 @@ class TrackMapCanvas(QGraphicsView):
         self.min_scale = 0.2
         self.max_scale = 5.0
         self.offset_x = 66
+
+        # Start semi-scaled out - cover whole map layout
+        self.scale(0.9, 0.9)
+        self.scale_factor = 0.8
 
         self.block_items = {}
         self.block_lookup = {}
@@ -381,9 +386,8 @@ class TrackModelFrontEnd(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.update_timer = QTimer(self)
-        self.update_timer.timeout.connect(self.update_map)
-        self.update_timer.start(100)  # every 100 ms
+        self.global_clock = global_clock.clock
+        self.ui.simulation_value.setText(str(self.global_clock.time_multiplier))
 
         # Backend Setup
         #self.red_line
@@ -400,9 +404,6 @@ class TrackModelFrontEnd(QMainWindow):
         layout.addWidget(self.map_canvas)
         self.ui.track_map_display.setLayout(layout)
 
-        # Buttons to zoom in and out
-        #self.ui.zoom_in_button.clicked.connect(self.map_canvas.zoom_in)
-        #self.ui.zoom_out_button.clicked.connect(self.map_canvas.zoom_out)
 
         # Mapping combobox with physical blocks
         self.block_number_to_id = {}
@@ -429,6 +430,25 @@ class TrackModelFrontEnd(QMainWindow):
         # Signals for icons being clicked
         self.map_canvas.iconClicked.connect(self.on_icon_clicked)
         self.map_canvas.trainIconClicked.connect(self.on_train_icon_clicked)
+
+        # Max Multiplier
+        MAX_MULTIPLIER = 50
+
+        self.map_timer = QTimer(self)
+        self.map_timer.timeout.connect(self.update_map)
+        self.map_timer.start(100)  # every 100 ms
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update)
+        self.timer.start(500) # doesnt need to be fast
+
+    def update(self):
+        try:
+            simUpdateSpeed = int(self.ui.simulation_value.text())
+        except ValueError:
+            simUpdateSpeed = self.global_clock.time_multiplier
+        if simUpdateSpeed >= 1 and simUpdateSpeed <= self.global_clock.MAX_MULTIPLIER:
+            self.global_clock.time_multiplier = simUpdateSpeed
 
     # Displays the current block selected
     def on_block_selected(self, block_id):
@@ -566,27 +586,36 @@ class TrackModelFrontEnd(QMainWindow):
 
     # Displays specific infrasturcture information
     def on_icon_clicked(self, icon_type, block_id):
+        line = self.map_canvas.backend
+
         if icon_type == "station":
-            station = self.green_line.track_data.stations.get(block_id)
+            station = line.track_data.stations.get(block_id)
             if station:
                 boarding_side = (
                     "Left" if station.doors == 0 else
                     "Right" if station.doors == 1 else
                     "Both"
                 )
+
+                # Get live backend values from runtime_status
+                status = line.runtime_status.get(block_id, {})
+                ticket_sales = status.get("ticket_sales", "N/A")
+                boarding = status.get("boarding", "N/A")
+                departing = status.get("departing", "N/A")
+
                 print(f"[STATION INFO]")
                 print(f"  Block: {block_id}")
                 print(f"  Name: {station.name}")
                 print(f"  Boarding Side: {boarding_side}")
-                print(f"  Ticket Sales: IMPLEMENT")
-                print(f"  Passengers Boarding: IMPLEMENT")
-                print(f"  Passengers Departing: IMPLEMENT")
+                print(f"  Ticket Sales: {ticket_sales}")
+                print(f"  Passengers Boarding: {boarding}")
+                print(f"  Passengers Departing: {departing}")
             else:
                 print(f"[STATION CLICKED] No station found for block {block_id}")
 
         elif icon_type == "switch":
-            switch = self.green_line.track_data.switches.get(block_id)
-            state = self.green_line.dynamic_track.switch_states.get(block_id)
+            switch = line.track_data.switches.get(block_id)
+            state = line.dynamic_track.switch_states.get(block_id)
             if switch and state is not None:
                 route = switch.positions[1 if state else 0]
                 print(f"[SWITCH INFO]")
@@ -596,15 +625,21 @@ class TrackModelFrontEnd(QMainWindow):
                 print(f"[SWITCH CLICKED] No switch found for block {block_id}")
 
         elif icon_type == "railway_crossing":
-            print(f"[CROSSING CLICKED] Block: {block_id}")
-            # You could print active/inactive here later
+            crossing_state = line.dynamic_track.crossing_states.get(block_id, False)
+            print(f"[CROSSING INFO]")
+            print(f"  Block: {block_id}")
+            print(f"  State: {'Active' if crossing_state else 'Inactive'}")
 
         elif icon_type == "traffic_light":
-            print(f"[TRAFFIC LIGHT CLICKED] Block: {block_id}")
-            # Could add red/green status here too
+            light_state = line.dynamic_track.light_states.get(block_id, False)
+            print(f"[TRAFFIC LIGHT INFO]")
+            print(f"  Block: {block_id}")
+            print(f"  State: {'Green' if light_state else 'Red'}")
 
         else:
             print(f"[ICON CLICKED] Unknown icon type: {icon_type} on block {block_id}")
+
+
 
     # Displays train specific information
     def on_train_icon_clicked(self, train_id):

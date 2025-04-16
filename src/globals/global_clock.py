@@ -2,6 +2,9 @@ from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtCore import QTimer, QTime
 
 class GlobalClock(QMainWindow):
+    # Max Value to multiply speed with
+    MAX_MULTIPLIER = 100
+
     def __init__(self):
         super().__init__()
         self.am_pm = "AM"
