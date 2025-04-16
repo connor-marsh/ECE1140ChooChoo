@@ -62,6 +62,7 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
         clamps[25:27] = [True]*len(clamps[25:27])
     else:
         clamps[25:27] = [False]*len(clamps[25:27])
-
+    
+    
     return switch_positions, light_signals, crossing_signals, clamps
 

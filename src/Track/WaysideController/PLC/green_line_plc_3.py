@@ -64,11 +64,7 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     else:
         clamps[6:8] = [False]*len(clamps[6:8])
     
-    # switch to position 85-86 and there is a train in off section
-  #  if not switch_positions[1] and train_in_o_p_q:
-    #    clamps[29:32] = [True]*len(clamps[29:32])
-    #else:
-     #   clamps[29:32] = [False]*len(clamps[29:32])
+  
 
     return switch_positions, light_signals, crossing_signals, clamps
 

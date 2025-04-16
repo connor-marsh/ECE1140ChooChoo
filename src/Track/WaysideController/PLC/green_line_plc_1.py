@@ -74,6 +74,21 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     else:
         clamps[52:54] = [False]*len(clamps[52:54])
 
+    #for i, previous in enumerate(previous_occupancies): # for each previous occupancyd
+     #   if i < len(previous_occupancies) - 3:
+      #      if previous and not clamps[i + 1]:
+       #         if block_occupancies[i + 1] and (block_occupancies[i + 2] or block_occupancies[i + 3]):
+        #            clamps[i + 1] = True
+         #   elif clamps[i + 1]:
+          #      if block_occupancies[i + 1] and (block_occupancies[i + 2] or block_occupancies[i + 3]):
+           #         clamps[i + 1] = True
+            #    else:
+             #       clamps[i + 1] = False
+     
+
+
+
+
 
     return switch_positions, light_signals, crossing_signals, clamps
     
