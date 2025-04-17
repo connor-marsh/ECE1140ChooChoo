@@ -58,7 +58,7 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     light_signals[0] = switch_positions[0]
     light_signals[1] = not light_signals[0]
 
-    switch_positions[1] = train_in_y_z and not (train_in_d_e_f or train_in_a)
+    switch_positions[1] = train_in_y_z and not (train_in_d_e_f or train_in_a_b_c)
     light_signals[2] = not switch_positions[1]
     light_signals[3] = not light_signals[2]
 
