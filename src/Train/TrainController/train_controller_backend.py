@@ -305,15 +305,15 @@ class TrainController(QMainWindow):
             self.actual_speed = selected_data.get("actual_speed", self.actual_speed)
             self.wayside_speed = selected_data.get("wayside_speed", self.wayside_speed)
             temp_authority = selected_data.get("wayside_authority", self.wayside_authority)
-            if "wayside_authority" in selected_data:
-                print("RECEIVED AUTH", temp_authority)
             if (temp_authority != 0 or self.wayside_authority == 0):
                 self.wayside_authority = temp_authority
                 if self.stop_asap and not self.manual_mode:
                     self.emergency_brake = False
                 self.stop_asap = False
+                self.desired_temperature = 69
             else:
                 self.stop_asap = True
+                self.desired_temperature=34
             self.position = selected_data.get("position", self.position)
 
             if self.beacon_data != selected_data.get("beacon_data", self.beacon_data):
