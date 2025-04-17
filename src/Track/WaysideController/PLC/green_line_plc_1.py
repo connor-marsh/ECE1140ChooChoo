@@ -9,8 +9,8 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
 
     :param switch_positions: The current status of the switch signals
 
-        - True for switches indicates:
-        - False for switches indicates:
+        - True for switches indicates: POSITION eg (1-2)
+        - False for switches indicates: POSITION eg (1-3)
 
     :param light_signals: The current status of the light signals
 
@@ -74,21 +74,30 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     else:
         clamps[52:54] = [False]*len(clamps[52:54])
 
-    #for i, previous in enumerate(previous_occupancies): # for each previous occupancyd
-     #   if i < len(previous_occupancies) - 3:
-      #      if previous and not clamps[i + 1]:
-       #         if block_occupancies[i + 1] and (block_occupancies[i + 2] or block_occupancies[i + 3]):
-        #            clamps[i + 1] = True
-         #   elif clamps[i + 1]:
-          #      if block_occupancies[i + 1] and (block_occupancies[i + 2] or block_occupancies[i + 3]):
-           #         clamps[i + 1] = True
-            #    else:
-             #       clamps[i + 1] = False
+    
      
 
+     # one way section C B A or [11, 5) DESCENDING
+     # two way section D E F [12, 28) == F E D [27, 11)
+     # one way section G H I [28 to 38) ASCENDING
+     # one way section W X Y Z [38 to 54) ASCENDING
 
+     # handle each of the above separately for clamping? Although that makes it difficult to clamp at the boundaries?
+     # scan the array in a different order? could resort the array?
+     # start from which section?
+     # determine direction by comparing previous previous block occupancies
+     # train can occupy either 1 or 2 blocks at the same time
+     # use the clamps themselves as an input?
+     # clamps are a list, there exists a clamp for each block
 
-
-
+    #POTENTIAL CHECK (ITERATE THROUGH WHOLE TERRITORY BUT ACCOUNT THAT CERTAIN SECTIONS REQUIRE CHECKING "BEHIND" THE TRAIN since DESCENDING OR CAN BE BOTH WAYS)
+     # locate each train in the territory
+     # for two way sections determine the direction of travel?
+     # for each train in the territory
+        # check if the train was previously clamped?
+        # check if there is another train or occupancy ahead of it within 2 block range
+        # set clamp if not previously, or continue to clamp? ie clamp at block = True
+        # unclamp any previous clamp if the condition no longer holds ie clamp at block = False
+        
     return switch_positions, light_signals, crossing_signals, clamps
     
