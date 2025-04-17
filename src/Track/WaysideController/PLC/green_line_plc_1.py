@@ -52,17 +52,68 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
 
     train_in_y_z = any(block_occupancies[50:54])
     
+    train_in_a = any(block_occupancies[0:3])
   
     switch_positions[0] = train_in_a_b_c and not train_in_d_e_f
     light_signals[0] = switch_positions[0]
     light_signals[1] = not light_signals[0]
 
-    switch_positions[1] = train_in_y_z and not train_in_d_e_f
+    switch_positions[1] = train_in_y_z and not (train_in_d_e_f or train_in_a)
     light_signals[2] = not switch_positions[1]
     light_signals[3] = not light_signals[2]
 
     crossing_signals[0] = train_in_e
 
+    territory_branch_w_z = list(range(38,54)) # that specify which blocks in the block occupancies list to iterate through
+    territory_branch_d_i = list(range(12,38))
+    territory_branch_f_a = list(range(27,-1,-1)) 
+
+    # each branch needs to do separate checks.
+    for i, block_idx in enumerate(territory_branch_w_z): # block index is a value within the range, but i is just index based on the length of the range
+        if block_occupancies[block_idx]: # for any occupied block
+            distance_to_end = len(territory_branch_w_z) - i 
+            if distance_to_end > 2: # that is not next to the end of the section (overlapping territory in other wayside should account for this, or approaching a switch which is handled differently)
+                if block_occupancies[block_idx] and previous_occupancies[block_idx - 1 if block_idx > 0 else 0]: # if traveling 
+                    if block_occupancies[block_idx + 2]: # only need to check the blocks that arent right by the switch since switch clamping is handled separate?
+                        clamps[block_idx] = True
+                elif block_occupancies[block_idx] and previous_occupancies[block_idx]: # if stationary at the block since last cycle
+                    if block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = True
+                
+                if clamps[block_idx]: # check any current clamps to make sure the condition is no longer true
+                    if not block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = False
+
+    for i, block_idx in enumerate(territory_branch_d_i):
+        if block_occupancies[block_idx]:
+            distance_to_end = len(territory_branch_d_i) - i
+            if distance_to_end > 2:
+                if block_occupancies[block_idx] and previous_occupancies[block_idx - 1 if block_idx > 0 else 0]: # if traveling 
+                    if block_occupancies[block_idx + 2]: # only need to check the blocks that arent right by the switch since switch clamping is handled separate?
+                        clamps[block_idx] = True
+                elif block_occupancies[block_idx] and previous_occupancies[block_idx]: # if stationary at the block since last cycle
+                    if block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = True
+               
+                if clamps[block_idx]: # check any current clamps to make sure the condition is no longer trade
+                    if not block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = False
+
+    for i, block_idx in enumerate(territory_branch_f_a):
+        if block_occupancies[block_idx]:
+            distance_to_end = abs(len(territory_branch_f_a) - i)
+            if distance_to_end > 2:
+                if block_occupancies[block_idx] and previous_occupancies[block_idx + 1 if block_idx < (len(territory_branch_f_a) - 1)  else block_idx]: # if traveling 
+                    if block_occupancies[block_idx - 2]: # only need to check the blocks that arent right by the switch since switch clamping is handled separate?
+                        clamps[block_idx] = True
+                elif block_occupancies[block_idx] and previous_occupancies[block_idx]: # if stationary at the block since last cycle
+                    if block_occupancies[block_idx - 2]:
+                        clamps[block_idx] = True
+                
+                if clamps[block_idx]: # check any current clamps to make sure the condition is no longer trade
+                    if not block_occupancies[block_idx - 2]:
+                        clamps[block_idx] = False
+     
     # if the switch position is in the wrong position 13-12 and there is a train in the off section
     if not switch_positions[0] and train_in_a_b_c:
         clamps[0:2] = [True]*len(clamps[0:2]) # clamp the blocks in a just in case
@@ -73,31 +124,7 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
         clamps[52:54] = [True]*len(clamps[52:54]) # clamp the blocks in z in case
     else:
         clamps[52:54] = [False]*len(clamps[52:54])
-
-    
      
-
-     # one way section C B A or [11, 5) DESCENDING
-     # two way section D E F [12, 28) == F E D [27, 11)
-     # one way section G H I [28 to 38) ASCENDING
-     # one way section W X Y Z [38 to 54) ASCENDING
-
-     # handle each of the above separately for clamping? Although that makes it difficult to clamp at the boundaries?
-     # scan the array in a different order? could resort the array?
-     # start from which section?
-     # determine direction by comparing previous previous block occupancies
-     # train can occupy either 1 or 2 blocks at the same time
-     # use the clamps themselves as an input?
-     # clamps are a list, there exists a clamp for each block
-
-    #POTENTIAL CHECK (ITERATE THROUGH WHOLE TERRITORY BUT ACCOUNT THAT CERTAIN SECTIONS REQUIRE CHECKING "BEHIND" THE TRAIN since DESCENDING OR CAN BE BOTH WAYS)
-     # locate each train in the territory
-     # for two way sections determine the direction of travel?
-     # for each train in the territory
-        # check if the train was previously clamped?
-        # check if there is another train or occupancy ahead of it within 2 block range
-        # set clamp if not previously, or continue to clamp? ie clamp at block = True
-        # unclamp any previous clamp if the condition no longer holds ie clamp at block = False
         
     return switch_positions, light_signals, crossing_signals, clamps
     
