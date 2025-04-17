@@ -199,39 +199,39 @@ class CtcFrontEnd(QMainWindow):
 
     def update_active_train_table(self):
         active_trains = self.backend.active_line.current_trains
-        if len(active_trains) != 0:
-            self.ctc_ui.main_active_trains_table.setRowCount(len(active_trains)) 
 
-            for row, train in enumerate(active_trains):
-                train_id = str(train.train_id)
-                current_block = str(train.current_block)
-                remaining_stops = str(len(train.route) - train.route_index) 
-                if int(remaining_stops) > 0:
-                    upcoming_stop = str(self.backend.active_line.blocks[train.route[train.route_index]-1].id) # Get the next block ID from the route
-                else:
-                    upcoming_stop = "None"
-                   
-                current_mode = str(train.mode)
+        self.ctc_ui.main_active_trains_table.setRowCount(len(active_trains)) 
 
-                id_item = QTableWidgetItem(train_id)
-                id_item.setTextAlignment(Qt.AlignCenter)
-                self.ctc_ui.main_active_trains_table.setItem(row, 0, id_item)
+        for row, train in enumerate(active_trains):
+            train_id = str(train.train_id)
+            current_block = str(train.current_block)
+            remaining_stops = str(len(train.route) - train.route_index) 
+            if int(remaining_stops) > 0:
+                upcoming_stop = str(self.backend.active_line.blocks[train.route[train.route_index]-1].id) # Get the next block ID from the route
+            else:
+                upcoming_stop = "None"
+                
+            current_mode = str(train.mode)
 
-                current_block_item = QTableWidgetItem(current_block)
-                current_block_item.setTextAlignment(Qt.AlignCenter)
-                self.ctc_ui.main_active_trains_table.setItem(row, 1, current_block_item)
+            id_item = QTableWidgetItem(train_id)
+            id_item.setTextAlignment(Qt.AlignCenter)
+            self.ctc_ui.main_active_trains_table.setItem(row, 0, id_item)
 
-                upcoming_stop_item = QTableWidgetItem(upcoming_stop)
-                upcoming_stop_item.setTextAlignment(Qt.AlignCenter)
-                self.ctc_ui.main_active_trains_table.setItem(row, 2, upcoming_stop_item)
+            current_block_item = QTableWidgetItem(current_block)
+            current_block_item.setTextAlignment(Qt.AlignCenter)
+            self.ctc_ui.main_active_trains_table.setItem(row, 1, current_block_item)
 
-                remaining_stops_item = QTableWidgetItem(remaining_stops)
-                remaining_stops_item.setTextAlignment(Qt.AlignCenter)
-                self.ctc_ui.main_active_trains_table.setItem(row, 3, remaining_stops_item)
+            upcoming_stop_item = QTableWidgetItem(upcoming_stop)
+            upcoming_stop_item.setTextAlignment(Qt.AlignCenter)
+            self.ctc_ui.main_active_trains_table.setItem(row, 2, upcoming_stop_item)
 
-                mode_item = QTableWidgetItem(current_mode)
-                mode_item.setTextAlignment(Qt.AlignCenter)
-                self.ctc_ui.main_active_trains_table.setItem(row, 4, mode_item)            
+            remaining_stops_item = QTableWidgetItem(remaining_stops)
+            remaining_stops_item.setTextAlignment(Qt.AlignCenter)
+            self.ctc_ui.main_active_trains_table.setItem(row, 3, remaining_stops_item)
+
+            mode_item = QTableWidgetItem(current_mode)
+            mode_item.setTextAlignment(Qt.AlignCenter)
+            self.ctc_ui.main_active_trains_table.setItem(row, 4, mode_item)            
 
     #Map Initialization
     def initialize_map(self):
