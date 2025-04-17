@@ -143,6 +143,9 @@ class CtcBackEnd(QObject):
                 #ensure current train location
                 if block.occupancy and block.id == train.current_block:
                     
+                    if train.current_block == self.active_line.EXIT_BLOCK:
+                        return -1 #Train reached ending block
+
                     #Get direction of train
                     section_key = block.id[0]  # Get section letter
                     section_dir = self.active_line.sections[section_key].increasing
@@ -170,12 +173,15 @@ class CtcBackEnd(QObject):
 
     def update_train_location(self):
         for train in self.active_line.current_trains:
-            #print("[CTC DEBUG] Train ID: ", train.train_id, "Current Block: ", train.current_block, "Next Block: ", train.next_block)
             #Check if train moved to next block
             for block in self.active_line.blocks:
                 if block.id == train.next_block and block.occupancy:
                     train.current_block = train.next_block
                     train.next_block = self.get_expected_next_block(train)
+                    print("[CTC DEBUG] Train ID: ", train.train_id, "Current Block: ", train.current_block, "Next Block: ", train.next_block)
+                    if train.next_block == -1:
+                        print("Train ID: ", train.train_id, "Exiting the line")
+                        self.active_line.current_trains.remove(train) #Remove train from active trains
                     break
 
 
@@ -353,7 +359,7 @@ class CtcBackEnd(QObject):
                 #print("JUMP BLOCK DETECTED - ", current_block.id, "Direction: ", direction, "Jump Key: ", jump_key)
                 next_id, new_dir = self.active_line.JUMP_BLOCKS[jump_key]
                 next_id -= 1 #Convert to 0-indexed
-                next_dir = new_dir
+                direction = new_dir
             else:
                 if direction == 0:
                     next_id = current_id - 1
@@ -369,7 +375,7 @@ class CtcBackEnd(QObject):
             #print("Current Block: ", self.active_line.blocks[current_id].id, "Next Block: ", self.active_line.blocks[next_id].id, "Direction: ", direction, "Total Authority: ", authority)
 
             current_id = next_id #Update current block
-            direction = next_dir
+
 
         current_block = self.active_line.blocks[current_id] 
         authority += (current_block.length) #Add half block authority to stop in the middle of block
@@ -470,7 +476,8 @@ class Track:
         self.routes = {}
 
         if name == "Green":
-            self.ENTRANCE_BLOCK = 151  #Entrance blocks for green line | INCORECT?
+            self.ENTRANCE_BLOCK = 151  #Entrance blocks for green line
+            self.EXIT_BLOCK = "y152" #Exit block for green line
             self.JUMP_BLOCKS = { 
             (100, 1): (85, 0),   # Q100 -> N85, decrease
             (77, 0): (101, 1),   # N77 -> R101, increase
