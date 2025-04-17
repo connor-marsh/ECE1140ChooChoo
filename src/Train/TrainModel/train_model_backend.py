@@ -205,7 +205,7 @@ class TrainModel(QMainWindow):
             if "wayside_authority" in selected_data.keys():
                 wayside_authority = selected_data["wayside_authority"]
                 if self.wayside_authority == None:
-                    print("Unclamping", self.unclamped_authority, "block", self.position)
+                    #print("Unclamping", self.unclamped_authority, "block", self.position)
                     self.wayside_authority = self.unclamped_authority
                     authDict = {}
                     self.controller.set_input_data(train_model_data=authDict)
