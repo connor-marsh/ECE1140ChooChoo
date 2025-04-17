@@ -215,10 +215,16 @@ class CtcBackEnd(QObject):
     def first_blocks_free(self):
         #Checks if first blocks are free | called by dispatch queue handler
         block_1 = self.active_line.ENTRANCE_BLOCK.occupancy or self.active_line.ENTRANCE_BLOCK.maintenance
+        block_2 = self.active_line.blocks[self.active_line.ENTRANCE_CHECK[0]-1].occupancy or self.active_line.blocks[self.active_line.ENTRANCE_CHECK[0]-1].maintenance
+        block_3 = self.active_line.blocks[self.active_line.ENTRANCE_CHECK[1]-1].occupancy or self.active_line.blocks[self.active_line.ENTRANCE_CHECK[1]-1].maintenance
+        block_4 = self.active_line.blocks[self.active_line.ENTRANCE_CHECK[2]-1].occupancy or self.active_line.blocks[self.active_line.ENTRANCE_CHECK[2]-1].maintenance
+        print("Block 2 saved val: ", self.active_line.blocks[self.active_line.ENTRANCE_CHECK[0]-1].id, "Block 3 saved val: ", self.active_line.blocks[self.active_line.ENTRANCE_CHECK[1]-1].id, "Block 4 saved val: ", self.active_line.blocks[self.active_line.ENTRANCE_CHECK[2]-1].id)
+
         #print("Block ", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].id, "Occupancy is", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].occupancy, " and has maintenance ", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].maintenance)
-        if not block_1: # Altered from 3 blocks
+        if not(block_1 or block_2 or block_3 or block_4): # Check entrance and first three blocks
             return True
         else:
+            print("Entrance Blocks Occupied")
             return False
 
     def dispatch_handler(self, destination, destination_type, new_train=True, selected_train=None):
@@ -232,7 +238,7 @@ class CtcBackEnd(QObject):
         elif destination_type == 'block':
             #Dispatch to block
             destination_set = int(destination)
-            full_route.append(destination_set) #Maybe Temporary
+            full_route.append(destination_set) 
             
         elif destination_type == 'route':
             #Dispatch on a route
@@ -511,6 +517,7 @@ class Track:
         self.routes = {}
 
         if name == "Green":
+            self.ENTRANCE_CHECK = [63, 64, 65] #Entrance blocks for green line
             self.JUMP_BLOCKS = { 
             (100, 1): (85, 0),   # Q100 -> N85, decrease
             (77, 0): (101, 1),   # N77 -> R101, increase
