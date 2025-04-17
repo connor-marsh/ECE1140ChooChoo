@@ -1,6 +1,6 @@
 '''
 Author: Aaron Kuchta
-Date: 4-8-2025
+Date: 4-16-2025
 '''
 
 
@@ -136,16 +136,54 @@ class CtcBackEnd(QObject):
                 self.active_line.blocks[block_index].crossing_state = crossings[crossing_index]
                 crossing_index += 1
 
-    def update_train_location(self): # NEXT PRIORITY
-        if len(self.active_line.current_trains) != 0:
+
+    def get_expected_next_block(self, train): #may need to be updated to include switch states
+            #Check each block in line
             for block in self.active_line.blocks:
-                if block.occupancy: # HARDCODED
-                    #self.active_line.current_trains[0].current_block = i
-                    #print(block.id)
-                    return block.id # Return the block ID of the train
-            # Return starting block if no blocks are occupied
-            # because wayside may not have told us that the first block is occupied yet
-            return self.active_line.blocks[self.active_line.ENTRANCE_BLOCK-1].id
+                #ensure current train location
+                if block.occupancy and block.id == train.current_block:
+                    
+                    if train.current_block == self.active_line.EXIT_BLOCK:
+                        return -1 #Train reached ending block
+
+                    #Get direction of train
+                    section_key = block.id[0]  # Get section letter
+                    section_dir = self.active_line.sections[section_key].increasing
+
+                    #update train direction if not bidirectional
+                    if section_dir != 2:  
+                        train.direction = section_dir
+
+                    jump_key = (int(block.id[1:]), train.direction)
+                    #Check if train is at jump block
+                    if jump_key in self.active_line.JUMP_BLOCKS:
+                        next_block, new_dir = self.active_line.JUMP_BLOCKS[jump_key]
+                        train.direction = new_dir
+                        return self.active_line.blocks[next_block - 1].id
+                    
+                    #if moving in decreasing direction
+                    if train.direction == 0:
+                        return self.active_line.blocks[int(block.id[1:]) - 2].id
+                    #if moving in increasing direction
+                    elif train.direction == 1:
+                        return self.active_line.blocks[int(block.id[1:])].id
+
+            #if no block occupancy, set to entrance block - not needed?
+            #return self.active_line.blocks[self.active_line.ENTRANCE_BLOCK - 1].id
+
+    def update_train_location(self):
+        for train in self.active_line.current_trains:
+            #Check if train moved to next block
+            for block in self.active_line.blocks:
+                if block.id == train.next_block and block.occupancy:
+                    train.current_block = train.next_block
+                    train.next_block = self.get_expected_next_block(train)
+                    print("[CTC DEBUG] Train ID: ", train.train_id, "Current Block: ", train.current_block, "Next Block: ", train.next_block)
+                    if train.next_block == -1:
+                        print("Train ID: ", train.train_id, "Exiting the line")
+                        self.active_line.current_trains.remove(train) #Remove train from active trains
+                    break
+
 
     def active_train_handler(self):
         for train in self.active_line.current_trains:
@@ -165,7 +203,7 @@ class CtcBackEnd(QObject):
                     suggested_speed, suggested_authority = self.get_suggestion_values(train)
                     self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
                     
-            train.current_block = self.update_train_location()
+            self.update_train_location()
             
             #print("Current Block", train.current_block, "Route: ", train.get_next_stop())
 
@@ -281,20 +319,19 @@ class CtcBackEnd(QObject):
             - Adapt for red line
             - Adapt for yard entrance/exit blocks
         '''
+
         print(start_id)
         print(end_id)
-        start_id = start_id - 1 #Convert to 0-indexed
-        end_id = end_id - 1 #Convert to 0-indexed
+        start_id -= 1 #Convert to 0-indexed
+        end_id -= 1 #Convert to 0-indexed
         current_id = start_id
         
         if start_id == end_id:
             return 0
-        if start_id < 0 or start_id > 151:
-            print("-----ERROR! Invalid start block ID-----")
+        if not (0 <= start_id < len(self.active_line.blocks)) or not (0 <= end_id < len(self.active_line.blocks)):
+            print("-----ERROR! Invalid block ID-----")
             return -1
-        if end_id < 0 or end_id > 151:
-            print("-----ERROR! Invalid end block ID-----")
-            return -1
+        
         authority = 0
 
         #Potentially Obsolete Code
@@ -303,6 +340,11 @@ class CtcBackEnd(QObject):
         #print("Block: ", self.active_line.blocks[start_id].id, "Direction: ", section_dir)
 
         while current_id != end_id:
+            #Added bounds check
+            if not (0 <= current_id < len(self.active_line.blocks)):
+                print("-----ERROR! Current ID out of range:", current_id, "-----")
+                return -1
+            
             current_block = self.active_line.blocks[current_id]
             section_key = current_block.id[0]  #Gets section letter
             section_dir = self.active_line.sections[section_key].increasing
@@ -316,21 +358,24 @@ class CtcBackEnd(QObject):
             if jump_key in self.active_line.JUMP_BLOCKS:
                 #print("JUMP BLOCK DETECTED - ", current_block.id, "Direction: ", direction, "Jump Key: ", jump_key)
                 next_id, new_dir = self.active_line.JUMP_BLOCKS[jump_key]
-                next_dir = new_dir
-            elif direction == 0:
-                next_id = current_id - 1
-                next_dir = direction
-            elif direction == 1:
-                next_id = current_id + 1
-                next_dir = direction
+                next_id -= 1 #Convert to 0-indexed
+                direction = new_dir
+            else:
+                if direction == 0:
+                    next_id = current_id - 1
+                elif direction == 1:
+                    next_id = current_id + 1
 
+            if not (0 <= next_id < len(self.active_line.blocks)):
+                print("-----ERROR! Next ID out of range:", next_id, "-----")
+                return -1
 
             if next_id != end_id:
                 authority += current_block.length #accumulate authority
             #print("Current Block: ", self.active_line.blocks[current_id].id, "Next Block: ", self.active_line.blocks[next_id].id, "Direction: ", direction, "Total Authority: ", authority)
 
             current_id = next_id #Update current block
-            direction = next_dir
+
 
         current_block = self.active_line.blocks[current_id] 
         authority += (current_block.length) #Add half block authority to stop in the middle of block
@@ -355,6 +400,8 @@ class DummyTrain:
         self.route_index = 0
         self.mode = mode
         self.current_block = start_block 
+        self.next_block = "K63" #First block out of yard on green line
+        self.direction = 1 #1 for increasing, 0 for decreasing
         self.speed = 0
         self.authority = 0
 
@@ -429,15 +476,15 @@ class Track:
         self.routes = {}
 
         if name == "Green":
-            self.ENTRANCE_BLOCK = 151  #Entrance blocks for green line 
+            self.ENTRANCE_BLOCK = 151  #Entrance blocks for green line
+            self.EXIT_BLOCK = "y152" #Exit block for green line
             self.JUMP_BLOCKS = { 
-            (100, 1): (84, 0),   # Q100 -> N85, decrease
-            (77, 0): (100, 1),   # N77 -> R101, increase
-            (150, 1): (27, 0),   # Z150 -> F28, decrease
-            (1, 0): (12, 1),    #A1 -> D13, increase
-            (151, 1): (62, 1), #Yard -> K63, increase
-            (57, 1): (151, 1)} #I57 -> Yard, increase}     
-            #More may be needed for Yard Entrace/exit
+            (100, 1): (85, 0),   # Q100 -> N85, decrease
+            (77, 0): (101, 1),   # N77 -> R101, increase
+            (150, 1): (28, 0),   # Z150 -> F28, decrease
+            (1, 0): (13, 1),    #A1 -> D13, increase
+            (151, 1): (63, 1), #Yard -> K63, increase
+            (57, 1): (152, 1)} #I57 -> Yard, increase}     
 
             self.STATIONS_BLOCKS = {
                 "Pioneer": 2,
