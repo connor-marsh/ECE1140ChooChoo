@@ -313,8 +313,10 @@ class TrainController(QMainWindow):
                 if self.stop_asap and not self.manual_mode:
                     self.emergency_brake = False
                 self.stop_asap = False
+                self.desired_temperature = 69
             else:
                 self.stop_asap = True
+                self.desired_temperature=34
             self.position = selected_data.get("position", self.position)
 
             if self.beacon_data != selected_data.get("beacon_data", self.beacon_data):
