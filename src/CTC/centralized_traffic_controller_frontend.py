@@ -72,6 +72,8 @@ class CtcFrontEnd(QMainWindow):
 
         self.wall_clock = global_clock.clock
 
+        self.known_train_count = 0
+
     def frontend_update(self):
         self.update_clock() #update clock label
         self.update_throughput() #update throughput label
@@ -79,6 +81,7 @@ class CtcFrontEnd(QMainWindow):
         self.ctc_ui.active_train_number_label.setText(str(self.backend.active_line.active_trains_count))
         self.update_active_train_table() #Needs updated to work with new backend
         self.update_dispatch_button()
+        self.update_train_select_combo()
 
 
     #Stacked Widget Navigation
@@ -196,6 +199,16 @@ class CtcFrontEnd(QMainWindow):
         self.ctc_ui.sub_station_combo.clear()
         for station in self.backend.active_line.STATIONS_BLOCKS.keys():
             self.ctc_ui.sub_station_combo.addItem(station)
+
+    def update_train_select_combo(self):
+        #initialize train combo box with active trains
+        if self.known_train_count != self.backend.active_line.active_trains_count:
+            self.known_train_count = self.backend.active_line.active_trains_count
+            self.ctc_ui.sub_select_active_train_combo.clear()
+            for train in self.backend.active_line.current_trains:
+                train_id = str(train.train_id)
+                self.ctc_ui.sub_select_active_train_combo.addItem(train_id)
+
 
     def update_active_train_table(self):
         active_trains = self.backend.active_line.current_trains
@@ -344,7 +357,7 @@ class CtcFrontEnd(QMainWindow):
             
     def update_throughput(self):
         #updates throughput label on UI
-        self.ctc_ui.main_throughput_label.setText(str(self.backend.throughput))
+        self.ctc_ui.main_throughput_label.setText(str(round(self.backend.throughput,2)))
 
     def update_dispatch_button(self):
         # Updates button state based off selected buttons
@@ -359,11 +372,11 @@ class CtcFrontEnd(QMainWindow):
         # Check if creating new train or rerouting existing train
         if self.ctc_ui.sub_dispatch_overide_new_radio.isChecked():
             createNewTrain = True
+            train_num = None
         elif self.ctc_ui.sub_dispatch_overide_active_radio.isChecked():
             #existing train needs to be rerouted | not implemented yet
-            print("Reroute Train Not Implemented")
-            # TEMPORARY, SEND TRAIN TO YARD ASSUME ONLY 1 TRAIN ON TRACK
             createNewTrain = False
+            train_num = self.ctc_ui.sub_select_active_train_combo.currentText()
         else:
             print("Select Dispatch Type Please")
             return # We are done here if user didnt select type
@@ -372,11 +385,11 @@ class CtcFrontEnd(QMainWindow):
         if self.ctc_ui.sub_dispatch_station_select_radio.isChecked():
             #dispatch to station
             destination_station = self.ctc_ui.sub_station_combo.currentText() #CHANGED FROM INDEX
-            self.backend.dispatch_handler(destination_station, 'station', new_train=createNewTrain)
+            self.backend.dispatch_handler(destination_station, 'station', new_train=createNewTrain, selected_train = train_num)
         elif self.ctc_ui.sub_dispatch_block_select_radio.isChecked():
             #dispatch to block
             destination_block = self.ctc_ui.sub_block_number_combo.currentText()
-            self.backend.dispatch_handler(destination_block, 'block', new_train=createNewTrain)
+            self.backend.dispatch_handler(destination_block, 'block', new_train=createNewTrain, selected_train = train_num)
         elif self.ctc_ui.sub_dispatch_train_table.selectedItems():
             #dispatch to selected route
             selected_item = self.ctc_ui.sub_dispatch_train_table.selectedItems()[0]
@@ -386,7 +399,7 @@ class CtcFrontEnd(QMainWindow):
             if route_name_item:
                 route_name = route_name_item.text()
                 #print("Dispatching to route:", route_name)
-                self.backend.dispatch_handler(route_name, 'route', new_train=createNewTrain) 
+                self.backend.dispatch_handler(route_name, 'route', new_train=createNewTrain, selected_train = train_num) 
 
     #maintenance page - Change to send data to backend - UPDATE NEEDED, TRACK CLASS CHANGED
     def start_maintenance(self):
