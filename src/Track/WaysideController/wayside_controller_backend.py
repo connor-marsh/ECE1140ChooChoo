@@ -61,7 +61,7 @@ class WaysideController(QObject):
     def update(self):
         if self.program != None:
             prev_clamps = self.clamps[:] # only need previous clamps temporarily
-            self.previous_occupancies[:] = self.block_occupancies # get what the previous occupancies are
+            self.previous_occupancies = self.block_occupancies[:] # get what the previous occupancies are
             self.execute_cycle() # make it so that it calls programmers code 3 times and checks
                   
             if self.collection.track_model != None:

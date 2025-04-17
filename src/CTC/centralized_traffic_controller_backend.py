@@ -178,9 +178,9 @@ class CtcBackEnd(QObject):
                 if block.id == train.next_block and block.occupancy:
                     train.current_block = train.next_block
                     train.next_block = self.get_expected_next_block(train)
-                    #print("[CTC DEBUG] Train ID: ", train.train_id, "Current Block: ", train.current_block, "Next Block: ", train.next_block)
+                    print("[CTC DEBUG] Train ID: ", train.train_id, "Current Block: ", train.current_block, "Next Block: ", train.next_block)
                     if train.next_block == -1:
-                        #print("Train ID: ", train.train_id, "Exiting the line")
+                        print("Train ID: ", train.train_id, "Exiting the line")
                         self.active_line.current_trains.remove(train) #Remove train from active trains
                     break
 
@@ -271,7 +271,7 @@ class CtcBackEnd(QObject):
  
     def send_dispatch_train(self):
         signals.communication.ctc_dispatch.emit() # Just signal, no param
-        #print("Train Dispatched from CTC")
+        print("Train Dispatched from CTC")
 
     def send_block_maintenance(self, block_id, maintenance_val):
         signals.communication.ctc_block_maintenance.emit(self.active_line.blocks[block_id].id, maintenance_val) #int, bool 
@@ -285,7 +285,7 @@ class CtcBackEnd(QObject):
             # if going to yard go a little extra
             if self.active_line.blocks[train.get_next_stop()-1].id[0]=='y':
                 auth += 300
-            #print(f"auth: {auth}")
+            print(f"auth: {auth}")
             suggested_speed = {train.current_block : new_speed}
             suggested_authority = {train.current_block : auth}
             return suggested_speed, suggested_authority
