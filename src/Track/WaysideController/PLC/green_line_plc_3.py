@@ -47,7 +47,7 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     train_in_t = any(block_occupancies[36:41])
 
 
-    switch_positions[0] = train_in_n or train_in_o_p_q
+    switch_positions[0] = train_in_n or train_in_o_p_q 
     light_signals[0] = not switch_positions[0]
     light_signals[2] = not light_signals[0]
 
@@ -58,13 +58,45 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
 
     crossing_signals[0] = train_in_t
 
+    territory_branch_l_m = list(range(0,8))
+    territory_branch_n_u = list(range(16,7,-1)) + list(range(32,44))
+    territory_branch_n_q = list(range(32,44))
+
+    for i, block_idx in enumerate(territory_branch_l_m):
+        if block_occupancies[block_idx]:  # only need to check until overlap section reached or a few blocks before a switch
+            distance_to_end = abs(len(territory_branch_l_m) - i)
+            if distance_to_end > 2:
+                if block_occupancies[block_idx] and previous_occupancies[block_idx - 1 if block_idx > 0 else 0]:
+                    if block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = True
+                elif block_occupancies[block_idx] and previous_occupancies[block_idx]:
+                    if block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = True
+                if clamps[block_idx]:
+                    if not block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = False
+
+    for i, block_idx in enumerate(territory_branch_n_q):
+        if block_occupancies[block_idx]:  # only need to check until overlap section reached or a few blocks before a switch
+            distance_to_end = abs(len(territory_branch_n_q) - i)
+            if distance_to_end > 2:
+                if block_occupancies[block_idx] and previous_occupancies[block_idx - 1 if block_idx > 0 else 0]:
+                    if block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = True
+                elif block_occupancies[block_idx] and previous_occupancies[block_idx]:
+                    if block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = True
+                if clamps[block_idx]:
+                    if not block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = False
+
     # switch to position 77-101 and train in m
     if switch_positions[0] and train_in_m:
         clamps[6:8] = [True]*len(clamps[6:8])
     else:
         clamps[6:8] = [False]*len(clamps[6:8])
     
-  
+    
 
     return switch_positions, light_signals, crossing_signals, clamps
 

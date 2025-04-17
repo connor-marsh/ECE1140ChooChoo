@@ -64,15 +64,16 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     for i, block_idx in enumerate(territory_branch_i_l):
         if block_occupancies[block_idx]:  # only need to check until overlap section reached or a few blocks before a switch
             distance_to_end = abs(len(territory_branch_i_l) - i)
-            if block_occupancies[block_idx] and previous_occupancies[block_idx - 1 if block_idx > 0 else 0]:
-                if block_occupancies[block_idx + 2]:
-                    clamps[block_idx] = True
-            elif block_occupancies[block_idx] and previous_occupancies[block_idx]:
-                if block_occupancies[block_idx + 2]:
-                    clamps[block_idx] = True
-            if clamps[block_idx]:
-                if not block_occupancies[block_idx + 2]:
-                    clamps[block_idx] = False
+            if distance_to_end > 2:
+                if block_occupancies[block_idx] and previous_occupancies[block_idx - 1 if block_idx > 0 else 0]:
+                    if block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = True
+                elif block_occupancies[block_idx] and previous_occupancies[block_idx]:
+                    if block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = True
+                if clamps[block_idx]:
+                    if not block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = False
 
     for i, block_idx in enumerate(territory_branch_u_w):
         if block_occupancies[block_idx]:
