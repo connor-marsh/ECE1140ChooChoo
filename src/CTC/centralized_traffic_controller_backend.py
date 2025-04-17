@@ -182,6 +182,7 @@ class CtcBackEnd(QObject):
                     if train.next_block == -1:
                         print("Train ID: ", train.train_id, "Exiting the line")
                         self.active_line.current_trains.remove(train) #Remove train from active trains
+                        self.active_line.active_trains_count -= 1 #Decrement train count
                     break
 
 
@@ -220,7 +221,7 @@ class CtcBackEnd(QObject):
         else:
             return False
 
-    def dispatch_handler(self, destination, destination_type, new_train=True):
+    def dispatch_handler(self, destination, destination_type, new_train=True, selected_train=None):
         #Train dispatch handler | called by front end
         full_route = []
         if destination_type == 'station':
@@ -253,9 +254,15 @@ class CtcBackEnd(QObject):
             self.active_line.train_ID_count += 1
             self.train_queue.put(new_train) 
         else:
-            self.active_line.current_trains[0].set_route(full_route)
-            speed, auth = self.get_suggestion_values(self.active_line.current_trains[0])
-            self.send_suggestions(speed, auth)
+            if selected_train == None:
+                print("ERROR! Invalid Train Selection")
+            for train in self.active_line.current_trains:
+                print("Train ID: ", train.train_id, "Selected Train ID: ", selected_train)
+                if str(train.train_id) == str(selected_train):
+                    print("Train ID MATCH")
+                    train.set_route(full_route)
+                    speed, auth = self.get_suggestion_values(self.active_line.current_trains[0])
+                    self.send_suggestions(speed, auth)
         #print("Train Entered into Queue")
 
     def dispatch_queue_handler(self):
