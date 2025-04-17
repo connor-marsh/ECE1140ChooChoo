@@ -45,9 +45,9 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     train_in_n = any(block_occupancies[8:17])
     train_in_m = any(block_occupancies[5:8])
     train_in_t = any(block_occupancies[36:41])
+    train_in_r = any(block_occupancies[32,33])
 
-
-    switch_positions[0] = train_in_n or train_in_o_p_q
+    switch_positions[0] = train_in_n or train_in_o_p_q  
     light_signals[0] = not switch_positions[0]
     light_signals[2] = not light_signals[0]
 
