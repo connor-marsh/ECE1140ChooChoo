@@ -170,7 +170,7 @@ class TrainControllerFrontend(QMainWindow):
         self.display_speed_limit(str(round(self.current_train.speed_limit, 2)))
         self.display_authority(str(round(self.current_train.wayside_authority, 2)))
         self.display_cabin_temperature(str(int(round(self.current_train.actual_temperature, 2))))
-        self.display_commanded_power(str(round(self.current_train.commanded_power, 2)))
+        self.display_commanded_power(str(round(self.current_train.commanded_power/1000, 2)))
         self.display_target_speed(self.current_train.target_speed)
 
         # Check if auto or manual mode

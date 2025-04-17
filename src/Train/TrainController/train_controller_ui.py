@@ -598,7 +598,7 @@ class Ui_MainWindow(object):
         self.service_brake_on_light.setText(_translate("MainWindow", "On"))
         self.label_7.setText(_translate("MainWindow", "Speed Limit (mph)"))
         self.service_brake_off_light.setText(_translate("MainWindow", "Off"))
-        self.label_11.setText(_translate("MainWindow", "Commanded Power (W)"))
+        self.label_11.setText(_translate("MainWindow", "Commanded Power (kW)"))
         self.label_12.setText(_translate("MainWindow", "Authority (yards)"))
         self.service_brake_apply_button.setText(_translate("MainWindow", "Apply"))
         self.groupBox_4.setTitle(_translate("MainWindow", "Control Mode"))
