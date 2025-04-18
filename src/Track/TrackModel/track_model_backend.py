@@ -150,6 +150,13 @@ class Train:
                     return
                 self.current_block = self.track_data.blocks[int(self.current_block.id[1:]) + (self.travel_direction * 2 - 1) - 1]
 
+            # broken rail failure check
+            if self.dynamic_track.failures.get(self.current_block.id, Failures.NONE) == Failures.BROKEN_RAIL_FAILURE:
+                print(f"TRAIN CRASH FROM BROKEN RAIL at block {self.current_block.id}!")
+                # simulate crash behavior - you could add self.train_model.crash() if you want too
+                return
+
+
             # check if new block is occupied (i.e. a crash occurs)
             if self.dynamic_track.occupancies[self.current_block.id] == Occupancy.OCCUPIED:
                 print("TRAIN CRASH FROM OCCUPANCIES")
@@ -298,6 +305,11 @@ class TrackModel(QtWidgets.QMainWindow):
 
     def update(self):
         self.update_trains()
+
+        for block_id, failure in self.dynamic_track.failures.items():
+            if failure in [Failures.POWER_FAILURE, Failures.BROKEN_RAIL_FAILURE]:
+                self.dynamic_track.occupancies[block_id] = Occupancy.OCCUPIED
+
         if self.wayside_integrated:
             for controller in self.wayside_collection.controllers: # have to iterate through each controller now due to what profeta said
                 controller.set_occupancies(self.dynamic_track.occupancies) # use the dictionary for each controller, but the controller only looks at blocks in its territory
@@ -347,30 +359,39 @@ class TrackModel(QtWidgets.QMainWindow):
 
     def update_from_comms_outputs(self, wayside_speeds={}, wayside_authorities={}, maintenances={}):
         for train in self.trains:
-            send_to_train = {} # conglomerate in this to prevent calling set_input_data multiple times
+            send_to_train = {}  # conglomerate in this to prevent calling set_input_data multiple times
+
             if train.previous_block.id in wayside_speeds:
-                send_to_train["wayside_speed"]=wayside_speeds[train.previous_block.id]
+                send_to_train["wayside_speed"] = wayside_speeds[train.previous_block.id]
             if train.current_block.id in wayside_speeds:
-                send_to_train["wayside_speed"]=wayside_speeds[train.current_block.id]
+                send_to_train["wayside_speed"] = wayside_speeds[train.current_block.id]
+
             if train.previous_block.id in wayside_authorities:
-                if wayside_authorities[train.previous_block.id] != 0 and wayside_authorities[train.previous_block.id] != None:
-                    send_to_train["wayside_authority"]=wayside_authorities[train.previous_block.id]+train.previous_block.length
+                if wayside_authorities[train.previous_block.id] not in (0, None):
+                    send_to_train["wayside_authority"] = wayside_authorities[train.previous_block.id] + train.previous_block.length
             if train.current_block.id in wayside_authorities:
-                send_to_train["wayside_authority"]=wayside_authorities[train.current_block.id]
-            
+                send_to_train["wayside_authority"] = wayside_authorities[train.current_block.id]
+
+            # If either the current or previous block has TRACK_CIRCUIT_FAILURE, cancel sending
+            if (self.dynamic_track.failures.get(train.previous_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE or
+                self.dynamic_track.failures.get(train.current_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE):
+                send_to_train = {}
+
             if len(send_to_train) > 0:
                 train.train_model.set_input_data(track_data=send_to_train)
+
         for block, maintenance in maintenances.items():
             if maintenance:
-                self.dynamic_track.occupancies[block]=Occupancy.MAINTENANCE
+                self.dynamic_track.occupancies[block] = Occupancy.MAINTENANCE
             else:
-                self.dynamic_track.occupancies[block]=Occupancy.UNOCCUPIED
+                self.dynamic_track.occupancies[block] = Occupancy.UNOCCUPIED
+
 
         
     #  Sends beacon data when a train is on the specific block
     def send_beacon_data(self, block_id: str):
         # Check if a train is on this block
-        train_on_block = any(train.current_block == block_id for train in self.trains.values())
+        train_on_block = any(train.current_block == block_id for train in self.trains)
         if not train_on_block:
             print(f"[Beacon] No train present on {block_id}. Beacon not sent.")
             return
@@ -378,6 +399,11 @@ class TrackModel(QtWidgets.QMainWindow):
         # Check if the block has a beacon
         if block_id not in self.track_data.beacons:
             print(f"[Beacon] Block {block_id} does not contain a transponder.")
+            return
+
+        # If track circuit failure - dont send
+        if self.dynamic_track.failures.get(block_id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE:
+            print(f"[Beacon] Track Circuit Failure on {block_id}. Beacon not sent.")
             return
 
         # Encode and store beacon data
@@ -388,6 +414,7 @@ class TrackModel(QtWidgets.QMainWindow):
         print(f"[Beacon] Beacon data sent on block {block_id}: {beacon_data.decode()}")
 
         return beacon_data
+
         
     # Sending Wayside Commanded Speed and Authority to Train
     # Triple redundancy, so send 3 times

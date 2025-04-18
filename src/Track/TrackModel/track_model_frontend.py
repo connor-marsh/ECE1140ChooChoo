@@ -664,14 +664,49 @@ class TrackModelFrontEnd(QMainWindow):
 
     def toggle_failure(self, kind):
         block_id = self.ui.block_selected_value.text()
-        current = self.green_line.dynamic_track.failures.get(block_id, 0)
-        self.green_line.dynamic_track.failures[block_id] = 0 if current else 1
-        self.map_canvas.update_block_colors()
+        current = self.green_line.dynamic_track.failures.get(block_id, Failures.NONE)
 
-    def reset_failures(self):
-        for block_id in self.green_line.dynamic_track.failures:
-            self.green_line.dynamic_track.failures[block_id] = 0
+        if kind == "track":
+            new_failure = Failures.TRACK_CIRCUIT_FAILURE if current != Failures.TRACK_CIRCUIT_FAILURE else Failures.NONE
+        elif kind == "rail":
+            new_failure = Failures.BROKEN_RAIL_FAILURE if current != Failures.BROKEN_RAIL_FAILURE else Failures.NONE
+        elif kind == "power":
+            new_failure = Failures.POWER_FAILURE if current != Failures.POWER_FAILURE else Failures.NONE
+        else:
+            new_failure = Failures.NONE
+
+        self.green_line.dynamic_track.failures[block_id] = new_failure
+
+        # Update occupancy immediately
+        if new_failure in [Failures.BROKEN_RAIL_FAILURE, Failures.POWER_FAILURE]:
+            self.green_line.dynamic_track.occupancies[block_id] = Occupancy.OCCUPIED
+        elif new_failure == Failures.NONE:
+            # Only reset occupancy if no train is sitting on block
+            if all(train.current_block.id != block_id for train in self.green_line.trains):
+                self.green_line.dynamic_track.occupancies[block_id] = Occupancy.UNOCCUPIED
+
+        # Update colors
         self.map_canvas.update_block_colors()
+        self.map_canvas.viewport().update()  # Force UI refresh
+
+
+    # Resets failures
+    def reset_failures(self):
+        # Reset all failures
+        for block_id in self.green_line.dynamic_track.failures:
+            self.green_line.dynamic_track.failures[block_id] = Failures.NONE
+
+        # Reset occupancies for blocks that had failure-based occupancy
+        for block_id, occupancy in self.green_line.dynamic_track.occupancies.items():
+            # Only reset to UNOCCUPIED if no real train is sitting there
+            if occupancy == Occupancy.OCCUPIED and all(train.current_block.id != block_id for train in self.green_line.trains):
+                self.green_line.dynamic_track.occupancies[block_id] = Occupancy.UNOCCUPIED
+
+        # Redraw blocks
+        self.map_canvas.update_block_colors()
+        self.map_canvas.viewport().update()  # <-- Force full screen redraw
+        print("[Reset Failures] All block failures and block colors reset.")
+
 
     def update_map(self):
         # Update block colors based on occupancy/failure
