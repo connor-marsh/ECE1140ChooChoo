@@ -681,31 +681,41 @@ class TrackModelFrontEnd(QMainWindow):
         if new_failure in [Failures.BROKEN_RAIL_FAILURE, Failures.POWER_FAILURE]:
             self.green_line.dynamic_track.occupancies[block_id] = Occupancy.OCCUPIED
         elif new_failure == Failures.NONE:
-            # Only reset occupancy if no train is sitting on block
+            # Only reset occupancy if no real train is on it
             if all(train.current_block.id != block_id for train in self.green_line.trains):
                 self.green_line.dynamic_track.occupancies[block_id] = Occupancy.UNOCCUPIED
 
-        # Update colors
+        # Immediately push updated occupancies to wayside
+        if self.green_line.wayside_integrated:
+            for controller in self.green_line.wayside_collection.controllers:
+                controller.set_occupancies(self.green_line.dynamic_track.occupancies)
+
+        # Force UI refresh
         self.map_canvas.update_block_colors()
-        self.map_canvas.viewport().update()  # Force UI refresh
+        self.map_canvas.viewport().update()
+
+
 
 
     # Resets failures
     def reset_failures(self):
-        # Reset all failures
         for block_id in self.green_line.dynamic_track.failures:
             self.green_line.dynamic_track.failures[block_id] = Failures.NONE
 
-        # Reset occupancies for blocks that had failure-based occupancy
         for block_id, occupancy in self.green_line.dynamic_track.occupancies.items():
-            # Only reset to UNOCCUPIED if no real train is sitting there
             if occupancy == Occupancy.OCCUPIED and all(train.current_block.id != block_id for train in self.green_line.trains):
                 self.green_line.dynamic_track.occupancies[block_id] = Occupancy.UNOCCUPIED
 
-        # Redraw blocks
+        # Immediately push updated occupancies to wayside
+        if self.green_line.wayside_integrated:
+            for controller in self.green_line.wayside_collection.controllers:
+                controller.set_occupancies(self.green_line.dynamic_track.occupancies)
+
         self.map_canvas.update_block_colors()
-        self.map_canvas.viewport().update()  # <-- Force full screen redraw
+        self.map_canvas.viewport().update()
         print("[Reset Failures] All block failures and block colors reset.")
+
+
 
 
     def update_map(self):

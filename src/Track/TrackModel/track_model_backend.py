@@ -306,9 +306,13 @@ class TrackModel(QtWidgets.QMainWindow):
     def update(self):
         self.update_trains()
 
+    # Update occupancies based on failure state
         for block_id, failure in self.dynamic_track.failures.items():
             if failure in [Failures.POWER_FAILURE, Failures.BROKEN_RAIL_FAILURE]:
                 self.dynamic_track.occupancies[block_id] = Occupancy.OCCUPIED
+            elif failure == Failures.NONE:
+                # Only set UNOCCUPIED if no train is sitting on the block
+                train_present = any(train.current_block.id == block_id for train in self.trains)
 
         if self.wayside_integrated:
             for controller in self.wayside_collection.controllers: # have to iterate through each controller now due to what profeta said
@@ -460,6 +464,16 @@ class TrackModel(QtWidgets.QMainWindow):
         self.trains.pop(train_id)
         self.train_counter-=1
         
+    def update_occupancies_from_failures(self):
+        for block_id in self.dynamic_track.occupancies:
+            failure = self.dynamic_track.failures.get(block_id, Failures.NONE)
+
+            if failure in [Failures.BROKEN_RAIL_FAILURE, Failures.POWER_FAILURE]:
+                self.dynamic_track.occupancies[block_id] = Occupancy.OCCUPIED
+            else:
+                # Only clear if no train is actually occupying the block
+                if all(train.current_block.id != block_id for train in self.trains):
+                    self.dynamic_track.occupancies[block_id] = Occupancy.UNOCCUPIED
 
     
     # Ensure the train is travelling the proper direction (ascending or descending)
