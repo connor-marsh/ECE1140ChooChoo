@@ -93,6 +93,9 @@ class Train:
         self.travel_direction = self.track_data.sections[self.current_section].increasing # This gets updated when switching sections
         self.train_model = None
 
+        self.pending_command = None  # holds saved speed/authority
+        self.pending_failure = False  # flag if the train was blocked due to a track circuit failure
+
     def update(self):
         train_position = self.train_model.get_output_data()["position"]
         train_length = 35.21435
@@ -313,6 +316,9 @@ class TrackModel(QtWidgets.QMainWindow):
             elif failure == Failures.NONE:
                 # Only set UNOCCUPIED if no train is sitting on the block
                 train_present = any(train.current_block.id == block_id for train in self.trains)
+                if not train_present:
+                    self.dynamic_track.occupancies[block_id] = Occupancy.UNOCCUPIED
+
 
         if self.wayside_integrated:
             for controller in self.wayside_collection.controllers: # have to iterate through each controller now due to what profeta said
@@ -362,10 +368,10 @@ class TrackModel(QtWidgets.QMainWindow):
                 # print(f"[Wayside Update] Crossing at Block {crossing_keys[i]} is now {status}.")
 
     def update_from_comms_outputs(self, wayside_speeds={}, wayside_authorities={}, maintenances={}):
-        #print("AUTH DICT", wayside_authorities)
         for train in self.trains:
-            send_to_train = {}  # conglomerate in this to prevent calling set_input_data multiple times
+            send_to_train = {}
 
+            # Gather new fresh speed and authority values
             if train.previous_block.id in wayside_speeds:
                 send_to_train["wayside_speed"] = wayside_speeds[train.previous_block.id]
             if train.current_block.id in wayside_speeds:
@@ -377,20 +383,30 @@ class TrackModel(QtWidgets.QMainWindow):
             if train.current_block.id in wayside_authorities:
                 send_to_train["wayside_authority"] = wayside_authorities[train.current_block.id]
 
-            # If either the current or previous block has TRACK_CIRCUIT_FAILURE, cancel sending
-            if (self.dynamic_track.failures.get(train.previous_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE or
-                self.dynamic_track.failures.get(train.current_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE):
-                send_to_train = {}
+            # Check if current or previous block has Track Circuit Failure
+            in_failure = (
+                self.dynamic_track.failures.get(train.previous_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE or
+                self.dynamic_track.failures.get(train.current_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE
+            )
 
-            if len(send_to_train) > 0:
+            if in_failure:
+                # If we're still in failure, store the latest command as pending
+                if send_to_train:
+                    train.pending_command = send_to_train  # Overwrite any previous pending
+                continue  # Don't send anything while in failure
+
+            # No longer in failure
+            if hasattr(train, "pending_command") and train.pending_command:
+                # If pending exists, prioritize sending it first
+                train.train_model.set_input_data(track_data=train.pending_command)
+                train.pending_command = None
+            elif send_to_train:
+                # Otherwise send freshly generated command
                 train.train_model.set_input_data(track_data=send_to_train)
 
+        # Update maintenance occupancies as normal
         for block, maintenance in maintenances.items():
-            if maintenance:
-                self.dynamic_track.occupancies[block] = Occupancy.MAINTENANCE
-            else:
-                self.dynamic_track.occupancies[block] = Occupancy.UNOCCUPIED
-
+            self.dynamic_track.occupancies[block] = Occupancy.MAINTENANCE if maintenance else Occupancy.UNOCCUPIED
 
         
     #  Sends beacon data when a train is on the specific block
