@@ -72,12 +72,12 @@ class WaysideController(QObject):
                     if not self.block_occupancies[i] and (self.suggested_authorities[i] != None or self.suggested_speeds[i] != None):
                         self.suggested_authorities[i] = None
                         self.suggested_speeds[i] = None
-                    if clamp and self.block_occupancies[i]:
-                        self.to_send_authorities[blocks[i].id] = 0
-                        self.commanded_authorities[i] = 0 # set ui
-                    elif not clamp and prev_clamps[i] and self.block_occupancies[i]:
-                        self.commanded_authorities[i] = None
-                        self.to_send_authorities[blocks[i].id] = None
+                    # if clamp and self.block_occupancies[i]:
+                    #     self.to_send_authorities[blocks[i].id] = 0
+                    #     self.commanded_authorities[i] = 0 # set ui
+                    # elif not clamp and prev_clamps[i] and self.block_occupancies[i]:
+                    #     self.commanded_authorities[i] = None
+                    #     self.to_send_authorities[blocks[i].id] = None
                                         
                 Signals.communication.wayside_block_occupancies.emit(self.to_send_occupancies)
                 Signals.communication.wayside_plc_outputs.emit(blocks,self.switch_positions,self.light_signals,self.crossing_signals)

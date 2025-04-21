@@ -207,6 +207,7 @@ class TrainController(QMainWindow):
 
         # Check for failures
         if (self.signal_failure or self.brake_failure or self.engine_failure or self.stop_asap):
+            print("FAILURE OR STOP ASAP EBRAKE")
             self.emergency_brake = True
 
         # Check for invalid power commands
@@ -229,6 +230,7 @@ class TrainController(QMainWindow):
         service_dist *= self.M_TO_YARDS
 
         if (self.wayside_authority < service_dist and self.wayside_authority > 10):
+            print("AUTHORITY EBRAKE")
             self.emergency_brake = True
         elif (self.wayside_authority < (3*service_dist)):
             self.service_brake = True
@@ -312,10 +314,12 @@ class TrainController(QMainWindow):
                 self.wayside_authority = temp_authority
                 if self.stop_asap and not self.manual_mode:
                     self.emergency_brake = False
-                self.stop_asap = False
-                self.desired_temperature = 69
+                    self.stop_asap = False
+                    print("NO LONGER STOP ASAP")
+                    self.desired_temperature = 69
             else:
                 self.stop_asap = True
+                print("STOP ASAP")
                 self.desired_temperature=34
             self.position = selected_data.get("position", self.position)
 
