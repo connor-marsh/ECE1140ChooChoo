@@ -48,6 +48,7 @@ class TrainController(QMainWindow):
         self.right_doors = False # Closed default state
         self.left_doors = False # Close default state
         self.emergency_brake = False
+        self.ebrake_from_auth = False
         self.driver_target_speed = 0.0
         self.service_brake = False
         self.position = 0.0
@@ -207,7 +208,6 @@ class TrainController(QMainWindow):
 
         # Check for failures
         if (self.signal_failure or self.brake_failure or self.engine_failure or self.stop_asap):
-            print("FAILURE OR STOP ASAP EBRAKE")
             self.emergency_brake = True
 
         # Check for invalid power commands
@@ -229,13 +229,18 @@ class TrainController(QMainWindow):
         service_dist = ((self.actual_speed/self.MPS_TO_MPH) ** 2) / (2 * (self.SERVICE_BRAKE_DECEL + (self.GRAVITY * math.sin(theta * (math.pi/180)))))
         service_dist *= self.M_TO_YARDS
 
-        if (self.wayside_authority < service_dist and self.wayside_authority > 10):
-            print("AUTHORITY EBRAKE")
-            self.emergency_brake = True
-        elif (self.wayside_authority < (3*service_dist)):
-            self.service_brake = True
         if self.wayside_authority < 5:
             self.service_brake = True
+        elif (self.wayside_authority < service_dist and self.wayside_authority > 10):
+            # print("AUTHORITY EBRAKE", self.wayside_authority, service_dist)
+            self.emergency_brake = True
+            self.ebrake_from_auth = True
+        elif (self.wayside_authority < (3*service_dist)):
+            self.service_brake = True
+        else:
+            if self.ebrake_from_auth:
+                self.ebrake_from_auth = False
+                self.emergency_brake = False
         # else:
         #     self.service_brake = False #TODO: Ask profeta how we should handle manual mode service brakes if he wants a toggle but also wants it vital.
 
@@ -315,11 +320,9 @@ class TrainController(QMainWindow):
                 if self.stop_asap and not self.manual_mode:
                     self.emergency_brake = False
                     self.stop_asap = False
-                    print("NO LONGER STOP ASAP")
                     self.desired_temperature = 69
             else:
                 self.stop_asap = True
-                print("STOP ASAP")
                 self.desired_temperature=34
             self.position = selected_data.get("position", self.position)
 

@@ -9,6 +9,7 @@ import sys
 import time
 import os
 import globals.signals as Signals
+import globals.global_clock as global_clock
 from pathlib import Path
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 from Track.TrackModel.track_model_enums import Occupancy
@@ -50,9 +51,9 @@ class WaysideController(QObject):
         self.program = None # python file uploaded by programmer
 
         Signals.communication.ctc_suggested.connect(self.handle_suggested_values) # connect signals
-        
+        self.global_clock = global_clock.clock
         self.timer = QTimer() # initialize update timer
-        self.timer.setInterval(100)
+        self.timer.setInterval(self.global_clock.wayside_dt)
         self.timer.timeout.connect(self.update)
         self.timer.start()
 
@@ -72,12 +73,12 @@ class WaysideController(QObject):
                     if not self.block_occupancies[i] and (self.suggested_authorities[i] != None or self.suggested_speeds[i] != None):
                         self.suggested_authorities[i] = None
                         self.suggested_speeds[i] = None
-                    # if clamp and self.block_occupancies[i]:
-                    #     self.to_send_authorities[blocks[i].id] = 0
-                    #     self.commanded_authorities[i] = 0 # set ui
-                    # elif not clamp and prev_clamps[i] and self.block_occupancies[i]:
-                    #     self.commanded_authorities[i] = None
-                    #     self.to_send_authorities[blocks[i].id] = None
+                    if clamp and self.block_occupancies[i]:
+                        self.to_send_authorities[blocks[i].id] = 0
+                        self.commanded_authorities[i] = 0 # set ui
+                    elif not clamp and prev_clamps[i] and self.block_occupancies[i]:
+                        self.commanded_authorities[i] = None
+                        self.to_send_authorities[blocks[i].id] = None
                                         
                 Signals.communication.wayside_block_occupancies.emit(self.to_send_occupancies)
                 Signals.communication.wayside_plc_outputs.emit(blocks,self.switch_positions,self.light_signals,self.crossing_signals)
