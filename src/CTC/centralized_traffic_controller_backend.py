@@ -155,6 +155,14 @@ class CtcBackEnd(QObject):
                         train.direction = section_dir
 
                     jump_key = (int(block.id[1:]), train.direction)
+
+                    #Checks if going to yard
+                    if jump_key == (57, 1):
+                        print("Train going to: ", train.get_next_stop())
+                        #If not going to yard, disregard jump block
+                        if train.get_next_stop() != 152:
+                            return self.active_line.blocks[int(block.id[1:])].id
+                        
                     #Check if train is at jump block
                     if jump_key in self.active_line.JUMP_BLOCKS:
                         next_block, new_dir = self.active_line.JUMP_BLOCKS[jump_key]
@@ -206,6 +214,14 @@ class CtcBackEnd(QObject):
                     # if we made it the last stop, the get_suggestion_values will be empty dicts
                     suggested_speed, suggested_authority = self.get_suggestion_values(train)
                     self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
+
+            if self.active_line == self.green_line:
+                if train.current_block == "I51":
+                    if train.get_next_stop() == 152:
+                        train.exit_blocks = [[1],[1, 0],[1]]
+                    else:
+                        train.exit_blocks = [[1],[0, 1],[1]]
+                    self.send_exit_blocks(train.exit_blocks) #Send exit blocks to wayside
                     
             self.update_train_location()
             
@@ -310,7 +326,8 @@ class CtcBackEnd(QObject):
         signals.communication.ctc_suggested.emit(suggested_speeds, suggested_authorities) #Dict, Dict
 
     def send_exit_blocks(self, exit_blocks):
-        signals.communication.ctc_exit_blocks.emit() #List, Currently Unused
+        #print("Exit Blocks: ", exit_blocks)
+        signals.communication.ctc_exit_blocks.emit(exit_blocks) #List
 
     def send_switch_states(self, block_id, switch_state): #KNOWN ERROR - SENDS SWITCH VAL WHEN EXITING MAINTENANCE
         switch_id = self.active_line.blocks[block_id].id
@@ -446,7 +463,7 @@ class DummyTrain:
         self.direction = 1 #1 for increasing, 0 for decreasing
         self.speed = 0
         self.authority = 0
-
+        self.exit_blocks = None
         self.no_obstacles = True
 
         # Debugging
