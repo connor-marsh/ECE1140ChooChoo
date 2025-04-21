@@ -3,7 +3,7 @@ import os
 import random
 import pandas as pd
 from Track.TrackModel.track_model_enums import Occupancy, Failures
-import globals.track_data_class as global_track_data
+
 from PyQt5 import QtWidgets, QtCore
 
 # Import the UI files generated from Qt Designer
@@ -13,9 +13,10 @@ from Track.TrackModel.test_bench_track_model import Ui_MainWindow as TBTrackMode
 from Train.train_collection import TrainCollection
 from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
 
-# Import global clock & signals
+# Import globals
 import globals.global_clock  as global_clock
 import globals.signals as signals
+import globals.track_data_class as global_track_data
 
 # Ensure proper scaling on high-DPI screens
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
@@ -298,11 +299,11 @@ class TrackModel(QtWidgets.QMainWindow):
                 }
 
 
-
+        self.global_clock = global_clock.clock
         self.prev_time = None
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.update)
-        self.timer.start(100)
+        self.timer.start(self.global_clock.track_dt)
 
         
 
