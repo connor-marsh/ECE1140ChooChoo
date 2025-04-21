@@ -158,7 +158,7 @@ class CtcBackEnd(QObject):
 
                     #Checks if going to yard
                     if jump_key == (57, 1):
-                        print("Train going to: ", train.get_next_stop())
+                        #print("Train going to: ", train.get_next_stop())
                         #If not going to yard, disregard jump block
                         if train.get_next_stop() != 152:
                             return self.active_line.blocks[int(block.id[1:])].id
