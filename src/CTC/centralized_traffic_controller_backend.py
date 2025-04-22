@@ -155,6 +155,14 @@ class CtcBackEnd(QObject):
                         train.direction = section_dir
 
                     jump_key = (int(block.id[1:]), train.direction)
+
+                    #Checks if going to yard
+                    if jump_key == (57, 1):
+                        #print("Train going to: ", train.get_next_stop())
+                        #If not going to yard, disregard jump block
+                        if train.get_next_stop() != 152:
+                            return self.active_line.blocks[int(block.id[1:])].id
+                        
                     #Check if train is at jump block
                     if jump_key in self.active_line.JUMP_BLOCKS:
                         next_block, new_dir = self.active_line.JUMP_BLOCKS[jump_key]
@@ -215,6 +223,14 @@ class CtcBackEnd(QObject):
                     # if we made it the last stop, the get_suggestion_values will be empty dicts
                     suggested_speed, suggested_authority = self.get_suggestion_values(train)
                     self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
+
+            if self.active_line == self.green_line:
+                if train.current_block == "I51":
+                    if train.get_next_stop() == 152:
+                        train.exit_blocks = [[1],[1, 0],[1]]
+                    else:
+                        train.exit_blocks = [[1],[0, 1],[1]]
+                    self.send_exit_blocks(train.exit_blocks) #Send exit blocks to wayside
                     
             self.update_train_location()
             
@@ -224,10 +240,16 @@ class CtcBackEnd(QObject):
     def first_blocks_free(self):
         #Checks if first blocks are free | called by dispatch queue handler
         block_1 = self.active_line.ENTRANCE_BLOCK.occupancy or self.active_line.ENTRANCE_BLOCK.maintenance
+        block_2 = self.active_line.blocks[self.active_line.ENTRANCE_CHECK[0]-1].occupancy or self.active_line.blocks[self.active_line.ENTRANCE_CHECK[0]-1].maintenance
+        block_3 = self.active_line.blocks[self.active_line.ENTRANCE_CHECK[1]-1].occupancy or self.active_line.blocks[self.active_line.ENTRANCE_CHECK[1]-1].maintenance
+        block_4 = self.active_line.blocks[self.active_line.ENTRANCE_CHECK[2]-1].occupancy or self.active_line.blocks[self.active_line.ENTRANCE_CHECK[2]-1].maintenance
+        print("Block 2 saved val: ", self.active_line.blocks[self.active_line.ENTRANCE_CHECK[0]-1].id, "Block 3 saved val: ", self.active_line.blocks[self.active_line.ENTRANCE_CHECK[1]-1].id, "Block 4 saved val: ", self.active_line.blocks[self.active_line.ENTRANCE_CHECK[2]-1].id)
+
         #print("Block ", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].id, "Occupancy is", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].occupancy, " and has maintenance ", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].maintenance)
-        if not block_1: # Altered from 3 blocks
+        if not(block_1 or block_2 or block_3 or block_4): # Check entrance and first three blocks
             return True
         else:
+            print("Entrance Blocks Occupied")
             return False
 
     def dispatch_handler(self, destination, destination_type, new_train=True, selected_train=None):
@@ -241,7 +263,7 @@ class CtcBackEnd(QObject):
         elif destination_type == 'block':
             #Dispatch to block
             destination_set = int(destination)
-            full_route.append(destination_set) #Maybe Temporary
+            full_route.append(destination_set) 
             
         elif destination_type == 'route':
             #Dispatch on a route
@@ -316,7 +338,8 @@ class CtcBackEnd(QObject):
         signals.communication.ctc_suggested.emit(suggested_speeds, suggested_authorities) #Dict, Dict
 
     def send_exit_blocks(self, exit_blocks):
-        signals.communication.ctc_exit_blocks.emit() #List, Currently Unused
+        #print("Exit Blocks: ", exit_blocks)
+        signals.communication.ctc_exit_blocks.emit(exit_blocks) #List
 
     def send_switch_states(self, block_id, switch_state): #KNOWN ERROR - SENDS SWITCH VAL WHEN EXITING MAINTENANCE
         switch_id = self.active_line.blocks[block_id].id
@@ -454,7 +477,7 @@ class DummyTrain:
         self.direction = 1 #1 for increasing, 0 for decreasing
         self.speed = 0
         self.authority = 0
-
+        self.exit_blocks = None
         self.no_obstacles = True
 
         self.received_first_auth = False
@@ -525,6 +548,7 @@ class Track:
         self.routes = {}
 
         if name == "Green":
+            self.ENTRANCE_CHECK = [63, 64, 65] #Entrance blocks for green line
             self.JUMP_BLOCKS = { 
             (100, 1): (85, 0),   # Q100 -> N85, decrease
             (77, 0): (101, 1),   # N77 -> R101, increase
@@ -536,19 +560,19 @@ class Track:
             self.STATIONS_BLOCKS = {
                 "Pioneer": 2,
                 "Edgebrook": 9,
-                "Station": 16,
+                "Bronny": 16,
                 "Whited": 22,
                 "South Bank": 31,
                 "Central-I": 39,
                 "Inglewood-I": 48,
                 "Overbrook-I": 57,
-                "Glenbury-K": 65,
+                "Glenbbury-K": 65,
                 "Dormont-N": 73,
                 "Mt. Lebanon": 77,
                 "Poplar": 88,
                 "Castle Shannon": 96,
                 "Dormont-T": 105,
-                "Glenbury-U": 114,
+                "Glenbbury-U": 114,
                 "Overbrook-W": 123,
                 "Inglewood-W": 132,
                 "Central-W": 141,
