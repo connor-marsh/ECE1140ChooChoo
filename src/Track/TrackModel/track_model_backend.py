@@ -3,7 +3,7 @@ import os
 import random
 import pandas as pd
 from Track.TrackModel.track_model_enums import Occupancy, Failures
-import globals.track_data_class as global_track_data
+
 from PyQt5 import QtWidgets, QtCore
 
 # Import the UI files generated from Qt Designer
@@ -13,9 +13,10 @@ from Track.TrackModel.test_bench_track_model import Ui_MainWindow as TBTrackMode
 from Train.train_collection import TrainCollection
 from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
 
-# Import global clock & signals
+# Import globals
 import globals.global_clock  as global_clock
 import globals.signals as signals
+import globals.track_data_class as global_track_data
 
 # Ensure proper scaling on high-DPI screens
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
@@ -93,6 +94,9 @@ class Train:
         self.travel_direction = self.track_data.sections[self.current_section].increasing # This gets updated when switching sections
         self.train_model = None
 
+        self.pending_command = None  # holds saved speed/authority
+        self.pending_failure = False  # flag if the train was blocked due to a track circuit failure
+
     def update(self):
         train_position = self.train_model.get_output_data()["position"]
         train_length = 35.21435
@@ -149,6 +153,13 @@ class Train:
                     self.dynamic_track.occupancies[self.current_block.id] = Occupancy.UNOCCUPIED
                     return
                 self.current_block = self.track_data.blocks[int(self.current_block.id[1:]) + (self.travel_direction * 2 - 1) - 1]
+
+            # broken rail failure check
+            if self.dynamic_track.failures.get(self.current_block.id, Failures.NONE) == Failures.BROKEN_RAIL_FAILURE:
+                print(f"TRAIN CRASH FROM BROKEN RAIL at block {self.current_block.id}!")
+                # simulate crash behavior - you could add self.train_model.crash() if you want too
+                return
+
 
             # check if new block is occupied (i.e. a crash occurs)
             if self.dynamic_track.occupancies[self.current_block.id] == Occupancy.OCCUPIED:
@@ -288,16 +299,28 @@ class TrackModel(QtWidgets.QMainWindow):
                 }
 
 
-
+        self.global_clock = global_clock.clock
         self.prev_time = None
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.update)
-        self.timer.start(100)
+        self.timer.start(self.global_clock.track_dt)
 
         
 
     def update(self):
         self.update_trains()
+
+    # Update occupancies based on failure state
+        for block_id, failure in self.dynamic_track.failures.items():
+            if failure in [Failures.POWER_FAILURE, Failures.BROKEN_RAIL_FAILURE]:
+                self.dynamic_track.occupancies[block_id] = Occupancy.OCCUPIED
+            elif failure == Failures.NONE:
+                # Only set UNOCCUPIED if no train is sitting on the block
+                train_present = any(train.current_block.id == block_id for train in self.trains)
+                if not train_present:
+                    self.dynamic_track.occupancies[block_id] = Occupancy.UNOCCUPIED
+
+
         if self.wayside_integrated:
             for controller in self.wayside_collection.controllers: # have to iterate through each controller now due to what profeta said
                 controller.set_occupancies(self.dynamic_track.occupancies) # use the dictionary for each controller, but the controller only looks at blocks in its territory
@@ -346,32 +369,51 @@ class TrackModel(QtWidgets.QMainWindow):
                 # print(f"[Wayside Update] Crossing at Block {crossing_keys[i]} is now {status}.")
 
     def update_from_comms_outputs(self, wayside_speeds={}, wayside_authorities={}, maintenances={}):
-        #print("AUTH DICT", wayside_authorities)
         for train in self.trains:
-            send_to_train = {} # conglomerate in this to prevent calling set_input_data multiple times
+            send_to_train = {}
+
+            # Gather new fresh speed and authority values
             if train.previous_block.id in wayside_speeds:
-                send_to_train["wayside_speed"]=wayside_speeds[train.previous_block.id]
+                send_to_train["wayside_speed"] = wayside_speeds[train.previous_block.id]
             if train.current_block.id in wayside_speeds:
-                send_to_train["wayside_speed"]=wayside_speeds[train.current_block.id]
+                send_to_train["wayside_speed"] = wayside_speeds[train.current_block.id]
+
             if train.previous_block.id in wayside_authorities:
-                if wayside_authorities[train.previous_block.id] != 0 and wayside_authorities[train.previous_block.id] != None:
-                    send_to_train["wayside_authority"]=wayside_authorities[train.previous_block.id]+train.previous_block.length
+                if wayside_authorities[train.previous_block.id] not in (0, None):
+                    send_to_train["wayside_authority"] = wayside_authorities[train.previous_block.id] + train.previous_block.length
             if train.current_block.id in wayside_authorities:
-                send_to_train["wayside_authority"]=wayside_authorities[train.current_block.id]
-            
-            if len(send_to_train) > 0:
+                send_to_train["wayside_authority"] = wayside_authorities[train.current_block.id]
+
+            # Check if current or previous block has Track Circuit Failure
+            in_failure = (
+                self.dynamic_track.failures.get(train.previous_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE or
+                self.dynamic_track.failures.get(train.current_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE
+            )
+
+            if in_failure:
+                # If we're still in failure, store the latest command as pending
+                if send_to_train:
+                    train.pending_command = send_to_train  # Overwrite any previous pending
+                continue  # Don't send anything while in failure
+
+            # No longer in failure
+            if hasattr(train, "pending_command") and train.pending_command:
+                # If pending exists, prioritize sending it first
+                train.train_model.set_input_data(track_data=train.pending_command)
+                train.pending_command = None
+            elif send_to_train:
+                # Otherwise send freshly generated command
                 train.train_model.set_input_data(track_data=send_to_train)
+
+        # Update maintenance occupancies as normal
         for block, maintenance in maintenances.items():
-            if maintenance:
-                self.dynamic_track.occupancies[block]=Occupancy.MAINTENANCE
-            else:
-                self.dynamic_track.occupancies[block]=Occupancy.UNOCCUPIED
+            self.dynamic_track.occupancies[block] = Occupancy.MAINTENANCE if maintenance else Occupancy.UNOCCUPIED
 
         
     #  Sends beacon data when a train is on the specific block
     def send_beacon_data(self, block_id: str):
         # Check if a train is on this block
-        train_on_block = any(train.current_block == block_id for train in self.trains.values())
+        train_on_block = any(train.current_block == block_id for train in self.trains)
         if not train_on_block:
             print(f"[Beacon] No train present on {block_id}. Beacon not sent.")
             return
@@ -379,6 +421,11 @@ class TrackModel(QtWidgets.QMainWindow):
         # Check if the block has a beacon
         if block_id not in self.track_data.beacons:
             print(f"[Beacon] Block {block_id} does not contain a transponder.")
+            return
+
+        # If track circuit failure - dont send
+        if self.dynamic_track.failures.get(block_id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE:
+            print(f"[Beacon] Track Circuit Failure on {block_id}. Beacon not sent.")
             return
 
         # Encode and store beacon data
@@ -389,6 +436,7 @@ class TrackModel(QtWidgets.QMainWindow):
         print(f"[Beacon] Beacon data sent on block {block_id}: {beacon_data.decode()}")
 
         return beacon_data
+
         
     # Sending Wayside Commanded Speed and Authority to Train
     # Triple redundancy, so send 3 times
@@ -434,6 +482,16 @@ class TrackModel(QtWidgets.QMainWindow):
         self.trains.pop(train_id)
         self.train_counter-=1
         
+    def update_occupancies_from_failures(self):
+        for block_id in self.dynamic_track.occupancies:
+            failure = self.dynamic_track.failures.get(block_id, Failures.NONE)
+
+            if failure in [Failures.BROKEN_RAIL_FAILURE, Failures.POWER_FAILURE]:
+                self.dynamic_track.occupancies[block_id] = Occupancy.OCCUPIED
+            else:
+                # Only clear if no train is actually occupying the block
+                if all(train.current_block.id != block_id for train in self.trains):
+                    self.dynamic_track.occupancies[block_id] = Occupancy.UNOCCUPIED
 
     
     # Ensure the train is travelling the proper direction (ascending or descending)

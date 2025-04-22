@@ -9,6 +9,7 @@ import sys
 import time
 import os
 import globals.signals as Signals
+import globals.global_clock as global_clock
 from pathlib import Path
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 from Track.TrackModel.track_model_enums import Occupancy
@@ -50,9 +51,9 @@ class WaysideController(QObject):
         self.program = None # python file uploaded by programmer
 
         Signals.communication.ctc_suggested.connect(self.handle_suggested_values) # connect signals
-        
+        self.global_clock = global_clock.clock
         self.timer = QTimer() # initialize update timer
-        self.timer.setInterval(100)
+        self.timer.setInterval(self.global_clock.wayside_dt)
         self.timer.timeout.connect(self.update)
         self.timer.start()
 

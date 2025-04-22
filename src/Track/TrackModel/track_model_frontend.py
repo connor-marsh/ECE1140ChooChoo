@@ -664,14 +664,59 @@ class TrackModelFrontEnd(QMainWindow):
 
     def toggle_failure(self, kind):
         block_id = self.ui.block_selected_value.text()
-        current = self.green_line.dynamic_track.failures.get(block_id, 0)
-        self.green_line.dynamic_track.failures[block_id] = 0 if current else 1
-        self.map_canvas.update_block_colors()
+        current = self.green_line.dynamic_track.failures.get(block_id, Failures.NONE)
 
+        if kind == "track":
+            new_failure = Failures.TRACK_CIRCUIT_FAILURE if current != Failures.TRACK_CIRCUIT_FAILURE else Failures.NONE
+        elif kind == "rail":
+            new_failure = Failures.BROKEN_RAIL_FAILURE if current != Failures.BROKEN_RAIL_FAILURE else Failures.NONE
+        elif kind == "power":
+            new_failure = Failures.POWER_FAILURE if current != Failures.POWER_FAILURE else Failures.NONE
+        else:
+            new_failure = Failures.NONE
+
+        self.green_line.dynamic_track.failures[block_id] = new_failure
+
+        # Update occupancy immediately
+        if new_failure in [Failures.BROKEN_RAIL_FAILURE, Failures.POWER_FAILURE]:
+            self.green_line.dynamic_track.occupancies[block_id] = Occupancy.OCCUPIED
+        elif new_failure == Failures.NONE:
+            # Only reset occupancy if no real train is on it
+            if all(train.current_block.id != block_id for train in self.green_line.trains):
+                self.green_line.dynamic_track.occupancies[block_id] = Occupancy.UNOCCUPIED
+
+        # Immediately push updated occupancies to wayside
+        if self.green_line.wayside_integrated:
+            for controller in self.green_line.wayside_collection.controllers:
+                controller.set_occupancies(self.green_line.dynamic_track.occupancies)
+
+        # Force UI refresh
+        self.map_canvas.update_block_colors()
+        self.map_canvas.viewport().update()
+
+
+
+
+    # Resets failures
     def reset_failures(self):
         for block_id in self.green_line.dynamic_track.failures:
-            self.green_line.dynamic_track.failures[block_id] = 0
+            self.green_line.dynamic_track.failures[block_id] = Failures.NONE
+
+        for block_id, occupancy in self.green_line.dynamic_track.occupancies.items():
+            if occupancy == Occupancy.OCCUPIED and all(train.current_block.id != block_id for train in self.green_line.trains):
+                self.green_line.dynamic_track.occupancies[block_id] = Occupancy.UNOCCUPIED
+
+        # Immediately push updated occupancies to wayside
+        if self.green_line.wayside_integrated:
+            for controller in self.green_line.wayside_collection.controllers:
+                controller.set_occupancies(self.green_line.dynamic_track.occupancies)
+
         self.map_canvas.update_block_colors()
+        self.map_canvas.viewport().update()
+        print("[Reset Failures] All block failures and block colors reset.")
+
+
+
 
     def update_map(self):
         # Update block colors based on occupancy/failure

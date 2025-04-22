@@ -199,8 +199,17 @@ class CtcBackEnd(QObject):
                 suggested_speed, suggested_authority = self.get_suggestion_values(train)
                 self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
             elif train.get_next_stop(): # make sure there are stops left
+
+                # Did you just make it to block before your stop?
+                if train.next_block == self.active_line.blocks[train.get_next_stop()-1].id and not train.received_penultimate_block_auth:
+                    # If so, resend auth once, so that the train has an accurate authority
+                    suggested_speed, suggested_authority = self.get_suggestion_values(train)
+                    self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
+                    train.received_penultimate_block_auth = True
+
                 # Did you make it to the stop
                 if train.current_block == self.active_line.blocks[train.get_next_stop()-1].id:
+                    train.received_penultimate_block_auth = False
                     train.route_index += 1 # You made it to the stop
                     
                     # if we made it the last stop, the get_suggestion_values will be empty dicts
@@ -283,11 +292,11 @@ class CtcBackEnd(QObject):
         #print("Set Block ", block_id, " Maintenance value to ", maintenance_val)
         #print("Stored Block value: ", self.active_line.blocks[block_id].id, " ", self.active_line.blocks[block_id].maintenance)
 
-    def get_suggestion_values(self, train, speed=70):
+    def get_suggestion_values(self, train, speed=70, start_halfway=False):
         if train.get_next_stop():
             new_speed = speed
             suggested_speed = {train.current_block : new_speed}
-            auth, no_obstacles = self.calculate_authority(int(train.current_block[1:]), train.get_next_stop(), direction=train.direction)
+            auth, no_obstacles = self.calculate_authority(int(train.current_block[1:]), train.get_next_stop(), direction=train.direction, start_halfway=start_halfway)
             if auth == None:
                 suggested_authority = {}
             else:
@@ -296,6 +305,9 @@ class CtcBackEnd(QObject):
                 # if going to yard go a little extra
                 if self.active_line.blocks[train.get_next_stop()-1].id[0]=='y' and no_obstacles:
                     auth += 300
+                # don't send auth of 0 cause special value
+                if auth == 0:
+                    auth = 0.1
                 suggested_authority = {train.current_block : auth}
             return suggested_speed, suggested_authority
         return {}, {}
@@ -312,7 +324,7 @@ class CtcBackEnd(QObject):
         #print("Switch on Block ", switch_id, " set to ", switch_state)
 
     
-    def calculate_authority(self, start_id, end_id, direction=1):
+    def calculate_authority(self, start_id, end_id, direction=1, start_halfway=False):
         '''
         Parameters:
             start_id: The block ID to start from (1-150)
@@ -344,10 +356,12 @@ class CtcBackEnd(QObject):
         
         authority = 0
 
-        # Unless we are on the spawn block, we are halfway through that block
-        # So we must subtract half its length to account for that
-        if self.active_line.blocks[start_id].id != self.active_line.track_data.SPAWN_BLOCK.id:
+        # If we are already halfway through the start block
+        # we must subtract half its length to account for that
+        if start_halfway:
             authority -= self.active_line.blocks[start_id].length/2
+        # if self.active_line.blocks[start_id].id != self.active_line.track_data.SPAWN_BLOCK.id:
+        #     authority -= self.active_line.blocks[start_id].length/2
 
         # Add up the authority it would take to go from start of start_id to end of end_id
         # But stop short with a 3 block gap between any other occupancies
@@ -443,8 +457,8 @@ class DummyTrain:
 
         self.no_obstacles = True
 
-        # Debugging
         self.received_first_auth = False
+        self.received_penultimate_block_auth = False
 
     def set_current_block(self, block_id):
         self.current_block = block_id
