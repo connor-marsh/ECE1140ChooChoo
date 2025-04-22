@@ -423,10 +423,10 @@ class CtcBackEnd(QObject):
 
             jump_key = (current_id+1, direction)
 
-            if jump_key == (57,1):
-                if end_id != 151: #train going to yard
-                    next_id = current_id + 1
-            elif jump_key in self.active_line.JUMP_BLOCKS:
+            #if jump_key == (57,1):
+            #    if end_id != 151: #train going to yard
+            #        next_id = current_id + 1
+            if jump_key in self.active_line.JUMP_BLOCKS:
                 next_id, new_dir = self.active_line.JUMP_BLOCKS[jump_key]
                 next_id -= 1 #Convert to 0-indexed
                 direction = new_dir
