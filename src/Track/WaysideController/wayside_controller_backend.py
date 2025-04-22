@@ -51,6 +51,7 @@ class WaysideController(QObject):
         self.program = None # python file uploaded by programmer
 
         Signals.communication.ctc_suggested.connect(self.handle_suggested_values) # connect signals
+        Signals.communication.ctc_exit_blocks.connect(self.handle_exit_blocks)
         self.global_clock = global_clock.clock
         self.timer = QTimer() # initialize update timer
         self.timer.setInterval(self.global_clock.wayside_dt)
@@ -140,8 +141,13 @@ class WaysideController(QObject):
                     self.suggested_authorities[i] = authority # set ui 
                     self.to_send_authorities[block.id] = authority
                     self.commanded_authorities[i] = authority # set ui
-
-           
+   
+    @pyqtSlot(list)
+    def handle_exit_blocks(self, exit_blocks):
+        """
+        Recieves and sets the exit blocks of the controller
+        """
+        self.exit_blocks = exit_blocks[self.index]
 
         
         

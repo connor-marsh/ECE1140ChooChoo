@@ -227,9 +227,9 @@ class CtcBackEnd(QObject):
             if self.active_line == self.green_line:
                 if train.current_block == "I51":
                     if train.get_next_stop() == 152:
-                        train.exit_blocks = [[1],[1, 0],[1]]
+                        train.exit_blocks = [[True],[True, False],[True]]
                     else:
-                        train.exit_blocks = [[1],[0, 1],[1]]
+                        train.exit_blocks = [[True],[False, True],[True]]
                     self.send_exit_blocks(train.exit_blocks) #Send exit blocks to wayside
                     
             self.update_train_location()

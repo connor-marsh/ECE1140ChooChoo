@@ -28,6 +28,7 @@ class Block: # contains unchanging information about blocks
     light: bool = False # has a light
     crossing: bool = False # has a crossing
     beacon: bool = False # has a beacon
+    exit_block: bool = False # is an exit block of the territory
     
 @dataclass(frozen=True)
 class Station:
@@ -117,7 +118,8 @@ class TrackData():
                 length=dictionary["Block Length (y)"][row],
                 speed_limit=dictionary["Speed Limit (MPH)"][row],
                 territory=territories,
-                switch_exit=pd.notna(dictionary["Switch Exit"][row])
+                switch_exit=pd.notna(dictionary["Switch Exit"][row]),
+                exit_block=dictionary["Exit Blocks"][row] == 1
             )
 
             self.blocks.append(block)
@@ -208,11 +210,11 @@ class TrackData():
 
     def count_territory(self):
         """
-        Counts the number of blocks, switches, lights and crossings in each wayside territory
+        Counts the number of blocks, switches, lights crossings, and exit blocks in each wayside territory
         """
         # Using default dictionary so that key errors do not occur when adding in elements with keys that have not been created before
         temp_territory_counts = defaultdict(int)
-        temp_device_counts = defaultdict(lambda: {"switches": 0, "lights": 0, "crossings": 0})
+        temp_device_counts = defaultdict(lambda: {"switches": 0, "lights": 0, "crossings": 0, "exits": 0})
         # Iterate through blocks and count the number of blocks in each territory
         for block in self.blocks:
             if isinstance(block.territory, tuple):
@@ -224,12 +226,14 @@ class TrackData():
                 temp_device_counts[block.territory[0]]["switches"] += block.switch # should never happen though since overlaps shouldn't have devices?
                 temp_device_counts[block.territory[0]]["lights"] += block.light
                 temp_device_counts[block.territory[0]]["crossings"] += block.crossing
+                temp_device_counts[block.territory[0]]["exits"] += block.exit_block
                 self.overlaps[block.territory[0] - 1] += 1
             else:
                 temp_territory_counts[block.territory] += 1
                 temp_device_counts[block.territory]["switches"] += block.switch
                 temp_device_counts[block.territory]["lights"] += block.light
                 temp_device_counts[block.territory]["crossings"] += block.crossing
+                temp_device_counts[block.territory]["exits"] += block.exit_block
 
         # convert back to regular dictionaries
         self.territory_counts = dict(temp_territory_counts)
