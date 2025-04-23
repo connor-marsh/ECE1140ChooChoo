@@ -18,6 +18,8 @@ import globals.global_clock  as global_clock
 import globals.signals as signals
 import globals.track_data_class as global_track_data
 
+
+
 # Ensure proper scaling on high-DPI screens
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
@@ -305,6 +307,14 @@ class TrackModel(QtWidgets.QMainWindow):
         self.timer.timeout.connect(self.update)
         self.timer.start(self.global_clock.track_dt)
 
+        self.temperature = 70.0
+        self.heater_status = {}
+
+        self.heater_timer = QtCore.QTimer(self)
+        self.heater_timer.timeout.connect(self.heater_step_up)
+        self.heater_timer.start(2000)  # every 2 seconds
+
+
         
 
     def update(self):
@@ -494,6 +504,27 @@ class TrackModel(QtWidgets.QMainWindow):
                 # Only clear if no train is actually occupying the block
                 if all(train.current_block.id != block_id for train in self.trains):
                     self.dynamic_track.occupancies[block_id] = Occupancy.UNOCCUPIED
+
+
+    # Set temperature from frontend
+    def set_temperature(self, temp):
+        self.temperature = temp
+        self.update_heaters()
+
+    def update_heaters(self):
+        for block in self.track_data.blocks:
+            self.heater_status[block.id] = (
+                self.temperature <= 36.0
+            )
+    
+    # Only increase temp if heater is on
+    def heater_step_up(self):
+        if any(self.heater_status.values()) and self.temperature <= 36.0:
+            self.temperature += 0.5
+            self.update_heaters()
+            signals.communication_track.track_temperature.emit(self.temperature, self.name)
+
+
 
     
     # Ensure the train is travelling the proper direction (ascending or descending)
