@@ -4,6 +4,7 @@ import os
 from Train.TrainModel.train_model_backend import TrainModel
 from Train.TrainModel.train_model_testbench import TrainModelTestbench
 from Train.TrainController.train_controller_backend import TrainController
+from Train.TrainController.train_controller_hw_backend import TrainControllerHW
 from globals.settings import USING_HARDWARE
 
 from PyQt5.QtWidgets import QApplication#, QMainWindow, QWidget
@@ -61,7 +62,9 @@ class TrainCollection:
         self.train_controller_ui.update_train_dropdown()
     
     def remove_train(self, idx):
-        self.train_list.pop(idx)
+        removedTrain = self.train_list.pop(idx)
+        if type(removedTrain.controller) == TrainControllerHW:
+            self.hardware_active = False
         self.train_model_ui.update_train_dropdown()
         self.train_controller_ui.update_train_dropdown()
 

@@ -88,7 +88,6 @@ class TrainController(QMainWindow):
     
     def update(self):
         # Check if auto or manual mode and calculate power
-        self.speed_limit = self.current_block.speed_limit
         if self.manual_mode:
             self.target_speed = self.driver_target_speed
         else:
@@ -193,6 +192,8 @@ class TrainController(QMainWindow):
             self.service_brake = True
 
     def update_safety(self):
+        # update speed limit
+        self.speed_limit = self.current_block.speed_limit
         # Ramp up power for passenger comfort
         if self.unramped_commanded_power > self.commanded_power:
             ramp_rate = 10000.0
@@ -245,6 +246,7 @@ class TrainController(QMainWindow):
         #     self.service_brake = False #TODO: Ask profeta how we should handle manual mode service brakes if he wants a toggle but also wants it vital.
 
         if (self.emergency_brake or self.service_brake):
+
             self.commanded_power = 0.0 # Kill engine if emergency brake is activated
             self.integral_error = 0
 
