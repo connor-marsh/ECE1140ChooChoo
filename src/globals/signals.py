@@ -32,6 +32,8 @@ class SignalsTrack(QObject):
     wayside_plc_outputs = pyqtSignal(list,list,list,list, str) # wayside plc outputs sent to the ctc, sorted list of blocks, switches, lights, crossings, and line name
 
     track_tickets = pyqtSignal(int, str) # track model sends the ticket count to the ctc, integer value representing count then string for line name
+
+    track_temperature = pyqtSignal(float, str)  # temperature + line name
     def __init__(self):
         super().__init__()
 
