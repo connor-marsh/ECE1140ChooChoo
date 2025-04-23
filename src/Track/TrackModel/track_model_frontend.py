@@ -816,7 +816,7 @@ class TrackModelFrontEnd(QMainWindow):
         # Refresh UI block colors
         self.map_canvas.update_block_colors()
 
-        # Optional: update info panel if block is selected
+        # Update info panel if block is selected
         selected_block_id = self.ui.block_selected_value.text
 
 
