@@ -29,6 +29,7 @@ class Block: # contains unchanging information about blocks
     crossing: bool = False # has a crossing
     beacon: bool = False # has a beacon
     exit_block: bool = False # is an exit block of the territory
+    traversal_time: float=0 # the time to cross a block distance / speed limit 
     
 @dataclass(frozen=True)
 class Station:
@@ -119,11 +120,13 @@ class TrackData():
                 speed_limit=dictionary["Speed Limit (MPH)"][row],
                 territory=territories,
                 switch_exit=pd.notna(dictionary["Switch Exit"][row]),
-                exit_block=dictionary["Exit Blocks"][row] == 1
+                exit_block=dictionary["Exit Blocks"][row] == 1,
+                traversal_time=dictionary["Traversal Time"][row]
+
             )
 
             self.blocks.append(block)
-
+           
             # Create and store objects that will go into the corresponding dictionaries (devices like switches and lights only need to know their first territory)
             if isinstance(territories, tuple):
                 switch_obj = self.parse_switch(dictionary["Switch"][row], territories[0])
