@@ -215,10 +215,10 @@ class CtcBackEnd(QObject):
                 self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
                 train.received_first_auth = True # Only send once when entering the line
             # # If train was stopped by an obstacle, recalculate its authority to see if obstacle has moved
-            elif not train.no_obstacles:
+            elif not train.no_obstacles and train.mode == "auto":
                 suggested_speed, suggested_authority = self.get_suggestion_values(train)
                 self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
-            elif train.get_next_stop(): # make sure there are stops left
+            elif train.get_next_stop() and train.mode == "auto": # make sure there are stops left
 
                 # Did you just make it to block before your stop?
                 if train.next_block == self.lines[self.updating_line].blocks[train.get_next_stop()-1].id and not train.received_penultimate_block_auth:
@@ -288,7 +288,7 @@ class CtcBackEnd(QObject):
                 
             #print("Full route: ", full_route)
         if new_train:
-            new_train = DummyTrain(self.active_line.train_ID_count, self.active_line.name, full_route, "manual", self.active_line.ENTRANCE_BLOCK.id)
+            new_train = DummyTrain(self.active_line.train_ID_count, self.active_line.name, full_route, "auto", self.active_line.ENTRANCE_BLOCK.id)
             self.active_line.train_ID_count += 1
             print("Adding train to queue in Line: ", self.active_line.name)
             self.train_queue.put(new_train) 
@@ -342,6 +342,25 @@ class CtcBackEnd(QObject):
                 suggested_authority = {train.current_block : auth}
             return suggested_speed, suggested_authority
         return {}, {}
+
+    def set_suggested_values(self, trainIndex, suggested_speed, suggested_auth):
+        #set train to manual mode and set suggested speed and authority
+        train = self.active_line.current_trains[trainIndex]
+        train.set_mode("manual")
+
+        if suggested_speed < 0:
+            suggested_speed = 0 #Clamps to lowest speed
+        if suggested_speed > 43:
+            suggested_speed = 43 #Clamps to hightest speed limit
+
+        if suggested_auth < 0:
+            suggested_auth = 0 #Clamps to lowest authority
+
+        suggested_authority = {train.current_block : suggested_auth}
+        suggested_speed = {train.current_block : suggested_speed}
+
+        self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
+
 
     def send_suggestions(self, suggested_speeds, suggested_authorities):
         signals.communication_ctc[self.lines[self.updating_line].name].ctc_suggested.emit(suggested_speeds, suggested_authorities) #Dict, Dict
@@ -451,7 +470,7 @@ class CtcBackEnd(QObject):
                 authority += current_block.length #accumulate authority
             else:
                 post_destination_checks += 1 # One closer to making it all the way there with no backtracking
-            print("Current Block: ", self.lines[self.updating_line].blocks[current_id].id, "Next Block: ", self.lines[self.updating_line].blocks[next_id].id, "Direction: ", direction, "Total Authority: ", authority)
+            #print("Current Block: ", self.lines[self.updating_line].blocks[current_id].id, "Next Block: ", self.lines[self.updating_line].blocks[next_id].id, "Direction: ", direction, "Total Authority: ", authority)
 
             # Save block info for backtracking
             last_four_blocks.pop(0)
