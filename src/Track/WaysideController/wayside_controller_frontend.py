@@ -58,11 +58,9 @@ class WaysideControllerFrontend(QMainWindow):
         # read data from the currently indexed backend to show in the table
 
         if(auto_import_programs): # auto import the programs if necessary
-            for i in range(3):
-                # i sure hope these filepaths exists
-                if self.collection.LINE_NAME == 'Green':
-                    filepath = "src\Track\WaysideController\PLC\green_line_plc_" + str(i+1) + ".py"
-                    self.auto_get_program(i,filepath)
+            for i in range(self.collection.CONTROLLER_COUNT):
+                filepath = "src\Track\WaysideController\PLC\\" + self.collection.LINE_NAME.lower() + "_line_plc_" + str(i+1) + ".py"
+                self.auto_get_program(i,filepath)
 
         self.timer.start()
     
