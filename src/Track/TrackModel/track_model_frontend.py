@@ -585,6 +585,7 @@ class TrackModelFrontEnd(QMainWindow):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.setWindowTitle("Track Model")
 
         self.track_models = {}
         self.current_line_name = None
@@ -665,6 +666,10 @@ class TrackModelFrontEnd(QMainWindow):
             prev_model = self.track_models[self.current_line_name]
             if hasattr(prev_model.wayside_collection, 'frontend'):
                 prev_model.wayside_collection.frontend.hide()
+            if hasattr(self.current_line.train_collection, 'train_model_ui'):
+                prev_model.train_collection.train_model_ui.hide()
+            if hasattr(self.current_line.train_collection, 'train_controller_ui'):
+                prev_model.train_collection.train_controller_ui.hide()
 
         # Activate the new model
         self.current_line = self.track_models[line_key]
@@ -673,6 +678,10 @@ class TrackModelFrontEnd(QMainWindow):
         # Show current line’s wayside UI
         if hasattr(self.current_line.wayside_collection, 'frontend'):
             self.current_line.wayside_collection.frontend.show()
+        if hasattr(self.current_line.train_collection, 'train_model_ui'):
+            self.current_line.train_collection.train_model_ui.show()
+        if hasattr(self.current_line.train_collection, 'train_controller_ui'):
+            self.current_line.train_collection.train_controller_ui.show()
 
         self.layout_data = layout
         self.map_canvas.load_from_backend(self.current_line, layout)
@@ -690,6 +699,13 @@ class TrackModelFrontEnd(QMainWindow):
         from globals.track_data_class import lines
         for line_name in lines:
             self.track_models[line_name] = TrackModel(line_name, self.wayside_integrated)
+            if line_name != "Green": # gonna default to hide any windows not for the green line
+                if hasattr(self.track_models[line_name].wayside_collection, 'frontend'):
+                    self.track_models[line_name].wayside_collection.frontend.hide()
+                if hasattr(self.track_models[line_name].train_collection, 'train_model_ui'):
+                    self.track_models[line_name].train_collection.train_model_ui.hide()
+                if hasattr(self.track_models[line_name].train_collection, 'train_controller_ui'):
+                    self.track_models[line_name].train_collection.train_controller_ui.hide()
 
     def update(self):
         try:

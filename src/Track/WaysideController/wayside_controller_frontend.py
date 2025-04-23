@@ -35,7 +35,7 @@ class WaysideControllerFrontend(QMainWindow):
         self.current_controller_index = 0 # Tells the ui which backend controller from the collection to reference
         self.ui = WaysideUi() # create a ui from the exported file
         self.ui.setupUi(self) 
-        self.setWindowTitle("Wayside Controller Module")
+        self.setWindowTitle("Wayside Controller")
         
 
         # Initialize any Ui elements that are dynamic
