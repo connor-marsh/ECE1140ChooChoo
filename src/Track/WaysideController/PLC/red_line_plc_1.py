@@ -36,5 +36,5 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
 
     :returns switch_positions, light_signals, light_signals crossing_signals, previous_occupancies:
     """
-
+    switch_positions[0] = True
     return switch_positions, light_signals, crossing_signals, clamps

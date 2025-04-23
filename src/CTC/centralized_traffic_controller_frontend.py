@@ -48,7 +48,7 @@ class CtcFrontEnd(QMainWindow):
         self.ctc_ui.sub_dispatch_train_table.cellClicked.connect(self.on_dispatch_row_clicked)
         self.ctc_ui.sub_dispatch_station_select_radio.toggled.connect(self.destination_radio_selected)
         self.ctc_ui.sub_dispatch_block_select_radio.toggled.connect(self.destination_radio_selected)
-        self.ctc_ui.main_line_slider.sliderReleased.connect(self.toggle_active_line)
+        self.ctc_ui.main_line_slider.valueChanged.connect(self.toggle_active_line)
         self.ctc_ui.main_switch_knob.valueChanged.connect(self.set_switch_state)
         #self.ctc_ui.sub_confirm_override_button.clicked.connect(self.update_suggested)
         self.ctc_ui.sub_activate_maintenance_button.clicked.connect(self.start_maintenance)
