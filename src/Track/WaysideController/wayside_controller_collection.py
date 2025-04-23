@@ -153,7 +153,7 @@ class WaysideControllerCollection(QObject):
         """
         Connects any necessary local and global signals for communication using the pyqt framework
         """
-        signals.communication.ctc_dispatch[self.LINE_NAME].connect(self.handle_dispatch)
+        signals.communication_ctc[self.LINE_NAME].ctc_dispatch.connect(self.handle_dispatch)
  
 
 

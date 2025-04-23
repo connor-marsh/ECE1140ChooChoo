@@ -40,8 +40,10 @@ if __name__=="__main__":
         ctc_frontend.show()
     
     if running_module == "allOnRed":
+        # red line stuff that should prob change 
         red_line = track_data.TrackData("src/Track/TrackModel/redline_layout.xlsx")
         track_data.lines[red_line.line_name] = red_line
+        signals.communication_ctc["Red"] = signals.SignalsCtc()
 
         ctc_backend = CtcBackEnd()
         ctc_frontend = CtcFrontEnd(ctc_backend)

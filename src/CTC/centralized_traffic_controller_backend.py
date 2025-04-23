@@ -33,10 +33,10 @@ class CtcBackEnd(QObject):
 
         self.wall_clock = global_clock.clock
 
-        #Read in signal from Track Model
-        signals.communication.track_tickets.connect(self.update_tickets)  #int
-        signals.communication.wayside_block_occupancies.connect(self.update_occupancy) #List
-        signals.communication.wayside_plc_outputs.connect(self.update_from_plc)
+        #Read in signal from Track Model - I CHANGED HOW THEY ARE CONNECTED - CONNOR
+        signals.communication_track.track_tickets.connect(self.update_tickets)  #int
+        signals.communication_track.wayside_block_occupancies.connect(self.update_occupancy) #List
+        signals.communication_track.wayside_plc_outputs.connect(self.update_from_plc)
         
         
         self.suggested_speed = {} #key is block data is sent to
@@ -102,22 +102,22 @@ class CtcBackEnd(QObject):
         override_authority = self.ctc_ui.sub_enter_authority_override.text()
         self.test_bench.print_suggested_authority(override_authority)
 
-    @pyqtSlot(int)
-    def update_tickets(self, num_tickets):
+    @pyqtSlot(int, str) # IMPORTANT FIGURE OUT HOW TO DIFFERENTIATE BETWEEN THE LINES!!!! ARE YOU GOING TO HAVE 2 ACTIVE LINES? (NEW STRING INPUT IS THE TRACK NAME) - Connor
+    def update_tickets(self, num_tickets, line_name):
         #Takes tickets sold from track model and updates throughput
         self.total_tickets += num_tickets
         self.throughput = self.total_tickets / (self.elapsed_mins/60) #Tickets per hour
 
-    @pyqtSlot(dict)
-    def update_occupancy(self, occupancies):
+    @pyqtSlot(dict, str) # IMPORTANT FIGURE OUT HOW TO DIFFERENTIATE BETWEEN THE LINES!!!! ARE YOU GOING TO HAVE 2 ACTIVE LINES? (NEW STRING INPUT IS THE TRACK NAME) - Connor
+    def update_occupancy(self, occupancies, line_name):
         #Updates occupancy list | called by wayside controller
         for i, block in enumerate(self.active_line.blocks):
              if block.id in occupancies:
                  self.active_line.blocks[i].occupancy = occupancies[block.id]
             
 
-    @pyqtSlot(list,list,list,list)
-    def update_from_plc(self, sorted_blocks, switches, lights, crossings):
+    @pyqtSlot(list,list,list,list, str) # IMPORTANT FIGURE OUT HOW TO DIFFERENTIATE BETWEEN THE LINES!!!! ARE YOU GOING TO HAVE 2 ACTIVE LINES? (NEW STRING INPUT IS THE TRACK NAME) - Connor
+    def update_from_plc(self, sorted_blocks, switches, lights, crossings, line_name):
         switch_index = 0
         light_index = 0
         crossing_index = 0
@@ -305,12 +305,12 @@ class CtcBackEnd(QObject):
             self.active_line.active_trains_count += 1 #Increment train count
             self.send_dispatch_train() 
  
-    def send_dispatch_train(self):
-        signals.communication.ctc_dispatch.emit() # Just signal, no param
+    def send_dispatch_train(self): # I ADDED DISPATCH FOR THE ONLY LINE THAT EXISTS DON'T KNOW WHAT TO DO for redline dispatch? - Connor 
+        signals.communication_ctc[self.active_line.name].ctc_dispatch.emit() # Just signal, no param
         print("Train Dispatched from CTC")
 
-    def send_block_maintenance(self, block_id, maintenance_val):
-        signals.communication.ctc_block_maintenance.emit(self.active_line.blocks[block_id].id, maintenance_val) #int, bool 
+    def send_block_maintenance(self, block_id, maintenance_val): # SIMILAR CHANGE HERE I AM JUST USING THE ACTIVE LINE NAME - Connor 
+        signals.communication_ctc[self.active_line.name].ctc_block_maintenance.emit(self.active_line.blocks[block_id].id, maintenance_val) #int, bool 
         #print("Set Block ", block_id, " Maintenance value to ", maintenance_val)
         #print("Stored Block value: ", self.active_line.blocks[block_id].id, " ", self.active_line.blocks[block_id].maintenance)
 
@@ -335,15 +335,15 @@ class CtcBackEnd(QObject):
         return {}, {}
 
     def send_suggestions(self, suggested_speeds, suggested_authorities):
-        signals.communication.ctc_suggested.emit(suggested_speeds, suggested_authorities) #Dict, Dict
+        signals.communication_ctc[self.active_line.name].ctc_suggested.emit(suggested_speeds, suggested_authorities) #Dict, Dict
 
     def send_exit_blocks(self, exit_blocks):
         #print("Exit Blocks: ", exit_blocks)
-        signals.communication.ctc_exit_blocks.emit(exit_blocks) #List
+        signals.communication_ctc[self.active_line.name].ctc_exit_blocks.emit(exit_blocks) #List
 
     def send_switch_states(self, block_id, switch_state): #KNOWN ERROR - SENDS SWITCH VAL WHEN EXITING MAINTENANCE
         switch_id = self.active_line.blocks[block_id].id
-        signals.communication.ctc_switch_maintenance.emit(switch_id, switch_state) #String, bool
+        signals.communication_ctc[self.active_line.name].ctc_switch_maintenance.emit(switch_id, switch_state) #String, bool
         #print("Switch on Block ", switch_id, " set to ", switch_state)
 
     
