@@ -29,8 +29,9 @@ class CtcBackEnd(QObject):
         self.lines = {}
         self.lines["Green"] = Track("Green")
         self.lines["Red"] = Track("Red") 
-        self.updating_line = "Green"
-        self.active_line = self.lines["Green"]
+
+        self.updating_line = "Green"           #Line which is currently updated in backend
+        self.active_line = self.lines["Green"] #Line actively displayed on UI
 
         
         self.line_index = 0 # 0 for green, 1 for red
@@ -39,7 +40,7 @@ class CtcBackEnd(QObject):
 
         self.wall_clock = global_clock.clock
 
-        #Read in signal from Track Model - I CHANGED HOW THEY ARE CONNECTED - CONNOR
+        #Read in signal from Track Model 
         signals.communication_track.track_tickets.connect(self.update_tickets)  #int
         signals.communication_track.wayside_block_occupancies.connect(self.update_occupancy) #List
         signals.communication_track.wayside_plc_outputs.connect(self.update_from_plc)
@@ -82,7 +83,7 @@ class CtcBackEnd(QObject):
     def read_route_file(self, file_data):
         for _, row in file_data.iterrows():
             #Get the route name
-            route_name = row.iloc[0]  #Think about storing for refrence?
+            route_name = row.iloc[0] 
             #print("Route Name: ", route_name)
             
             #Get all the station names
@@ -113,13 +114,13 @@ class CtcBackEnd(QObject):
         override_authority = self.ctc_ui.sub_enter_authority_override.text()
         self.test_bench.print_suggested_authority(override_authority)
 
-    @pyqtSlot(int, str) # IMPORTANT FIGURE OUT HOW TO DIFFERENTIATE BETWEEN THE LINES!!!! ARE YOU GOING TO HAVE 2 ACTIVE LINES? (NEW STRING INPUT IS THE TRACK NAME) - Connor
+    @pyqtSlot(int, str) 
     def update_tickets(self, num_tickets, line_name):
         #Takes tickets sold from track model and updates throughput
         self.lines[line_name].total_tickets += num_tickets
         self.lines[line_name].throughput = self.lines[line_name].total_tickets / (self.elapsed_mins/60) #Tickets per hour
 
-    @pyqtSlot(dict, str) # IMPORTANT FIGURE OUT HOW TO DIFFERENTIATE BETWEEN THE LINES!!!! ARE YOU GOING TO HAVE 2 ACTIVE LINES? (NEW STRING INPUT IS THE TRACK NAME) - Connor
+    @pyqtSlot(dict, str) 
     def update_occupancy(self, occupancies, line_name):
         #Updates occupancy list | called by wayside controller
         for i, block in enumerate(self.lines[line_name].blocks):
@@ -169,7 +170,6 @@ class CtcBackEnd(QObject):
 
                     #Checks if going to yard
                     if jump_key == (57, 1):
-                        #print("Train going to: ", train.get_next_stop())
                         #If not going to yard, disregard jump block
                         if train.get_next_stop() != 152:
                             return self.lines[self.updating_line].blocks[int(block.id[1:])].id
@@ -187,8 +187,7 @@ class CtcBackEnd(QObject):
                     elif train.direction == 1:
                         return self.lines[self.updating_line].blocks[int(block.id[1:])].id
 
-            #if no block occupancy, set to entrance block - not needed?
-            #return self.lines[self.updating_line].blocks[self.lines[self.updating_line].ENTRANCE_BLOCK - 1].id
+
 
     def update_train_location(self):
         for train in self.lines[self.updating_line].current_trains:
@@ -256,7 +255,6 @@ class CtcBackEnd(QObject):
         block_2 = self.lines[self.updating_line].blocks[self.lines[self.updating_line].ENTRANCE_CHECK[0]-1].occupancy or self.lines[self.updating_line].blocks[self.lines[self.updating_line].ENTRANCE_CHECK[0]-1].maintenance
         block_3 = self.lines[self.updating_line].blocks[self.lines[self.updating_line].ENTRANCE_CHECK[1]-1].occupancy or self.lines[self.updating_line].blocks[self.lines[self.updating_line].ENTRANCE_CHECK[1]-1].maintenance
         block_4 = self.lines[self.updating_line].blocks[self.lines[self.updating_line].ENTRANCE_CHECK[2]-1].occupancy or self.lines[self.updating_line].blocks[self.lines[self.updating_line].ENTRANCE_CHECK[2]-1].maintenance
-        print("Block 2 saved val: ", self.lines[self.updating_line].blocks[self.lines[self.updating_line].ENTRANCE_CHECK[0]-1].id, "Block 3 saved val: ", self.lines[self.updating_line].blocks[self.lines[self.updating_line].ENTRANCE_CHECK[1]-1].id, "Block 4 saved val: ", self.lines[self.updating_line].blocks[self.lines[self.updating_line].ENTRANCE_CHECK[2]-1].id)
 
         #print("Block ", self.lines[self.updating_line].blocks[self.lines[self.updating_line].ENTRANCE_BLOCK].id, "Occupancy is", self.lines[self.updating_line].blocks[self.lines[self.updating_line].ENTRANCE_BLOCK].occupancy, " and has maintenance ", self.lines[self.updating_line].blocks[self.lines[self.updating_line].ENTRANCE_BLOCK].maintenance)
         if not(block_1 or block_2 or block_3 or block_4): # Check entrance and first three blocks
@@ -280,10 +278,6 @@ class CtcBackEnd(QObject):
             
         elif destination_type == 'route':
             #Dispatch on a route
-            # last_block = self.lines[self.updating_line].ENTRANCE_BLOCK #Starting track block
-            
-            route_stations = (self.lines[self.updating_line].routes[destination]) #Get first block of route
-            #print("Train destination route: ", route_stations)
             for stations in self.lines[self.updating_line].routes[destination]:
                 next_block = (self.lines[self.updating_line].STATIONS_BLOCKS[stations])
                 #print("Station ", stations, "Block ", next_block)
@@ -321,14 +315,13 @@ class CtcBackEnd(QObject):
             print("Dispatching to: ", dispatching_train.line)
             self.send_dispatch_train(dispatching_train.line) 
  
-    def send_dispatch_train(self, track_des): # I ADDED DISPATCH FOR THE ONLY LINE THAT EXISTS DON'T KNOW WHAT TO DO for redline dispatch? - Connor 
-        signals.communication_ctc[track_des].ctc_dispatch.emit() # Just signal, no param
+    def send_dispatch_train(self, track_des): 
+        signals.communication_ctc[track_des].ctc_dispatch.emit() 
         print("Train Dispatched from CTC to: ", track_des, "Line")
 
-    def send_block_maintenance(self, block_id, maintenance_val): # SIMILAR CHANGE HERE I AM JUST USING THE ACTIVE LINE NAME - Connor 
+    def send_block_maintenance(self, block_id, maintenance_val): 
         signals.communication_ctc[self.active_line.name].ctc_block_maintenance.emit(self.active_line.blocks[block_id].id, maintenance_val) #int, bool 
         #print("Set Block ", block_id, " Maintenance value to ", maintenance_val)
-        #print("Stored Block value: ", self.lines[self.updating_line].blocks[block_id].id, " ", self.lines[self.updating_line].blocks[block_id].maintenance)
 
     def get_suggestion_values(self, train, speed=70, start_halfway=False):
         if train.get_next_stop():
@@ -375,10 +368,6 @@ class CtcBackEnd(QObject):
         Returns: 
             Authority needed to reach end from start, or safe authority to next occupancy
             True if we made it all the way to the end, false otherwise
-    
-        TODO:
-            - Adapt for red line
-            - Adapt for yard entrance/exit blocks
         '''
 
         # print(start_id)
@@ -462,7 +451,7 @@ class CtcBackEnd(QObject):
                 authority += current_block.length #accumulate authority
             else:
                 post_destination_checks += 1 # One closer to making it all the way there with no backtracking
-            #print("Current Block: ", self.lines[self.updating_line].blocks[current_id].id, "Next Block: ", self.lines[self.updating_line].blocks[next_id].id, "Direction: ", direction, "Total Authority: ", authority)
+            print("Current Block: ", self.lines[self.updating_line].blocks[current_id].id, "Next Block: ", self.lines[self.updating_line].blocks[next_id].id, "Direction: ", direction, "Total Authority: ", authority)
 
             # Save block info for backtracking
             last_four_blocks.pop(0)
