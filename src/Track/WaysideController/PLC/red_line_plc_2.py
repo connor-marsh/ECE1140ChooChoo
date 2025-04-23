@@ -1,6 +1,6 @@
-def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signals, previous_occupancies, exit_blocks):
+def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signals, previous_occupancies, exit_blocks, clamps):
     """
-    User-defined logic for controlling track switches.
+    User-defined logic for controlling track switches, lights, and crossing signals.
 
     :param block_occupancies: The current occupancies of the track
 
@@ -9,8 +9,8 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
 
     :param switch_positions: The current status of the switch signals
 
-        - True for switches indicates:
-        - False for switches indicates:
+        - True for switches indicates: POSITION eg (1-2)
+        - False for switches indicates: POSITION eg (1-3)
 
     :param light_signals: The current status of the light signals
 
@@ -32,16 +32,9 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
         - True for exit blocks indicates: SELECTED
         - False for exit blocks indicates: NOT SELECTED
     
+    :param clamps: a list of booleans where true indicates the block should be clamped
+
     :returns switch_positions, light_signals, light_signals crossing_signals, previous_occupancies:
     """
-    switch_positions[0] = (block_occupancies[0] or block_occupancies[1] or block_occupancies[2]) and not block_occupancies[3]
-    switch_positions[1] = block_occupancies[1]
-    switch_positions[2] = not block_occupancies[2]
 
-    light_signals[0] = block_occupancies[1]
-
-    crossing_signals[0] = block_occupancies[0]
-
-
-
-    return switch_positions, light_signals, crossing_signals
+    return switch_positions, light_signals, crossing_signals, clamps

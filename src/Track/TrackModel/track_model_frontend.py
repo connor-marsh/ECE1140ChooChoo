@@ -785,14 +785,40 @@ class TrackModelFrontEnd(QMainWindow):
 
     def toggle_failure(self, kind):
         block_id = self.ui.block_selected_value.text()
-        current = self.current_line.dynamic_track.failures.get(block_id, 0)
-        self.current_line.dynamic_track.failures[block_id] = 0 if current else 1
+        current = self.current_line.dynamic_track.failures.get(block_id, Failures.NONE)
+
+        if kind == "track":
+            new_val = Failures.NONE if current == Failures.TRACK_CIRCUIT_FAILURE else Failures.TRACK_CIRCUIT_FAILURE
+        elif kind == "power":
+            new_val = Failures.NONE if current == Failures.POWER_FAILURE else Failures.POWER_FAILURE
+        elif kind == "rail":
+            new_val = Failures.NONE if current == Failures.BROKEN_RAIL_FAILURE else Failures.BROKEN_RAIL_FAILURE
+        else:
+            print(f"[ERROR] Unknown failure kind: {kind}")
+            return
+
+        self.current_line.dynamic_track.failures[block_id] = new_val
+        print(f"[FAILURE TOGGLE] {block_id}: {kind} → {new_val}")
+
         self.map_canvas.update_block_colors()
 
+
     def reset_failures(self):
+        print("[RESET] Clearing all failures...")
+
+        # Clear all failures in backend
         for block_id in self.current_line.dynamic_track.failures:
-            self.current_line.dynamic_track.failures[block_id] = 0
+            self.current_line.dynamic_track.failures[block_id] = Failures.NONE
+
+        # Force recheck of occupancy states (especially for rail/power failures)
+        self.current_line.update_occupancies_from_failures()
+
+        # Refresh UI block colors
         self.map_canvas.update_block_colors()
+
+        # Update info panel if block is selected
+        selected_block_id = self.ui.block_selected_value.text
+
 
     def update_map(self):
         # Update block colors based on occupancy/failure

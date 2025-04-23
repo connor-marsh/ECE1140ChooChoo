@@ -20,9 +20,10 @@ qInstallMessageHandler(customMessageHandler)
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
 class TrainCollection:
-    def __init__(self, num_trains=0, model=None, controller=None):
+    def __init__(self, num_trains=0, model=None, controller=None, line_name="Green"):
         self.train_list = []
         self.hardware_active = False
+        self.line_name = line_name
 
         # If model or controller != None, then we are running a single module with a testbench
         if model:
@@ -53,10 +54,10 @@ class TrainCollection:
     def create_train(self):
         # Create a new TrainModel and append it to the list.
         if USING_HARDWARE and not self.hardware_active and len(self.train_list)>0:
-            self.train_list.append(TrainModel(hardware_controller=True))
+            self.train_list.append(TrainModel(hardware_controller=True, line_name=self.line_name))
             self.hardware_active = True
         else:
-            self.train_list.append(TrainModel())
+            self.train_list.append(TrainModel(line_name=self.line_name))
         self.train_model_ui.update_train_dropdown()
         self.train_controller_ui.update_train_dropdown()
     
