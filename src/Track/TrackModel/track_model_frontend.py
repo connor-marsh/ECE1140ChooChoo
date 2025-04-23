@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsRectItem, QMainWindow, QGraphicsPixmapItem, QVBoxLayout, QFileDialog, QMessageBox
-from PyQt5.QtGui import QBrush, QPen, QColor, QPainter, QPixmap
+from PyQt5.QtGui import QBrush, QPen, QColor, QPainter, QPixmap, QCloseEvent
 from PyQt5.QtCore import Qt, QRectF, QTimer, pyqtSignal
 from Track.TrackModel.track_model_ui import Ui_MainWindow
 from Track.TrackModel.track_model_backend import TrackModel
@@ -664,7 +664,7 @@ class TrackModelFrontEnd(QMainWindow):
         if self.current_line_name and self.current_line_name != line_key:
             prev_model = self.track_models[self.current_line_name]
             if hasattr(prev_model.wayside_collection, 'frontend'):
-                prev_model.wayside_collection.frontend.hide()
+                prev_model.wayside_collection.frontend.closeEvent(event=QCloseEvent(),source=True)
             if hasattr(self.current_line.train_collection, 'train_model_ui'):
                 prev_model.train_collection.train_model_ui.hide()
             if hasattr(self.current_line.train_collection, 'train_controller_ui'):
@@ -700,7 +700,7 @@ class TrackModelFrontEnd(QMainWindow):
             self.track_models[line_name] = TrackModel(line_name, self.wayside_integrated)
             if line_name != "Green": # gonna default to hide any windows not for the green line
                 if hasattr(self.track_models[line_name].wayside_collection, 'frontend'):
-                    self.track_models[line_name].wayside_collection.frontend.hide()
+                    self.track_models[line_name].wayside_collection.frontend.closeEvent(event=QCloseEvent(),source=True)
                 if hasattr(self.track_models[line_name].train_collection, 'train_model_ui'):
                     self.track_models[line_name].train_collection.train_model_ui.hide()
                 if hasattr(self.track_models[line_name].train_collection, 'train_controller_ui'):

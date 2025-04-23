@@ -43,6 +43,7 @@ class WaysideControllerFrontend(QMainWindow):
         self.init_combo_box()
         
         self.controller_changed = True
+        self.show_oneshot = False
          # Create a timer
         self.timer = QTimer(self)
         self.timer.setInterval(300) # Below 50ms and weird stuff happens since i prob wrote my update weird
@@ -222,13 +223,25 @@ class WaysideControllerFrontend(QMainWindow):
 
 
 
-    def closeEvent(self, event):
+    def closeEvent(self, event, source=False):
         """
         Overridden Mainwindow function that handles when the user clicks the exit button in the corner of the window
+
+        :param event: A pyqt event that tracks when the window is closed
+
+        :param source: source is a boolean that indicates the closeEvent was not a self call, True indicates that it was not a self call
         """
-        for testbench in self.collection.testbenches: # Close every testbench that is active as well
-            testbench.close() 
-        event.accept()
+        
+        if not source:
+            for testbench in self.collection.testbenches: # Close every testbench that is active as well
+                testbench.close() 
+            event.accept()
+        else:
+            self.hide()
+            self.show_oneshot = True
+            for testbench in self.collection.testbenches: # Close every testbench that is active as well
+                 testbench.hide() 
+            event.ignore()
 
 
 
@@ -255,11 +268,13 @@ class WaysideControllerFrontend(QMainWindow):
         self.show_current_selected_output(self.ui.light_list, self.ui.light_label)
         self.show_current_selected_output(self.ui.crossing_list, self.ui.crossing_label)
 
-
-
-        # SHOULD PROB HANDLE SOME OF THOSE EXCEPTIONS HUH
-  
-
+        # when the line changes need to open all appropriate windows
+        
+        if not self.isHidden() and self.show_oneshot:
+            self.show_oneshot = False
+            for i, testbench in enumerate(self.collection.testbenches):
+                if self.collection.controllers[i].maintenance_mode:
+                    testbench.show()
 
     @pyqtSlot(int)
     def handle_controller_selection(self, controller_index):
