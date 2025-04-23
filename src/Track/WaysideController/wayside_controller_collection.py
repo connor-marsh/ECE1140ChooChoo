@@ -59,13 +59,15 @@ class WaysideControllerCollection(QObject):
             switch_count = self.track_data.device_counts[i + 1]['switches']
             light_count = self.track_data.device_counts[i + 1]['lights']
             crossing_count = self.track_data.device_counts[i + 1]['crossings']
+            exit_block_count = self.track_data.device_counts[i + 1]['exits']
+            print(exit_block_count)
             self.BLOCK_COUNTS.append(block_count)
             self.SWITCH_COUNTS.append(switch_count)
             self.LIGHT_COUNTS.append(light_count)
             self.CROSSING_COUNTS.append(crossing_count)
             self.controllers.append(WaysideController(block_count=block_count,switch_count=switch_count,
                                                       light_count=light_count,crossing_count=crossing_count,
-                                                      exit_block_count=0, index=i, collection_reference=self))
+                                                      exit_block_count=exit_block_count, index=i, collection_reference=self))
 
         # Get the ranges of each territory, so that indexing the list is easier
         self.BLOCK_RANGES = self.get_ranges_with_overlap(self.BLOCK_COUNTS,self.overlaps)

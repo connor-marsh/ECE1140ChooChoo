@@ -76,6 +76,8 @@ class WaysideController(QObject):
                     if not self.block_occupancies[i] and (self.suggested_authorities[i] != None or self.suggested_speeds[i] != None):
                         self.suggested_authorities[i] = None
                         self.suggested_speeds[i] = None
+                        self.commanded_authorities[i] = None
+                        self.commanded_speeds[i] = None
                     if clamp and self.block_occupancies[i]:
                         self.to_send_authorities[blocks[i].id] = 0
                         self.commanded_authorities[i] = 0 # set ui
@@ -146,8 +148,13 @@ class WaysideController(QObject):
                     self.suggested_authorities[i] = authority # set ui 
                     self.to_send_authorities[block.id] = authority
                     self.commanded_authorities[i] = authority # set ui
-
-           
+   
+    @pyqtSlot(list)
+    def handle_exit_blocks(self, exit_blocks):
+        """
+        Recieves and sets the exit blocks of the controller
+        """
+        self.exit_blocks = exit_blocks[self.index]
 
         
         

@@ -6,6 +6,7 @@ Description:
 """
 import sys
 import os
+import math
 from pathlib import Path
 from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem, QFileDialog, QListWidget, QListWidgetItem, QLabel 
@@ -144,13 +145,13 @@ class WaysideControllerFrontend(QMainWindow):
                 unit = " yards" if col % 2 == 0 else " mph" # Figure out what the unit should be depending on the position in the table
                 if value != None:
                     if type(value) is float or type(value) is int: # If the column has a numeric value it should have a unit attatched
-                        text = str(value) + unit
+                        text = str(math.floor(value)) + unit
                     elif type(value) is bool: # For bools the text should say occupied/unoccupied since only bool in table is occupancy
                         text = "Occupied" if value else "Unoccupied"
                     item.setText(text) # set the items text attribute
                     table.setItem(row, col, item) # put the item in the table
                 else:
-                    item.setText("")
+                    item.setText("Not Sent")
                     table.setItem(row,col,item)
     
     def populate_lists(self):

@@ -37,7 +37,7 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     # For Wayside #2
     # HAS 66 Blocks in its Territory
     # Sections: I[0,22) J[22,27) K[27,33) L[33,39) U[39,43) V[43,48) W[48,64) y[64,66)
-    # Has 2 Switches I57 (57 - 58, 57-152), K63 (63 - 151, 63 - 62) 
+    # Has 2 Switches I57 (57 - 152, 57-58), K63 (63 - 151, 63 - 62) 
     # Has 4 Lights J58, J62, y151, y152
     # Has 0 Crossings
 
@@ -49,7 +49,7 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
 
     train_entering_track = block_occupancies[65]
 
-    switch_positions[0] = not train_in_i # add exit block logic here when that gets implemented
+    switch_positions[0] = (train_in_i and exit_blocks[1]) 
     light_signals[0] = not switch_positions[0]
     light_signals[1] = not light_signals[1]
     
