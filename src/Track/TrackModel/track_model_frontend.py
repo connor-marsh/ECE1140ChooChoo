@@ -1,13 +1,12 @@
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsRectItem, QMainWindow
-from PyQt5.QtGui import QBrush, QPen, QColor, QPainter
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsRectItem, QMainWindow, QGraphicsPixmapItem, QVBoxLayout, QFileDialog, QMessageBox
+from PyQt5.QtGui import QBrush, QPen, QColor, QPainter, QPixmap
 from PyQt5.QtCore import Qt, QRectF, QTimer, pyqtSignal
-from PyQt5.QtWidgets import QGraphicsPixmapItem, QVBoxLayout
-from PyQt5.QtGui import QPixmap
 from Track.TrackModel.track_model_ui import Ui_MainWindow
 from Track.TrackModel.track_model_backend import TrackModel
 from Track.TrackModel.track_model_enums import Occupancy
 from Track.TrackModel.track_model_enums import Failures
 import globals.global_clock as global_clock
+import globals.track_data_class as track_data_class
 
 import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -631,7 +630,7 @@ class TrackModelFrontEnd(QMainWindow):
         self.ui.track_line_selected.currentTextChanged.connect(self.setup_line)
 
         # Other button hooks
-        self.ui.import_track_layout_button.clicked.connect(lambda: self.map_canvas.load_from_backend(self.current_line, self.layout_data))
+        self.ui.import_track_layout_button.clicked.connect(self.import_new_track_layout)
         self.ui.track_circuit_failure_toggle.clicked.connect(lambda: self.toggle_failure("track"))
         self.ui.broken_rail_failure_toggle.clicked.connect(lambda: self.toggle_failure("rail"))
         self.ui.power_failure_toggle.clicked.connect(lambda: self.toggle_failure("power"))
@@ -1035,6 +1034,45 @@ class TrackModelFrontEnd(QMainWindow):
 
         else:
             print(f"[TRAIN CLICKED] Train {train_id} not found.")
+
+    def import_new_track_layout(self):
+        from openpyxl import load_workbook
+
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Import Track Layout Excel",
+            "",
+            "Excel Files (*.xlsx *.xls)"
+        )
+
+        if not file_path:
+            return
+
+        try:
+            if not file_path.endswith((".xlsx", ".xls")):
+                raise ValueError("Only Excel files (.xlsx or .xls) are allowed.")
+
+            wb = load_workbook(filename=file_path, data_only=True)
+            sheet = wb["Sheet1"]
+            line_name_cell = sheet["A2"].value.strip() if sheet["A2"].value else ""
+
+            expected_line = self.current_line_name  # "Green" or "Red"
+            if line_name_cell != expected_line:
+                raise ValueError(f"File is for line '{line_name_cell}', but you are on the '{expected_line}' line.")
+
+            # Parse new layout into global data
+            track_data_class.init(file_path)
+
+            # Replace backend for this line
+            self.track_models[expected_line] = TrackModel(expected_line, self.wayside_integrated)
+
+            # Reload UI if it's the current line
+            self.setup_line(f"{expected_line} Line")
+
+            QMessageBox.information(self, "Success", f"{expected_line} Line layout loaded successfully.")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Import Error", f"Track layout import failed:\n{e}")
 
 
 

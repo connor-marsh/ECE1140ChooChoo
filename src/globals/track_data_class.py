@@ -239,10 +239,17 @@ class TrackData():
         self.territory_counts = dict(temp_territory_counts)
         self.device_counts = {k: dict(v) for k, v in temp_device_counts.items()} 
         
-def init():
-    global lines 
+
+def init(filepath=None):
+    global lines
     lines = {}
-    line = TrackData("src/Track/TrackModel/GreenLine_Layout.xlsx")
-    lines[line.line_name] = line
-if __name__ == "__main__":
-    init()
+
+    if filepath:
+        new_line = TrackData(filepath)
+        lines[new_line.line_name] = new_line
+    else:
+        # Default initialization
+        line = TrackData("src/Track/TrackModel/GreenLine_Layout.xlsx")
+        lines[line.line_name] = line
+#if __name__ == "__main__":
+#    init()
