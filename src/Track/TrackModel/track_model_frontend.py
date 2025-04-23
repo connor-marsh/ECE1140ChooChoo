@@ -575,7 +575,6 @@ class InfrastructureDisplay(QGraphicsView):
 
 
 
-
 ###############################################################################
 # Track Frontend
 ###############################################################################
@@ -651,15 +650,17 @@ class TrackModelFrontEnd(QMainWindow):
         self.timer.timeout.connect(self.update)
         self.timer.start(500)
 
+        self.block_coords = {
+            block_id: (x, y)
+            for (block_id, x, y, *_rest) in self.layout_data
+        }
+
+
     def setup_line(self, selected_text):
-        if selected_text == "Green Line":
-            line_key = "Green"
-            layout = HARDCODED_LAYOUT_GREEN
-        elif selected_text == "Red Line":
-            line_key = "Red"
-            layout = HARDCODED_LAYOUT_RED
-        else:
-            raise ValueError(f"Unknown line selected: {selected_text}")
+        line_key = selected_text.strip().replace(" Line", "")
+        layout = HARDCODED_LAYOUT_GREEN if line_key == "Green" else HARDCODED_LAYOUT_RED
+
+
 
         # Hide previous model's wayside UI if switching
         if self.current_line_name and self.current_line_name != line_key:
@@ -672,8 +673,10 @@ class TrackModelFrontEnd(QMainWindow):
                 prev_model.train_collection.train_controller_ui.hide()
 
         # Activate the new model
+        line_key = selected_text.strip().replace(" Line", "")
         self.current_line = self.track_models[line_key]
         self.current_line_name = line_key
+
 
         # Show current line’s wayside UI
         if hasattr(self.current_line.wayside_collection, 'frontend'):
@@ -979,23 +982,51 @@ class TrackModelFrontEnd(QMainWindow):
             state = backend.dynamic_track.switch_states.get(block_id, False)
             route = switch.positions[1 if state else 0]
 
-            direction_icon = "switch_icon_up.png" if route > block_id else "switch_icon_down.png"
+            try:
+                entrance_0, exit_0 = switch.positions[0].split("-")
+                entrance_1, exit_1 = switch.positions[1].split("-")
+            except ValueError:
+                print(f"[ERROR] Malformed switch position string for block {block_id}: {switch.positions}")
+                return None
+
+            # Always treat exit_0 as top and exit_1 as bottom - fixed logic
+            top_exit = exit_0
+            bottom_exit = exit_1
+
+            # Determine which route is active
+            route_exit = route.split("-")[1]
+
+            # Set icon direction based on which exit is active (not relabeling)
+            direction_icon = "switch_icon_up.png" if route_exit == top_exit else "switch_icon_down.png"
 
             payload.update({
                 "name": "Switch",
                 "icon_path": os.path.join(BASE_DIR, "Resources", direction_icon),
                 "entrance": block_id,
-                "exit_top": max(switch.positions),
-                "exit_bottom": min(switch.positions)
-
-
+                "exit_top": top_exit,
+                "exit_bottom": bottom_exit
             })
+
+            print(f"[SWITCH PAYLOAD] block_id={block_id}, route={route}, icon={direction_icon}, top={top_exit}, bottom={bottom_exit}")
+
+
+            payload.update({
+                "name": "Switch",
+                "icon_path": os.path.join(BASE_DIR, "Resources", direction_icon),
+                "entrance": block_id,
+                "exit_top": top_exit,
+                "exit_bottom": bottom_exit
+            })
+
+            print(f"[SWITCH PAYLOAD] block_id={block_id}, state={state}, route={route}, direction_icon={direction_icon}")
+
+
 
         elif icon_type == "railway_crossing":
             crossing_state = backend.dynamic_track.crossing_states.get(block_id, False)
             payload.update({
                 "name": "Railway Crossing",
-                "icon_path": os.path.join(BASE_DIR, "Resources", 
+                "icon_path": os.path.join(BASE_DIR, "Resources",
                     "railway_crossing_icon_active.png" if crossing_state else "railway_crossing_icon_inactive.png"),
                 "line1": ("State", "Active" if crossing_state else "Inactive")
             })
@@ -1004,16 +1035,16 @@ class TrackModelFrontEnd(QMainWindow):
             light_state = backend.dynamic_track.light_states.get(block_id, False)
             payload.update({
                 "name": "Traffic Light",
-                "icon_path": os.path.join(BASE_DIR, "Resources", 
+                "icon_path": os.path.join(BASE_DIR, "Resources",
                     "traffic_light_icon_green.png" if light_state else "traffic_light_icon_red.png"),
                 "line1": ("State", "Green" if light_state else "Red")
             })
 
         elif icon_type == "train":
-            # You'd call this only from on_train_icon_clicked(), otherwise skip
             return None
 
         return payload
+
 
 
     # Displays train specific information
