@@ -309,6 +309,7 @@ class TrackModel(QtWidgets.QMainWindow):
 
     def update(self):
         self.update_trains()
+        self.update_occupancies_from_failures()
 
     # Update occupancies based on failure state
         for block_id, failure in self.dynamic_track.failures.items():
@@ -392,6 +393,7 @@ class TrackModel(QtWidgets.QMainWindow):
 
             if in_failure:
                 # If we're still in failure, store the latest command as pending
+                print(f"[Comms] Blocking wayside comm for train {train.train_id} due to TRACK failure on {train.current_block.id}")
                 if send_to_train:
                     train.pending_command = send_to_train  # Overwrite any previous pending
                 continue  # Don't send anything while in failure
