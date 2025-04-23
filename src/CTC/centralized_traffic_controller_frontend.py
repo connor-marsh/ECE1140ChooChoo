@@ -54,6 +54,7 @@ class CtcFrontEnd(QMainWindow):
         self.ctc_ui.sub_activate_maintenance_button.clicked.connect(self.start_maintenance)
         self.ctc_ui.sub_end_maintenance_button.clicked.connect(self.end_maintenance)
         self.ctc_ui.sub_dispatch_confirm_button.clicked.connect(self.dispatch_pressed)
+        self.ctc_ui.sub_active_trains_table.cellClicked.connect(self.update_train_mode_radio)
         self.ctc_ui.sub_select_manual_radio.clicked.connect(self.toggle_train_mode)
 
         self.destination_radio_group = QButtonGroup(self)
@@ -366,8 +367,30 @@ class CtcFrontEnd(QMainWindow):
                 self.ctc_ui.main_map_table.setItem(row_index, 6, crossing_item)
                 crossing_index += 1
     
+    def update_train_mode_radio(self):
+        selected_item = self.ctc_ui.sub_active_trains_table.selectedItems()
+        if selected_item:
+            train = self.backend.active_line.current_trains[selected_item[0].row()]
+            if train.mode == "manual":
+                self.ctc_ui.sub_select_manual_radio.setChecked(True)
+            elif train.mode == "auto":
+                self.ctc_ui.sub_select_manual_radio.setChecked(False)
+            else:
+                pass
+
     def toggle_train_mode(self):
-        pass
+        if self.ctc_ui.sub_select_manual_radio.isChecked():
+            selected_item = self.ctc_ui.sub_active_trains_table.selectedItems()
+            if selected_item:
+                train = self.backend.active_line.current_trains[selected_item[0].row()]
+                train.mode = "manual"
+                self.update_train_mode_radio()
+        else:
+            selected_item = self.ctc_ui.sub_active_trains_table.selectedItems()
+            if selected_item:
+                train = self.backend.active_line.current_trains[selected_item[0].row()]
+                train.mode = "automatic"
+                self.update_train_mode_radio()
 
     def update_suggested_values(self):
         selected_items = self.ctc_ui.sub_active_trains_table.selectedItems()

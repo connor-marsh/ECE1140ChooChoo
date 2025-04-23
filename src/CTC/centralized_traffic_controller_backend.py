@@ -206,6 +206,7 @@ class CtcBackEnd(QObject):
 
     def active_train_handler(self):
         for train in self.lines[self.updating_line].current_trains:
+            print("Train Mode: ", train.mode)
             #print("Train ID: ", train.train_id, "Current Block: ", train.current_block)
             # Send initial authorities to train on SPAWN block. Make sure current train is on spawn block, the block is occupied (prevent race condition), and the train hasn't already received it
             #print("Current Block: ", train.current_block, "Entrance Block: ", self.lines[self.updating_line].ENTRANCE_BLOCK.id, "Entrance Occupancy: ", self.lines[self.updating_line].ENTRANCE_BLOCK.occupancy, "Received First Auth: ", train.received_first_auth)
