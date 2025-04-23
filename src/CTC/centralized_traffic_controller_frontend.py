@@ -48,7 +48,7 @@ class CtcFrontEnd(QMainWindow):
         self.ctc_ui.sub_dispatch_train_table.cellClicked.connect(self.on_dispatch_row_clicked)
         self.ctc_ui.sub_dispatch_station_select_radio.toggled.connect(self.destination_radio_selected)
         self.ctc_ui.sub_dispatch_block_select_radio.toggled.connect(self.destination_radio_selected)
-        #self.ctc_ui.main_line_slider.sliderReleased.connect(self.toggle_active_line) #Not implemented yet
+        self.ctc_ui.main_line_slider.sliderReleased.connect(self.toggle_active_line)
         self.ctc_ui.main_switch_knob.valueChanged.connect(self.set_switch_state)
         #self.ctc_ui.sub_confirm_override_button.clicked.connect(self.update_suggested)
         self.ctc_ui.sub_activate_maintenance_button.clicked.connect(self.start_maintenance)
@@ -59,7 +59,7 @@ class CtcFrontEnd(QMainWindow):
         self.destination_radio_group = QButtonGroup(self)
         self.destination_radio_group.addButton(self.ctc_ui.sub_dispatch_station_select_radio)
         self.destination_radio_group.addButton(self.ctc_ui.sub_dispatch_block_select_radio)
-        self.destination_radio_group.setExclusive(True)  # default behavior
+        self.destination_radio_group.setExclusive(True) 
 
         self.toggle_maintenance_mode()
         self.initialize_map()
@@ -83,6 +83,19 @@ class CtcFrontEnd(QMainWindow):
         self.update_dispatch_button()
         self.update_train_select_combo()
 
+    def toggle_active_line(self):
+        if self.ctc_ui.main_line_slider.value() == 0:
+            self.backend.active_line = self.backend.lines["Green"]
+            print("Active Line: ", self.backend.active_line.name)
+            self.initialize_map()
+            self.initialize_block_combo()
+            self.initialize_station_combo()
+        elif self.ctc_ui.main_line_slider.value() == 1:
+            self.backend.active_line = self.backend.lines["Red"]
+            print("Active Line: ", self.backend.active_line.name)
+            self.initialize_map()
+            self.initialize_block_combo()
+            self.initialize_station_combo()
 
     #Stacked Widget Navigation
     def switch_to_dispatch_page(self):
@@ -189,6 +202,7 @@ class CtcFrontEnd(QMainWindow):
                 self.ctc_ui.sub_block_number_combo.addItem(str(i))
         elif self.backend.active_line.name == "Red":
             #initialize block combo box with block ids - Red 1-76
+            self.ctc_ui.sub_block_number_combo.clear()
             for i in range(1, 77):
                 self.ctc_ui.sub_block_number_combo.addItem(str(i))
         else:

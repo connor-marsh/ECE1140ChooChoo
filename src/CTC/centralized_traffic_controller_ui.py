@@ -65,7 +65,7 @@ class Ui_MainWindow(object):
 
         self.main_line_slider = QSlider(self.frame)
         self.main_line_slider.setObjectName(u"main_line_slider")
-        self.main_line_slider.setEnabled(False)
+        self.main_line_slider.setEnabled(True)
         sizePolicy1 = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
