@@ -775,11 +775,11 @@ class TrackModelFrontEnd(QMainWindow):
         section = self.current_line.track_data.sections.get(section_id)
         if section:
             if section.increasing == 0:
-                direction = "Descending"
+                direction = "East"
             elif section.increasing == 1:
-                direction = "Ascending"
+                direction = "West"
             elif section.increasing == 2:
-                direction = "Bidirectional"
+                direction = "Both"
             else:
                 direction = "Unknown"
         else:
