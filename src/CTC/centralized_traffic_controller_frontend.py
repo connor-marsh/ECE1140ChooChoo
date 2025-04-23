@@ -198,12 +198,12 @@ class CtcFrontEnd(QMainWindow):
         if self.backend.active_line.name == "Green":
             #initialize block combo box with block ids - Green 1-150
             self.ctc_ui.sub_block_number_combo.clear()
-            for i in range(1, 151):
+            for i in range(1, 153):
                 self.ctc_ui.sub_block_number_combo.addItem(str(i))
         elif self.backend.active_line.name == "Red":
             #initialize block combo box with block ids - Red 1-76
             self.ctc_ui.sub_block_number_combo.clear()
-            for i in range(1, 77):
+            for i in range(1, 78):
                 self.ctc_ui.sub_block_number_combo.addItem(str(i))
         else:
             QTimer.singleShot(100, self.initialize_block_combo) # If neither track active, retry in 100ms
