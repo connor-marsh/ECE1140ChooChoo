@@ -273,7 +273,7 @@ class TrackModel(QtWidgets.QMainWindow):
 
         self.trains = []  # holds Train instances
         self.train_counter = 0
-        self.train_collection = TrainCollection()
+        self.train_collection = TrainCollection(line_name=self.name)
         
 
         # Populate dynamic track

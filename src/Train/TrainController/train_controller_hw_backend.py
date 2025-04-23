@@ -62,8 +62,8 @@ for word in readDataFormat:
     readData[word]=0.0
 
 class TrainControllerHW(TrainController):
-    def __init__(self, train_integrated=True):
-        super().__init__(train_integrated=train_integrated)
+    def __init__(self, train_integrated=True, line_name="Green"):
+        super().__init__(train_integrated=train_integrated, line_name=line_name)
 
     def update(self):
         self.update_hardware()

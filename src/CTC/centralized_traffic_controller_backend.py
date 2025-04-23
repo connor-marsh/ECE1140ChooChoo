@@ -25,9 +25,15 @@ class CtcBackEnd(QObject):
     def __init__(self): 
         super().__init__()
         #Controls active track data
+        
+        
+
+        #self.lines = {}
+        #self.lines["Green"] = Track("Green")
+        #self.lines["Red"] = Track("Red") 
+
         self.green_line = Track("Green")
-        #self.red_line = Track("Red") #No red line implementation yet
-        self.active_line = self.green_line
+        self.active_line = self.green_line#self.lines["Green"]#"Green"
 
         self.train_queue = queue.Queue()
 
@@ -116,7 +122,7 @@ class CtcBackEnd(QObject):
                  self.active_line.blocks[i].occupancy = occupancies[block.id]
             
 
-    @pyqtSlot(list,list,list,list, str) # IMPORTANT FIGURE OUT HOW TO DIFFERENTIATE BETWEEN THE LINES!!!! ARE YOU GOING TO HAVE 2 ACTIVE LINES? (NEW STRING INPUT IS THE TRACK NAME) - Connor
+    @pyqtSlot(list,list,list,list, str) 
     def update_from_plc(self, sorted_blocks, switches, lights, crossings, line_name):
         switch_index = 0
         light_index = 0
