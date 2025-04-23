@@ -35,13 +35,13 @@ class TrainModel(QMainWindow):
     FRONTAL_AREA = 9.06       # Frontal Area calculated from train dimensions --> (Width * Height) in m².
     AIR_DENSITY = 1.225       # kg/m³ at sea level.
 
-    def __init__(self, train_integrated=True, hardware_controller=False):
+    def __init__(self, train_integrated=True, hardware_controller=False, line_name="Green"):
         super().__init__()
         if train_integrated:
             if hardware_controller:
-                self.controller = TrainControllerHW()
+                self.controller = TrainControllerHW(line_name="Green")
             else:
-                self.controller = TrainController()
+                self.controller = TrainController(line_name="Green")
         else:
             self.controller = None
         self.position = 0.0
