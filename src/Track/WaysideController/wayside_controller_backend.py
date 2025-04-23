@@ -60,6 +60,9 @@ class WaysideController(QObject):
 
     @pyqtSlot()
     def update(self):
+        """
+        The update function of the wayside controller. 
+        """
         if self.program != None:
             prev_clamps = self.clamps[:] # only need previous clamps temporarily
             self.previous_occupancies = self.block_occupancies[:] # get what the previous occupancies are
@@ -114,6 +117,11 @@ class WaysideController(QObject):
 
     @pyqtSlot(dict, dict)
     def handle_suggested_values(self, speeds, authorities):
+        """
+        Receives suggested values from the ctc and sets commanded values appropriately
+        :param speeds: A dictionary of speeds corresponding to a block that has a new suggested speed
+        :param authorities: A dictionary of authorities corresponding to a block that has a new suggested authority
+        """
         blocks = self.collection.blocks[self.index] # specifies to the list which slice of the track this controller is looking at
         
         # need to enumerate so that I can tell if the current block is occupied or not
