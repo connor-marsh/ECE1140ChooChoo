@@ -33,7 +33,7 @@ class CtcBackEnd(QObject):
         self.lines["Red"] = Track("Red") 
 
 
-        self.active_line = "Green"
+        self.active_line = self.lines["Green"]#"Green"
 
         self.train_queue = queue.Queue()
 
