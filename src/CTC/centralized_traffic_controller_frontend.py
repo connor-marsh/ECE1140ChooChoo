@@ -54,7 +54,7 @@ class CtcFrontEnd(QMainWindow):
         self.ctc_ui.sub_activate_maintenance_button.clicked.connect(self.start_maintenance)
         self.ctc_ui.sub_end_maintenance_button.clicked.connect(self.end_maintenance)
         self.ctc_ui.sub_dispatch_confirm_button.clicked.connect(self.dispatch_pressed)
-        #self.toggle_mode() #toggles manual mode, NEEDS CHANGED 
+        self.ctc_ui.sub_select_manual_radio.clicked.connect(self.toggle_train_mode)
 
         self.destination_radio_group = QButtonGroup(self)
         self.destination_radio_group.addButton(self.ctc_ui.sub_dispatch_station_select_radio)
@@ -366,9 +366,17 @@ class CtcFrontEnd(QMainWindow):
                 self.ctc_ui.main_map_table.setItem(row_index, 6, crossing_item)
                 crossing_index += 1
     
+    def toggle_train_mode(self):
+        pass
+
     def update_suggested_values(self):
-        
-        selected_item = self.ctc_ui.sub_active_trains_table.selectedItems()[0]
+        selected_items = self.ctc_ui.sub_active_trains_table.selectedItems()
+        if selected_items:
+            selected_item = selected_items[0]
+            # Do something with selected_item
+        else:
+            selected_item = None
+
         
         if selected_item is not None:
             trainIndex = selected_item.row()

@@ -363,6 +363,7 @@ class CtcBackEnd(QObject):
 
 
     def send_suggestions(self, suggested_speeds, suggested_authorities):
+        print("Suggested Speeds: ", suggested_speeds, "Suggested Authorities: ", suggested_authorities)
         signals.communication_ctc[self.lines[self.updating_line].name].ctc_suggested.emit(suggested_speeds, suggested_authorities) #Dict, Dict
 
     def send_exit_blocks(self, exit_blocks):
