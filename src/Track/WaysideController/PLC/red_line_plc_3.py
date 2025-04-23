@@ -36,5 +36,11 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
 
     :returns switch_positions, light_signals, light_signals crossing_signals, previous_occupancies:
     """
+    # For Wayside #2
+    # HAS 26 Blocks in its Territory
+    # Sections: H[0,1) I[1,4) J[4,10) K[10,13) L[13,16) M[16,19) N[19,22) O[22,23) P[23,26)
+    # Has 1 Switch J52:(52 - 53, 52 - 66)
+    # Has 3 Lights J53, N66, O67
+    # Has 1 Crossing I47
 
     return switch_positions, light_signals, crossing_signals, clamps
