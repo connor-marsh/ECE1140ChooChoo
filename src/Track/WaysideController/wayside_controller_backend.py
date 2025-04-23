@@ -50,7 +50,7 @@ class WaysideController(QObject):
         self.clamps = [False] * block_count # a list of blocks that should have their authority clamped by the plc
         self.program = None # python file uploaded by programmer
 
-        Signals.communication.ctc_suggested.connect(self.handle_suggested_values) # connect signals
+        Signals.communication.ctc_suggested[self.collection.LINE_NAME].connect(self.handle_suggested_values) # connect signals
         self.global_clock = global_clock.clock
         self.timer = QTimer() # initialize update timer
         self.timer.setInterval(self.global_clock.wayside_dt)
@@ -83,8 +83,8 @@ class WaysideController(QObject):
                         self.commanded_authorities[i] = None
                         self.to_send_authorities[blocks[i].id] = None
                                         
-                Signals.communication.wayside_block_occupancies.emit(self.to_send_occupancies)
-                Signals.communication.wayside_plc_outputs.emit(blocks,self.switch_positions,self.light_signals,self.crossing_signals)
+                Signals.communication.wayside_block_occupancies.emit(self.to_send_occupancies, self.collection.LINE_NAME)
+                Signals.communication.wayside_plc_outputs.emit(blocks,self.switch_positions,self.light_signals,self.crossing_signals, self.collection.LINE_NAME)
 
                 self.collection.track_model.update_from_plc_outputs(sorted_blocks=blocks,
                                                                     switch_states=self.switch_positions,light_states=self.light_signals,

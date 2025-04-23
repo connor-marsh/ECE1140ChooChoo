@@ -10,17 +10,29 @@ from PyQt5.QtCore import pyqtSignal, QObject
 
 
 class Signals(QObject):
-    ctc_switch_maintenance = pyqtSignal(str, bool) 
-    ctc_exit_blocks = pyqtSignal(list)
-    ctc_dispatch = pyqtSignal()
-    ctc_block_maintenance = pyqtSignal(str, bool)
-    ctc_suggested = pyqtSignal(dict,dict)
+    ctc_switch_maintenance = { 'Green' : pyqtSignal(str, bool),
+                                'Red'  : pyqtSignal(str, bool)}
+    
+    ctc_exit_blocks = {'Green' : pyqtSignal(list),
+                       'Red'   : pyqtSignal(list)}
+    
+    
+    ctc_dispatch = {'Green' : pyqtSignal(),
+                    'Red'   : pyqtSignal()}
+    
+    
+    ctc_block_maintenance = {'Green' : pyqtSignal(str, bool),
+                             'Red'   : pyqtSignal(str, bool)}
+    
+    
+    ctc_suggested = {'Green' : pyqtSignal(dict, dict),
+                     'Red'   : pyqtSignal(dict, dict)}
 
 
-    wayside_block_occupancies = pyqtSignal(dict)
-    wayside_plc_outputs = pyqtSignal(list,list,list,list)
+    wayside_block_occupancies = pyqtSignal(dict, str)
+    wayside_plc_outputs = pyqtSignal(list,list,list,list, str)
 
-    track_tickets = pyqtSignal(int)
+    track_tickets = pyqtSignal(int, str)
 
     def __init__(self):
         super().__init__()

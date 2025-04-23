@@ -219,7 +219,7 @@ class Train:
                     })
 
                     # Emit ticket sales to CTC via signal
-                    signals.communication.track_tickets.emit(self.track_model.station_ticket_sales[station_id])
+                    signals.communication.track_tickets.emit(self.track_model.station_ticket_sales[station_id], self.track_model.name)
 
                     # Log for frontend runtime display
                     self.track_model.runtime_status.setdefault(station_id, {})

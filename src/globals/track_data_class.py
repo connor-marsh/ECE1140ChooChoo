@@ -239,9 +239,6 @@ def init():
     global lines 
     lines = {}
     line = TrackData("src/Track/TrackModel/GreenLine_Layout.xlsx")
-    line2 = TrackData("src/Track/TrackModel/redline_layout.xlsx")
     lines[line.line_name] = line
-    lines[line2.line_name] = line2
-
 if __name__ == "__main__":
     init()
