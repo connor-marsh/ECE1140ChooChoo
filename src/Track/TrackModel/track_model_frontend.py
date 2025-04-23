@@ -321,6 +321,7 @@ class TrackMapCanvas(QGraphicsView):
 
         self.update_block_colors()
         self.add_infrastructure_icons()
+        self.train_icons.clear()
 
     # Allows interaction with physical map
     def mousePressEvent(self, event):
@@ -456,10 +457,13 @@ class TrackMapCanvas(QGraphicsView):
 
             self.train_icons[train_id].setPos(x, y)
 
+        # Remove all existing train icons safely if not in train_data
         for tid in list(self.train_icons.keys()):
-            if tid not in current_ids:
-                self.scene.removeItem(self.train_icons[tid])
+            icon = self.train_icons.get(tid)
+            if tid not in current_ids and icon is not None and not icon.scene() is None:
+                self.scene.removeItem(icon)
                 del self.train_icons[tid]
+
 
 ###############################################################################
 # Dynamic Infrastructure Display Class
@@ -582,6 +586,13 @@ class TrackModelFrontEnd(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        self.track_models = {}
+        self.current_line_name = None
+
+        self.wayside_integrated = wayside_integrated
+        self.initialize_models()
+
+
         self.global_clock = global_clock.clock
         self.ui.simulation_value.setText(str(self.global_clock.time_multiplier))
 
@@ -613,10 +624,10 @@ class TrackModelFrontEnd(QMainWindow):
 
         # Set up backend based on initial selection
         selected_text = self.ui.track_line_selected.currentText()
-        self.setup_line(selected_text, wayside_integrated)
+        self.setup_line(selected_text)
 
         # Hook combobox for changing track lines
-        self.ui.track_line_selected.currentTextChanged.connect(lambda text: self.setup_line(text, wayside_integrated))
+        self.ui.track_line_selected.currentTextChanged.connect(self.setup_line)
 
         # Other button hooks
         self.ui.import_track_layout_button.clicked.connect(lambda: self.map_canvas.load_from_backend(self.current_line, self.layout_data))
@@ -639,48 +650,46 @@ class TrackModelFrontEnd(QMainWindow):
         self.timer.timeout.connect(self.update)
         self.timer.start(500)
 
-    def setup_line(self, selected_text, wayside_integrated=True):
+    def setup_line(self, selected_text):
         if selected_text == "Green Line":
-            self.current_line = TrackModel("Green", wayside_integrated=wayside_integrated)
-            self.layout_data = HARDCODED_LAYOUT_GREEN
+            line_key = "Green"
+            layout = HARDCODED_LAYOUT_GREEN
         elif selected_text == "Red Line":
-            self.current_line = TrackModel("Red", wayside_integrated=wayside_integrated)
-            self.layout_data = HARDCODED_LAYOUT_RED
+            line_key = "Red"
+            layout = HARDCODED_LAYOUT_RED
         else:
             raise ValueError(f"Unknown line selected: {selected_text}")
 
-        # ✨ Here's the upgrade: clear only blocks/icons but keep zoom level and position!
-        self.map_canvas.block_items.clear()
-        self.map_canvas.block_lookup.clear()
-        self.map_canvas.scene.clear()
+        # Hide previous model's wayside UI if switching
+        if self.current_line_name and self.current_line_name != line_key:
+            prev_model = self.track_models[self.current_line_name]
+            if hasattr(prev_model.wayside_collection, 'frontend'):
+                prev_model.wayside_collection.frontend.hide()
 
-        # Re-draw blocks
-        for label, x, y, w, h in self.layout_data:
-            w = max(8, w)
-            h = max(8, h)
-            rect = QGraphicsRectItem(QRectF(self.map_canvas.offset_x + x, y, w, h))
-            rect.setBrush(QBrush(QColor("gray")))
-            rect.setPen(QPen(Qt.black, 0.5))
-            rect.setFlag(QGraphicsRectItem.ItemIsSelectable)
-            self.map_canvas.scene.addItem(rect)
-            self.map_canvas.block_items[label] = rect
-            self.map_canvas.block_lookup[rect] = label
+        # Activate the new model
+        self.current_line = self.track_models[line_key]
+        self.current_line_name = line_key
 
-        # Update backend pointer
-        self.map_canvas.backend = self.current_line
+        # Show current line’s wayside UI
+        if hasattr(self.current_line.wayside_collection, 'frontend'):
+            self.current_line.wayside_collection.frontend.show()
 
-        # Update infrastructure icons
-        self.map_canvas.add_infrastructure_icons()
+        self.layout_data = layout
+        self.map_canvas.load_from_backend(self.current_line, layout)
 
-        # Rebuild combobox
         self.block_number_to_id = {}
         self.block_id_to_number = {}
-        for idx, (block_id, *_rest) in enumerate(self.layout_data, start=1):
+        for idx, (block_id, *_rest) in enumerate(layout, start=1):
             self.block_number_to_id[str(idx)] = block_id
             self.block_id_to_number[block_id] = str(idx)
 
-        self.populate_block_combobox(self.layout_data)
+        self.populate_block_combobox(layout)
 
+
+    def initialize_models(self):
+        from globals.track_data_class import lines
+        for line_name in lines:
+            self.track_models[line_name] = TrackModel(line_name, self.wayside_integrated)
 
     def update(self):
         try:
