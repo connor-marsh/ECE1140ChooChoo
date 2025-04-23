@@ -7,6 +7,7 @@ from Track.TrackModel.track_model_enums import Occupancy
 from Track.TrackModel.track_model_enums import Failures
 import globals.global_clock as global_clock
 import globals.track_data_class as track_data_class
+import globals.signals as signals
 
 import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -596,8 +597,8 @@ class TrackModelFrontEnd(QMainWindow):
         self.global_clock = global_clock.clock
         self.ui.simulation_value.setText(str(self.global_clock.time_multiplier))
 
-        self.outside_temp = 70.0
-        self.track_heater_status = False
+        signals.communication_track.track_temperature.connect(self.update_temperature_display)
+        self.ui.track_temperature_value.editingFinished.connect(self.handle_temperature_input)
 
         # Create canvas and infrastructure displays
         self.map_canvas = TrackMapCanvas(self.ui.track_map_display)
@@ -726,6 +727,12 @@ class TrackModelFrontEnd(QMainWindow):
         else:
             print(f"[WARNING] No block number found for block_id: {block_id}")
 
+        # Update frontend display if selected block is shown
+        block_id = self.ui.block_selected_value.text()
+        if block_id:
+            self.display_block_info(block_id)
+
+
 
         self.map_canvas.update_block_colors()
 
@@ -743,8 +750,10 @@ class TrackModelFrontEnd(QMainWindow):
 
         occ = self.current_line.dynamic_track.occupancies.get(block_id, Occupancy.UNOCCUPIED)
         fail = self.current_line.dynamic_track.failures.get(block_id, Failures.NONE)
-        heater = self.track_heater_status
-        temp = self.outside_temp
+        temp = self.current_line.temperature
+        heater = self.current_line.heater_status.get(block_id, False)
+
+
 
         self.ui.block_selected_value.setText(str(block_id))
         self.ui.block_length_value.setText(f"{float(block.length):.2f}")
@@ -1035,6 +1044,7 @@ class TrackModelFrontEnd(QMainWindow):
         else:
             print(f"[TRAIN CLICKED] Train {train_id} not found.")
 
+    # Allow excel files to be upload for new tracks
     def import_new_track_layout(self):
         from openpyxl import load_workbook
 
@@ -1073,6 +1083,39 @@ class TrackModelFrontEnd(QMainWindow):
 
         except Exception as e:
             QMessageBox.critical(self, "Import Error", f"Track layout import failed:\n{e}")
+
+    # Temperature input handler
+    def handle_temperature_input(self):
+        try:
+            # Get input from QLineEdit and clamp to valid range
+            temp = float(self.ui.track_temperature_value.text())
+            temp = max(min(temp, 140.0), -140.0)
+            self.current_line.set_temperature(temp)
+        except ValueError:
+            # Fallback for invalid input
+            fallback_temp = 35.0
+            self.ui.track_temperature_value.setText(f"{fallback_temp:.1f}")
+            self.current_line.set_temperature(fallback_temp)
+
+
+    def update_temperature_display(self, new_temp, line_name):
+        if line_name != self.current_line_name:
+            return
+
+        self.ui.track_temperature_value.setText(f"{new_temp:.1f}")
+
+        heater_on = any(
+            self.current_line.heater_status.get(block.id, False)
+            for block in self.current_line.track_data.blocks
+        )
+        self.ui.track_heater_value.setText("Enabled" if heater_on else "Disabled")
+
+        # Force UI panel update for selected block
+        selected = self.ui.block_selected_value.text()
+        if selected:
+            self.display_block_info(selected)
+
+
 
 
 
