@@ -260,6 +260,13 @@ ICON_PATHS = {
     "railway_crossing": os.path.join(BASE_DIR, "Resources/railway_crossing_icon.png")
 }
 
+ICON_PATHS.update({
+    "failure_track": os.path.join(BASE_DIR, "Resources/track_circuit_failure_icon.png"),
+    "failure_rail": os.path.join(BASE_DIR, "Resources/broken_rail_icon.png"),
+    "failure_power": os.path.join(BASE_DIR, "Resources/power_failure_icon.png")
+})
+
+
 class TrackMapCanvas(QGraphicsView):
     blockClicked = pyqtSignal(str)
     iconClicked = pyqtSignal(str, str)  # (icon_type, block_id)
@@ -346,15 +353,64 @@ class TrackMapCanvas(QGraphicsView):
     def update_block_colors(self):
         if not self.backend:
             return
+
+        # Update block colors based on occupancy and general failure presence
         for block_id, item in self.block_items.items():
             occ = self.backend.dynamic_track.occupancies.get(block_id, Occupancy.UNOCCUPIED)
             fail = self.backend.dynamic_track.failures.get(block_id, Failures.NONE)
+
             if fail != Failures.NONE:
                 item.setBrush(QBrush(QColor("yellow")))
             elif occ == Occupancy.OCCUPIED:
                 item.setBrush(QBrush(QColor("green")))
             else:
                 item.setBrush(QBrush(QColor("gray")))
+
+        # --- Failure Icon Handling ---
+
+        # Clear existing failure icons
+        for item in self.infrastructure_icons[:]:
+            try:
+                if item is None or item.scene() is None:
+                    self.infrastructure_icons.remove(item)
+                    continue
+                if item.data(0) in ("failure_track", "failure_rail", "failure_power"):
+                    self.scene.removeItem(item)
+                    self.infrastructure_icons.remove(item)
+            except RuntimeError:
+                if item in self.infrastructure_icons:
+                    self.infrastructure_icons.remove(item)
+                continue
+
+
+        # Add new failure icons
+        for block_id, failure in self.backend.dynamic_track.failures.items():
+            if failure == Failures.NONE:
+                continue
+
+            rect = self.block_items.get(block_id)
+            if not rect:
+                continue
+
+            rect_pos = rect.sceneBoundingRect()
+            x, y = rect_pos.x(), rect_pos.y()
+
+            icon_type = {
+                Failures.TRACK_CIRCUIT_FAILURE: "failure_track",
+                Failures.BROKEN_RAIL_FAILURE: "failure_rail",
+                Failures.POWER_FAILURE: "failure_power"
+            }.get(failure)
+
+            if icon_type:
+                pixmap = QPixmap(ICON_PATHS[icon_type]).scaled(14, 14, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                icon = QGraphicsPixmapItem(pixmap)
+                icon.setZValue(9)  # Ensure it overlays above blocks
+                icon.setData(0, icon_type)
+                icon.setData(1, block_id)
+                icon.setPos(x + 2, y + 2)
+                self.scene.addItem(icon)
+                self.infrastructure_icons.append(icon)
+
 
     def add_infrastructure_icons(self):
         self.infrastructure_icons.clear()
@@ -655,6 +711,20 @@ class TrackModelFrontEnd(QMainWindow):
             for (block_id, x, y, *_rest) in self.layout_data
         }
 
+        # Set key icons for the map legend
+        self.ui.train_icon.setPixmap(QPixmap(ICON_PATHS["train"]).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.ui.station_icon.setPixmap(QPixmap(ICON_PATHS["station"]).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.ui.switch_icon.setPixmap(QPixmap(ICON_PATHS["switch"]).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.ui.traffic_signal_icon.setPixmap(QPixmap(ICON_PATHS["traffic_light"]).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.ui.railway_crossing_icon.setPixmap(QPixmap(ICON_PATHS["railway_crossing"]).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+        self.ui.maintenance_icon.setPixmap(QPixmap(os.path.join(BASE_DIR, "Resources/maintenance_icon.png")).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+        self.ui.track_circuit_failure_icon.setPixmap(QPixmap(ICON_PATHS["failure_track"]).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.ui.broken_rail_failure_icon.setPixmap(QPixmap(ICON_PATHS["failure_rail"]).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.ui.power_failure_icon.setPixmap(QPixmap(ICON_PATHS["failure_power"]).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+
 
     def setup_line(self, selected_text):
         line_key = selected_text.strip().replace(" Line", "")
@@ -720,7 +790,6 @@ class TrackModelFrontEnd(QMainWindow):
 
     # Displays the current block selected
     def on_block_selected(self, block_id):
-        print(f"[DEBUG] Looking for block_number of {block_id} -> {self.block_id_to_number.get(block_id)}")
         self.display_block_info(block_id)
         block_number = self.block_id_to_number.get(block_id)
         if block_number:
@@ -825,14 +894,11 @@ class TrackModelFrontEnd(QMainWindow):
             return
 
         self.current_line.dynamic_track.failures[block_id] = new_val
-        print(f"[FAILURE TOGGLE] {block_id}: {kind} → {new_val}")
 
         self.map_canvas.update_block_colors()
 
 
     def reset_failures(self):
-        print("[RESET] Clearing all failures...")
-
         # Clear all failures in backend
         for block_id in self.current_line.dynamic_track.failures:
             self.current_line.dynamic_track.failures[block_id] = Failures.NONE
