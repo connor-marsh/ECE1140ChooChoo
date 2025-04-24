@@ -122,7 +122,7 @@ class TrainController(QMainWindow):
         commanded_power_1 = (self.Kp * self.error) + (self.Ki * self.integral_error)
         commanded_power_2 = (self.Kp * self.error) + (self.Ki * self.integral_error)
         commanded_power_3 = (self.Kp * self.error) + (self.Ki * self.integral_error)
-        if (commanded_power_1 == commanded_power_2 and commanded_power_1 == commanded_power_3 and commanded_power_2 == commanded_power_3):
+        if (commanded_power_1 == commanded_power_2 and commanded_power_1 == commanded_power_3):
             self.unramped_commanded_power = commanded_power_1
         else:
             self.commanded_power = 0

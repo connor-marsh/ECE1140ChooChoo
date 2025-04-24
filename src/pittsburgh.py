@@ -56,7 +56,7 @@ if __name__=="__main__":
         ctc_frontend = CtcFrontEnd(ctc_backend)
         ctc_frontend.show()
         
-    elif running_module == "CtcWayside":
+    elif running_module == "CTCWayside":
         ctc_backend = CtcBackEnd()
         ctc_frontend = CtcFrontEnd(ctc_backend)
         ctc_frontend.show()
