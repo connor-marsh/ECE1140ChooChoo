@@ -423,10 +423,16 @@ class CtcFrontEnd(QMainWindow):
 
     def dispatch_pressed(self):
         # Check if creating new train or rerouting existing train
+        ETA_time = "0:0"
         if self.ctc_ui.sub_dispatch_overide_new_radio.isChecked():
             createNewTrain = True
             train_num = None
-            dispatch_time = 0
+            dispatch_hr = int(self.ctc_ui.sub_dispatch_ETA_hr.value())
+            if dispatch_hr > 12: # convert to 12 hour format
+                dispatch_hr = dispatch_hr - 12
+            dispatch_hr = str(dispatch_hr)
+            dispatch_min = str(self.ctc_ui.sub_dispatch_ETA_min.value())
+            ETA_time = dispatch_hr + ":" + dispatch_min
         elif self.ctc_ui.sub_dispatch_overide_active_radio.isChecked():
             #existing train needs to be rerouted | not implemented yet
             createNewTrain = False
@@ -439,11 +445,11 @@ class CtcFrontEnd(QMainWindow):
         if self.ctc_ui.sub_dispatch_station_select_radio.isChecked():
             #dispatch to station
             destination_station = self.ctc_ui.sub_station_combo.currentText() #CHANGED FROM INDEX
-            self.backend.dispatch_handler(destination_station, 'station', new_train=createNewTrain, selected_train = train_num)
+            self.backend.dispatch_handler(destination_station, 'station', new_train=createNewTrain, selected_train = train_num, dispatch_time = ETA_time)
         elif self.ctc_ui.sub_dispatch_block_select_radio.isChecked():
             #dispatch to block
             destination_block = self.ctc_ui.sub_block_number_combo.currentText()
-            self.backend.dispatch_handler(destination_block, 'block', new_train=createNewTrain, selected_train = train_num)
+            self.backend.dispatch_handler(destination_block, 'block', new_train=createNewTrain, selected_train = train_num, dispatch_time = ETA_time)
         elif self.ctc_ui.sub_dispatch_train_table.selectedItems():
             #dispatch to selected route
             selected_item = self.ctc_ui.sub_dispatch_train_table.selectedItems()[0]
@@ -453,7 +459,7 @@ class CtcFrontEnd(QMainWindow):
             if route_name_item:
                 route_name = route_name_item.text()
                 #print("Dispatching to route:", route_name)
-                self.backend.dispatch_handler(route_name, 'route', new_train=createNewTrain, selected_train = train_num) 
+                self.backend.dispatch_handler(route_name, 'route', new_train=createNewTrain, selected_train = train_num, dispatch_time = ETA_time) 
 
     #maintenance page - Change to send data to backend - UPDATE NEEDED, TRACK CLASS CHANGED
     def start_maintenance(self):
