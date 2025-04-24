@@ -77,6 +77,7 @@ class TrainController(QMainWindow):
         # For Dwelling
         self.stopping = False
         self.dwell = False
+        self.just_stopped_at_station = False
 
         self.global_clock = global_clock.clock
 
@@ -114,6 +115,7 @@ class TrainController(QMainWindow):
         # Calculate distance within the block
         distance_within_block = self.position - self.block_distance_traveled
         if distance_within_block > self.current_block.length:
+            self.just_stopped_at_station = False
             self.block_distance_traveled += self.current_block.length
             if self.current_block.switch and not self.previous_switch_exit:
                 self.previous_switch_exit = True
@@ -166,11 +168,12 @@ class TrainController(QMainWindow):
         # print(self.current_block.id)
         # print(self.current_block.station)
         
-        # Extract station information from the track data
-        station = self.track_data.stations.get(self.current_block.id, None)
-        
-        if (self.wayside_authority > 300 and self.previous_authority < 300 and self.current_block.station and not self.dwell):
+        if (self.wayside_authority < self.current_block.length and self.current_block.station and not self.just_stopped_at_station):
+            self.just_stopped_at_station = True
             print("Stopping at station...")
+
+            # Extract station information from the track data
+            station = self.track_data.stations.get(self.current_block.id, None)
 
             # set the next station announcement based on station information
             if station:
