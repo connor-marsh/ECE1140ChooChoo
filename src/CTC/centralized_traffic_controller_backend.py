@@ -37,6 +37,7 @@ class CtcBackEnd(QObject):
         self.line_index = 0 # 0 for green, 1 for red
 
         self.train_queue = []
+        self.timed_train_queue = []
 
         self.wall_clock = global_clock.clock
 
@@ -63,8 +64,10 @@ class CtcBackEnd(QObject):
         if self.wall_clock.minute != self.last_minute:
             self.elapsed_mins += 1
             self.last_minute = self.wall_clock.minute
+        self.timed_train_queue_handler()
         self.dispatch_queue_handler()  
         self.active_train_handler()
+        
 
         #Alternate updated line each tick
         if self.updating_line == "Green":
@@ -90,9 +93,9 @@ class CtcBackEnd(QObject):
             stations = row[1:].dropna().tolist()
 
             # Check if the route name already exists in the routes dictionary
-            if route_name not in self.lines[self.updating_line].routes:
-                self.lines[self.updating_line].routes[route_name] = []  # Initialize an empty list for new routes
-            self.lines[self.updating_line].routes[route_name].extend(stations)
+            if route_name not in self.active_line.routes:
+                self.active_line.routes[route_name] = []  # Initialize an empty list for new routes
+            self.active_line.routes[route_name].extend(stations)
 
             #print(f"{route_name}: {', '.join(stations[0])}")
 
@@ -283,10 +286,12 @@ class CtcBackEnd(QObject):
             if self.updating_line == "Red":
                 if train.current_block == "B5":
                     if train.get_next_stop() == 77:
+
                         train.exit_blocks =[[True, False, False], [False, False, False, False], [False, False]]
                     else:
                         train.exit_blocks =[[False, False, False], [False, False, False, False], [False, False]]
                     self.send_exit_blocks(train.exit_blocks)
+
 
         self.lines[self.updating_line].occupancy_change = False
                     
@@ -308,7 +313,7 @@ class CtcBackEnd(QObject):
             #print("Entrance Blocks Occupied")
             return False
 
-    def dispatch_handler(self, destination, destination_type, new_train=True, selected_train=None):
+    def dispatch_handler(self, destination, destination_type, new_train=True, selected_train=None, dispatch_time ="0:0"):
         #Train dispatch handler | called by front end
         full_route = []
         if destination_type == 'station':
@@ -323,8 +328,10 @@ class CtcBackEnd(QObject):
             
         elif destination_type == 'route':
             #Dispatch on a route
-            for stations in self.lines[self.updating_line].routes[destination]:
-                next_block = (self.lines[self.updating_line].STATIONS_BLOCKS[stations])
+            route_stations = (self.active_line.routes[destination])
+            for stations in self.active_line.routes[destination]:
+                print("Train destination route: ", route_stations)
+                next_block = (self.active_line.STATIONS_BLOCKS[stations])
                 #print("Station ", stations, "Block ", next_block)
                 full_route.append(next_block)
                 #print("Full route: ", full_route)
@@ -332,11 +339,17 @@ class CtcBackEnd(QObject):
                 last_block = next_block #Update last block to current block
                 
             #print("Full route: ", full_route)
-        if new_train:
+        if new_train and dispatch_time == "0:0":
             new_train = DummyTrain(self.active_line.train_ID_count, self.active_line.name, full_route, "auto", self.active_line.ENTRANCE_BLOCK.id)
             self.active_line.train_ID_count += 1
             #print("Adding train to queue in Line: ", self.active_line.name)
             self.train_queue.append(new_train) 
+        elif new_train and dispatch_time != "0:0":
+            new_train = DummyTrain(self.active_line.train_ID_count, self.active_line.name, full_route, "auto", self.active_line.ENTRANCE_BLOCK.id)
+            new_train.dispatch_time = dispatch_time
+            self.active_line.train_ID_count += 1
+            print("Adding train to timed queue: dispatch at ", dispatch_time)
+            self.timed_train_queue.append(new_train) 
         else:
             if selected_train == None:
                 print("ERROR! Invalid Train Selection")
@@ -349,6 +362,15 @@ class CtcBackEnd(QObject):
                     speed, auth = self.get_suggestion_values(train, next_stop_override=full_route[0])
                     self.send_suggestions(speed, auth)
         #print("Train Entered into Queue")
+
+    def timed_train_queue_handler(self):
+        for train in self.timed_train_queue:
+            current_time = str(self.wall_clock.hour) + ":" + str(self.wall_clock.minute)
+            print("Current Time: ", current_time, "Dispatch Time: ", train.dispatch_time)
+            if current_time == train.dispatch_time:
+                print("Dispatching train at: ", train.dispatch_time)
+                self.train_queue.append(train)
+                self.timed_train_queue.remove(train)
 
     def dispatch_queue_handler(self):
         # Handles train queue | called by update function
@@ -576,6 +598,7 @@ class DummyTrain:
         self.exit_blocks = None
         self.no_obstacles = True
         self.previous_stop = self.current_block
+        self.dispatch_time = None
 
         self.received_first_auth = False
         self.received_penultimate_block_auth = False
