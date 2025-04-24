@@ -1,3 +1,9 @@
+"""
+Author: PJ Granieri
+Date: 04-24-2025
+Description:
+"""
+
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsRectItem, QMainWindow, QGraphicsPixmapItem, QVBoxLayout, QFileDialog, QMessageBox
 from PyQt5.QtGui import QBrush, QPen, QColor, QPainter, QPixmap
 from PyQt5.QtCore import Qt, QRectF, QTimer, pyqtSignal
@@ -787,6 +793,11 @@ class TrackModelFrontEnd(QMainWindow):
             simUpdateSpeed = self.global_clock.time_multiplier
         if simUpdateSpeed >= 1 and simUpdateSpeed <= self.global_clock.MAX_MULTIPLIER:
             self.global_clock.time_multiplier = simUpdateSpeed
+
+        # Update the global clock display
+        self.ui.clock_display_value.display(self.global_clock.text)
+        self.ui.clock_am_display.setText(self.global_clock.am_pm)
+
 
     # Displays the current block selected
     def on_block_selected(self, block_id):
