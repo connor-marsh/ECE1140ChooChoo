@@ -962,7 +962,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.multiPageWidget.setCurrentIndex(2)
+        self.multiPageWidget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -1061,7 +1061,7 @@ class Ui_MainWindow(object):
 
         self.sub_station_combo.setCurrentText("")
         self.sub_station_combo.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Station", None))
-        self.label_6.setText(QCoreApplication.translate("MainWindow", u"Suggested ETA:", None))
+        self.label_6.setText(QCoreApplication.translate("MainWindow", u"Suggested Dispatch Time:", None))
         self.sub_dispatch_confirm_button.setText(QCoreApplication.translate("MainWindow", u"Dispatch Train", None))
         self.sub_return_button2.setText(QCoreApplication.translate("MainWindow", u"<- Back", None))
         self.label_18.setText(QCoreApplication.translate("MainWindow", u"Select Train", None))
@@ -1087,6 +1087,5 @@ class Ui_MainWindow(object):
         self.sub_activate_maintenance_button.setText(QCoreApplication.translate("MainWindow", u"Start Maintenance", None))
         self.sub_end_maintenance_button.setText(QCoreApplication.translate("MainWindow", u"End Maintenance", None))
     # retranslateUi
-
 
 
