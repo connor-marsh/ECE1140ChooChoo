@@ -187,10 +187,10 @@ class CtcBackEnd(QObject):
 
                     #Check if train is at jump block
                     if jump_key in self.lines[self.updating_line].JUMP_BLOCKS:
-                        print("====JUMPING FROM ", jump_key)
+                        # print("====JUMPING FROM ", jump_key)
                         next_block, new_dir = self.lines[self.updating_line].JUMP_BLOCKS[jump_key]
                         train.direction = new_dir
-                        print("====JUMPING TO ", next_block, "Direction: ", train.direction)
+                        # print("====JUMPING TO ", next_block, "Direction: ", train.direction)
                         return self.lines[self.updating_line].blocks[next_block - 1].id
                     
                     #if moving in decreasing direction
