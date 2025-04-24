@@ -25,17 +25,8 @@ Navigate in that powershell to this github repositories cloned location, then ru
 
 Now activate that environment with `conda activate TeamChooChoo`
 
-Now you are ready to run the code. All the program files are within the ***src*** folder. The main program file is ***pittsburgh.py***
-
-#### Running Project
-To run our project, simply run ***pittsburgh.py*** from the repository root with `python3 src/pittsburgh.py`.
-
-#### Running modules
-To run an individual module, or smaller combination of modules and testbenches, you have to pass that as a command line argument like `python3 src/pittsburgh.py TrainModel`.
-
-To run the fully integrated system, pass command line argument: "all" (default, runs all modules but only starts with green line uploaded) or "allOnRed" (runs all modules but also starts with both green and red lines uploaded)  
-To run individual modules with their testbenches, pass command line argument: "CTC", "WaysideController", "TrackModel", "TrainModel", "TrainController" or "TrainControllerHW" (requires hardware to be setup and connected)  
-To run specific combinations of modules, pass argument: "CTCWayside" (runs just those two modules and tests their comms), "TrackWayside" (Fully integrated system but with no CTC) or "Train" (Train model and train controller integrated, testbench to get values from track model)
+Now you are ready to run the code. All the program files are within the ***src*** folder. The main program file is ***pittsburgh.py***.  
+See the **Starting the Simulation** Section to see how to run the code.
 
 ### Adding packages
 To add a new package, run this command:
@@ -64,8 +55,17 @@ After this, the hardware setup should be compete. To confirm that you have prope
 
 ## Usage
 ### Starting the Simulation
+To run our fully integrated simulation, simply run ***pittsburgh.py*** from the repository root with `python3 src/pittsburgh.py`.
 
-### Dispatching a Train
+#### Running modules
+To run an individual module, or smaller combination of modules and testbenches, you have to pass that as a command line argument like `python3 src/pittsburgh.py TrainModel`.
+
+##### Run the fully integrated system
+Command line argument: "all" (default, runs all modules but only starts with green line uploaded) or "allOnRed" (runs all modules but also starts with both green and red lines uploaded)  
+##### Run individual modules with their testbenches
+Command line argument: "CTC", "WaysideController", "TrackModel", "TrainModel", "TrainController" or "TrainControllerHW" (requires hardware to be setup and connected)  
+##### Run specific combinations of modules
+Command line argument: "CTCWayside" (runs just those two modules and tests their comms), "TrackWayside" (Fully integrated system but with no CTC) or "Train" (Train model and train controller integrated, testbench to get values from track model)
 
 ## UI Descriptions
 ### CTC UI
