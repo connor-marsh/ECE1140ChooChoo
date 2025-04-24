@@ -370,18 +370,11 @@ class WaysideControllerTestbench(QMainWindow):
         self.first_open = True # Used to check to see if the testbench has been open before
         self.block_range = self.collection.BLOCK_RANGES[idx] # this never changes
 
-        # Uncomment this loop to correspond the range to the relative index (writing plc programs)
-        #print(self.controller_index)
-        #relative_index = 0
-        #for absolute_index in range(*self.block_range):
-        #    print(self.collection.blocks[absolute_index].id, absolute_index, relative_index, relative_index + 1)
-        #    relative_index += 1
+        
 
 
         # Used for storing the values input by the user
         self.block_occupancies =     [None] * self.collection.BLOCK_COUNTS[idx]
-        self.suggested_authorities = [None] * self.collection.BLOCK_COUNTS[idx] 
-        self.suggested_speeds =      [None] * self.collection.BLOCK_COUNTS[idx]
         self.switch_positions =      [None] * self.collection.BLOCK_COUNTS[idx]
         self.light_signals =         [None] * self.collection.BLOCK_COUNTS[idx]
         self.crossing_signals =      [None] * self.collection.BLOCK_COUNTS[idx]
@@ -389,8 +382,6 @@ class WaysideControllerTestbench(QMainWindow):
         # Connecting the list signals to the slot
         self.ui.select_block_list.itemClicked.connect(self.handle_block_selection) 
         self.ui.block_occupancy_confirm_button.clicked.connect(self.handle_occupancy_confirmation)
-        self.ui.suggested_speed_confirm_button.clicked.connect(self.handle_speed_confirmation)
-        self.ui.suggested_authority_confirm_button.clicked.connect(self.handle_authority_confirmation)
         self.ui.switch_position_confirm_button.clicked.connect(self.handle_switch_confirmation)
         self.ui.light_signal_confirm_button.clicked.connect(self.handle_light_confirmation)
         self.ui.crossing_signal_confirm_button.clicked.connect(self.handle_crossing_confirmation)
@@ -410,15 +401,7 @@ class WaysideControllerTestbench(QMainWindow):
             else:
                 self.ui.block_occupancy_combo_box.setCurrentIndex(-1) # Set to the default no option selected
 
-            if self.suggested_speeds[self.current_block_index] != None: 
-                self.ui.suggested_speed_line_edit.setText(self.suggested_speeds[self.current_block_index])
-            else:
-                self.ui.suggested_speed_line_edit.clear()
-
-            if self.suggested_authorities[self.current_block_index] != None: 
-               self.ui.suggested_authority_line_edit.setText(self.suggested_authorities[self.current_block_index])
-            else:
-                self.ui.suggested_authority_line_edit.clear()
+           
 
     @pyqtSlot()
     def handle_occupancy_confirmation(self):
@@ -434,26 +417,7 @@ class WaysideControllerTestbench(QMainWindow):
     
             self.block_occupancies[self.current_block_index] = self.ui.block_occupancy_combo_box.currentIndex()
     
-
-
-    @pyqtSlot()
-    def handle_speed_confirmation(self):
-        """
-        Called when the confirmation next to the suggested speed is clicked, writes values directly to corresponding backend controller
-        """
-        if self.current_block_index != None:
-            self.suggested_speeds[self.current_block_index] = self.ui.suggested_speed_line_edit.text()
-            self.collection.controllers[self.controller_index].suggested_speeds[self.current_block_index] = float(self.ui.suggested_speed_line_edit.text())
-
-    @pyqtSlot()
-    def handle_authority_confirmation(self):
-        """
-        Called when the confirmation next to the suggested authority is clicked, writes values directly to corresponding backend controller
-        """
-        if self.current_block_index != None:
-            self.suggested_authorities[self.current_block_index] = self.ui.suggested_authority_line_edit.text()
-            self.collection.controllers[self.controller_index].suggested_authorities[self.current_block_index] = float(self.ui.suggested_authority_line_edit.text())
-    
+       
     @pyqtSlot()
     def handle_switch_confirmation(self):
         """
