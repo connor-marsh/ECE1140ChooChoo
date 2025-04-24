@@ -1195,15 +1195,18 @@ class TrackModelFrontEnd(QMainWindow):
     # Temperature input handler
     def handle_temperature_input(self):
         try:
-            # Get input from QLineEdit and clamp to valid range
             temp = float(self.ui.track_temperature_value.text())
             temp = max(min(temp, 140.0), -140.0)
             self.current_line.set_temperature(temp)
+            self.current_line.update_heaters()  # <-- force heater logic to update immediately
+            self.update_temperature_display(temp, self.current_line_name)  # <-- refresh display
         except ValueError:
-            # Fallback for invalid input
             fallback_temp = 35.0
             self.ui.track_temperature_value.setText(f"{fallback_temp:.1f}")
             self.current_line.set_temperature(fallback_temp)
+            self.current_line.update_heaters()
+            self.update_temperature_display(fallback_temp, self.current_line_name)
+
 
 
     def update_temperature_display(self, new_temp, line_name):
