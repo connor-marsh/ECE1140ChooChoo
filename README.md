@@ -269,8 +269,9 @@ This user interface provides real-time visualization and interaction with a simu
 - Emergency Brake overrides all other controls until the failure is cleared/Train Driver disables it
 
 ### Train Controller SW UI
-
 This user interface provides real-time monitoring and control capabilities for a train controller system. It is organized into distinct sections for intuitive interaction and quick access to critical information.
+
+![Train Controller SW UI](src/Train/TrainController/assets/UI_Screenshot.png)
 
 #### Train Selection
 - **Train ID:** Dropdown menu to select which train to monitor and control.
