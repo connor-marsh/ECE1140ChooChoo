@@ -268,6 +268,8 @@ Also importantly, note that even the HW train module still has a slight software
 The labeling of all the physical buttons, switches, and dials, are shown in this image: ![Hardware Setup](src/Train/TrainController/hardwareUtils/HW_Train_Setup.jpg)
 
 ## Common User Errors
-1. Windows has modules zoomed in by 200%, may tarnish the view of some modules.
-2. hello 2
-3. hello 3
+1. - Windows has modules zoomed in by 200%, may tarnish the view of some modules.
+2. - Not selecting all required dispatching options
+3. - Incorrect schedule/track/PLC file type
+   - Not having "Pittsburgh.py" mode set to "All"
+   
