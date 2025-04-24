@@ -635,6 +635,7 @@ class Track:
         self.occupancy_change = True # Used to refresh trains
 
         self.throughput = 0
+        self.total_tickets = 0
 
         if name == "Green":
             self.ENTRANCE_CHECK = [63, 64, 65] #Entrance blocks for green line
