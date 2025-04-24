@@ -187,10 +187,10 @@ class CtcBackEnd(QObject):
 
                     #Check if train is at jump block
                     if jump_key in self.lines[self.updating_line].JUMP_BLOCKS:
-                        print("====JUMPING FROM ", jump_key)
+                        # print("====JUMPING FROM ", jump_key)
                         next_block, new_dir = self.lines[self.updating_line].JUMP_BLOCKS[jump_key]
                         train.direction = new_dir
-                        print("====JUMPING TO ", next_block, "Direction: ", train.direction)
+                        # print("====JUMPING TO ", next_block, "Direction: ", train.direction)
                         return self.lines[self.updating_line].blocks[next_block - 1].id
                     
                     #if moving in decreasing direction
@@ -209,7 +209,7 @@ class CtcBackEnd(QObject):
                 if block.id == train.next_block and block.occupancy:
                     train.current_block = train.next_block
                     train.next_block = self.get_expected_next_block(train)
-                    print("[CTC DEBUG] Train ID: ", train.train_id, "Current Block: ", train.current_block, "Next Block: ", train.next_block)
+                    # print("[CTC DEBUG] Train ID: ", train.train_id, "Current Block: ", train.current_block, "Next Block: ", train.next_block)
                     #print(train.__dict__)
                     if train.next_block == -1:
                         #print("Train ID: ", train.train_id, "Exiting the line")

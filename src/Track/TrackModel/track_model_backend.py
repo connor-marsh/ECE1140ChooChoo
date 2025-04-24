@@ -121,15 +121,15 @@ class Train:
 
             # Move to new block
             if self.current_block.switch and not self.previous_switch_exit:
-                # print("SWITCH")
                 self.previous_switch_entrance = True
                 self.previous_switch_exit = False
                 switch = self.track_data.switches[self.current_block.id]
                 switchState = self.dynamic_track.switch_states[self.current_block.id]
                 nextBlock = switch.positions[1 if switchState else 0].split("-")[1]
                 self.current_block = self.track_data.blocks[int(nextBlock) - 1]
+                print("SWITCH", switch, switchState, nextBlock, self.current_block.id)
             elif self.current_block.switch_exit and not self.previous_switch_entrance:
-                # print("SWITCH")
+                
                 self.previous_switch_exit = True
                 self.previous_switch_entrance = False
                 switch = self.track_data.switches[self.track_data.switch_exits[self.current_block.id].switch_entrance]
@@ -152,6 +152,7 @@ class Train:
                     print("TRAIN CRASH FROM SWITCH POSITION")
                     print("TRAIN CRASH FROM SWITCH POSITION")
                     print("TRAIN CRASH FROM SWITCH POSITION")
+                print("SWITCH EXIT", switch, switchState, switchBlocks, self.current_block.id)
             else:
                 self.previous_switch_exit = False
                 self.previous_switch_entrance = False
@@ -161,6 +162,7 @@ class Train:
                     self.dynamic_track.occupancies[self.current_block.id] = Occupancy.UNOCCUPIED
                     return
                 self.current_block = self.track_data.blocks[int(self.current_block.id[1:]) + (self.travel_direction * 2 - 1) - 1]
+                print("NORMAL MOVE", self.travel_direction, self.current_block.id)
 
             # broken rail failure check
             if self.dynamic_track.failures.get(self.current_block.id, Failures.NONE) == Failures.BROKEN_RAIL_FAILURE:
@@ -236,7 +238,16 @@ class Train:
                 # print("New section")
                 increasing = self.track_data.sections[self.current_block.id[0]].increasing
                 if increasing == 2:
-                    self.travel_direction = 1 if self.current_block.id[0] > self.current_section else 0
+                    # Hard code red line directions cause they dont follow the rules
+                    if self.track_data.line_name == "Red":
+                        if self.current_block.id == "A1":
+                            self.travel_direction = 1
+                        elif self.previous_block == "O67" or self.previous_block == "R72":
+                            self.travel_direction = 1
+                        else:
+                            self.travel_direction = 1 if self.current_block.id[0] > self.current_section else 0
+                    else:
+                        self.travel_direction = 1 if self.current_block.id[0] > self.current_section else 0
                 else:
                     self.travel_direction = increasing
                 self.current_section = self.current_block.id[0]
