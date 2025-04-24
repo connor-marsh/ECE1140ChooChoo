@@ -183,9 +183,9 @@ class CtcBackEnd(QObject):
                     if train.line == "Red":
                         if jump_key == (52, 1):
                             return self.lines[self.updating_line].blocks[int(block.id[1:])].id
-                        if jump_key == (9,77):
+                        if jump_key == (9,1):
                             if train.get_next_stop() != 77:
-                                return self.lines[self.updating_line].blocks[int(block.id[1:])].id
+                                return self.lines[self.updating_line].blocks[9].id
 
 
 
