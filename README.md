@@ -71,6 +71,7 @@ Command line argument: "CTCWayside" (runs just those two modules and tests their
 
 ## UI Descriptions
 ### CTC UI
+![Main CTC Window](src/CTC/assets/CTC_Main_Screen.PNG)
 The Centralized Traffic Control (CTC) user interface is organized into three main sections and four functional subsections. Upon launch, the interface defaults to displaying the Green Line on the main screen.
 #### Top Bar Features:
 - Active Train Counter – Displays the number of currently active trains.
@@ -84,17 +85,20 @@ The Centralized Traffic Control (CTC) user interface is organized into three mai
 - Displays real-time information about all active trains. Navigation buttons allow users to access the four functional subsections
 #### Subsections:
 #### Dispatch Train
+![CTC Subsection 1](src/CTC/assets/CTC_Dispatch_screen.PNG)
 Allows users to dispatch trains from the yard.
 - Dispatch Type: Choose between dispatching a new train or rerouting an existing one.
 - Destination Type: Select a route, station, or specific block.
 - Once selections are made, the dispatch button becomes active to initiate the process.
 
 #### Select Train
+![CTC Subsection 2](src/CTC/assets/CTC_train_screen.PNG)
 Enables manual control of any active train.
 - Users input desired authority and speed, which are validated to prevent unsafe entries.
 - Once submitted, the train is marked as being in manual mode via a radio button indicator.
 
 #### Maintenance
+![CTC Subsection 3](src/CTC/assets/CTC_maintenance_screen.PNG)
 Provides block maintenance functionality.
 - After enabling Maintenance Mode via the top bar, users can select blocks and toggle their maintenance status using "Start Maintenance" and "End Maintenance" buttons.
 
