@@ -209,7 +209,7 @@ class CtcBackEnd(QObject):
                 if block.id == train.next_block and block.occupancy:
                     train.current_block = train.next_block
                     train.next_block = self.get_expected_next_block(train)
-                    print("[CTC DEBUG] Train ID: ", train.train_id, "Current Block: ", train.current_block, "Next Block: ", train.next_block)
+                    #print("[CTC DEBUG] Train ID: ", train.train_id, "Current Block: ", train.current_block, "Next Block: ", train.next_block)
                     #print(train.__dict__)
                     if train.next_block == -1:
                         #print("Train ID: ", train.train_id, "Exiting the line")
