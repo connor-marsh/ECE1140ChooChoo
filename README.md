@@ -180,6 +180,6 @@ This user interface provides real-time monitoring and control capabilities for a
 ### Train Controller HW UI
 
 ## Common User Errors
-1. hello
+1. Windows has modules zoomed in by 200%, may tarnish the view of some modules.
 2. hello 2
 3. hello 3
