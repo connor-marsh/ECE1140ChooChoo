@@ -137,7 +137,45 @@ The Track Model user interface allows for dynamic visualization and interaction 
 ### Train Model UI
 
 ### Train Controller SW UI
-The Train Controller SW UI is just one page that has six main boxes for the driver to interact with. Additionally, at the top of the UI exists a drop-down allowing a user to select whichever specific train's controller they would like to look at. The major six boxes include the train information (such as speed, power, brakes, authority, etc.), the failure box for any emergencies, the auxiliary controls box for controlling lights, temperature, etc., the announcements and misc. box for displaying next station announcements and the global time, the control constants box for the train engineer to set the control constant values, and finally the control mode for the driver to be able to switch between auto and manual mode.
+
+This user interface provides real-time monitoring and control capabilities for a train controller system. It is organized into distinct sections for intuitive interaction and quick access to critical information.
+
+#### Train Selection
+- **Train ID:** Dropdown menu to select which train to monitor and control.
+
+#### Auxiliary Controls
+- **Headlights & Interior Lights:** Toggle controls for turning on/off lighting systems.
+- **Doors:** Buttons to control the opening and closing of left and right-side train doors.
+- **Cabin Temperature:** Displays and allows adjustment of the cabin temperature in Fahrenheit.
+
+#### Train Information
+- **Actual Speed:** Displays the current speed of the train (in mph).
+- **Speed Limit:** Displays the current track speed limit (in mph).
+- **Commanded Power:** Shows the power command sent to the train (in kW).
+- **Target/Input Speed:** Allows manual input of a desired speed and applying it in manual mode (in mph).
+- **Service Brake:** Toggle control for applying or releasing the service brake. There are also lights to display whether the service brake is applied or not.
+- **Authority:** Displays the remaining travel authority (distance permitted in yards).
+
+#### Failure Box
+- Displays the current status of:
+  - **Signal Failure**
+  - **Brake Failure**
+  - **Engine Failure**
+- Includes a large **Emergency Stop** button to trigger an emergency stop or response.
+
+#### Announcements and Miscellaneous
+- **Next Station:** Display for the upcoming station.
+- **Global Clock:** Displays the current system time in 12-hour format.
+
+#### Control Constants
+- **Kp & Ki Values:** Fields to view or adjust the proportional and integral gain constants used for control logic. To be accessed by the Train Engineer. Once these are applied - they cannot be changed.
+
+#### Control Mode
+- Allows switching between **Automatic** and **Manual** control modes. This will enable/disable some controls depending on which mode you are in.
+
+#### Notes regarding Train Controller
+- Once service brake are applied in manual mode, the driver must untoggle the service brakes in order for the train to move since you are in manual mode.
+
 
 ### Train Controller HW UI
 
