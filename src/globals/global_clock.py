@@ -36,3 +36,5 @@ class GlobalClock(QMainWindow):
 def init():
     global clock
     clock = GlobalClock()
+
+

@@ -791,7 +791,7 @@ class TrackModelFrontEnd(QMainWindow):
             simUpdateSpeed = int(self.ui.simulation_value.text())
         except ValueError:
             simUpdateSpeed = self.global_clock.time_multiplier
-        if simUpdateSpeed >= 1 and simUpdateSpeed <= self.global_clock.MAX_MULTIPLIER:
+        if simUpdateSpeed >= 0 and simUpdateSpeed <= self.global_clock.MAX_MULTIPLIER:
             self.global_clock.time_multiplier = simUpdateSpeed
 
         # Update the global clock display

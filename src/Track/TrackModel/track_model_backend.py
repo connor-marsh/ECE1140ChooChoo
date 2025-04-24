@@ -92,7 +92,7 @@ class Train:
         self.dynamic_track = track_model.dynamic_track
         self.train_id = train_id
         self.current_block = initial_block
-        self.previous_block = initial_block
+        self.previous_block = None
         self.current_section = initial_block.id[0] # just a string
         self.previous_switch_entrance = False
         self.previous_switch_exit = True
@@ -321,7 +321,7 @@ class TrackModel(QtWidgets.QMainWindow):
         self.update_trains()
         self.update_occupancies_from_failures()
 
-    # Update occupancies based on failure state
+        # Update occupancies based on failure state
         for block_id, failure in self.dynamic_track.failures.items():
             if failure in [Failures.POWER_FAILURE, Failures.BROKEN_RAIL_FAILURE]:
                 self.dynamic_track.occupancies[block_id] = Occupancy.OCCUPIED
@@ -330,8 +330,6 @@ class TrackModel(QtWidgets.QMainWindow):
                 train_present = any(train.current_block.id == block_id for train in self.trains)
                 if not train_present:
                     self.dynamic_track.occupancies[block_id] = Occupancy.UNOCCUPIED
-
-
         if self.wayside_integrated:
             for controller in self.wayside_collection.controllers: # have to iterate through each controller now due to what profeta said
                 controller.set_occupancies(self.dynamic_track.occupancies) # use the dictionary for each controller, but the controller only looks at blocks in its territory
@@ -390,22 +388,29 @@ class TrackModel(QtWidgets.QMainWindow):
             send_to_train = {}
 
             # Gather new fresh speed and authority values
-            if train.previous_block.id in wayside_speeds:
-                send_to_train["wayside_speed"] = wayside_speeds[train.previous_block.id]
+            if train.previous_block:
+                if train.previous_block.id in wayside_speeds:
+                    send_to_train["wayside_speed"] = wayside_speeds[train.previous_block.id]
             if train.current_block.id in wayside_speeds:
                 send_to_train["wayside_speed"] = wayside_speeds[train.current_block.id]
 
-            if train.previous_block.id in wayside_authorities:
-                if wayside_authorities[train.previous_block.id] not in (0, None):
-                    send_to_train["wayside_authority"] = wayside_authorities[train.previous_block.id] + train.previous_block.length
+            if train.previous_block:
+                if train.previous_block.id in wayside_authorities:
+                    if wayside_authorities[train.previous_block.id] not in (0, None):
+                        send_to_train["wayside_authority"] = wayside_authorities[train.previous_block.id] + train.previous_block.length
             if train.current_block.id in wayside_authorities:
                 send_to_train["wayside_authority"] = wayside_authorities[train.current_block.id]
 
             # Check if current or previous block has Track Circuit Failure
-            in_failure = (
-                self.dynamic_track.failures.get(train.previous_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE or
-                self.dynamic_track.failures.get(train.current_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE
-            )
+            if train.previous_block:
+                in_failure = (
+                    self.dynamic_track.failures.get(train.previous_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE or
+                    self.dynamic_track.failures.get(train.current_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE
+                )
+            else:
+                in_failure = (
+                    self.dynamic_track.failures.get(train.current_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE
+                )
 
             if in_failure:
                 # If we're still in failure, store the latest command as pending
