@@ -44,4 +44,16 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     # Has 6 Lights H32, H39, H43, Q71, R72
     # Has No Crossings
 
+    train_in_h = any(block_occupancies[0:17])
+    train_in_i = any(block_occupancies[17:18])
+    train_in_P = any(block_occupancies[18:21])
+    train_in_q = any(block_occupancies[21:22])
+    train_in_r = any(block_occupancies[22:23])
+    train_in_s = any(block_occupancies[23:26])
+    
+    switch_positions[0] = False
+    switch_positions[1] = False
+    switch_positions[2] = False 
+    
+
     return switch_positions, light_signals, crossing_signals, clamps

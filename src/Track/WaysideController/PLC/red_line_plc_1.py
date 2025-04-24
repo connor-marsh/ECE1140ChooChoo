@@ -45,12 +45,6 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     # Has 1 Crossing D11
 
 
-    if not hasattr(plc_logic, 'prev_train_increasing_abc'):
-        plc_logic.prev_train_increasing_abc = False
-        plc_logic.prev_train_decreasing_abc = False
-        plc_logic.prev_train_decreasing_de = False
-        print("RED LINE INITIALIZED PLC LOGIC")
-
 
     train_in_a = any(block_occupancies[0:3])
     train_in_b = any(block_occupancies[3:6])
@@ -76,66 +70,27 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     prev_train_in_t = any(previous_occupancies[34:35])
     prev_train_in_y = any(previous_occupancies[35:36])
 
-
-    
-
-    train_in_abc = train_in_a or train_in_b or train_in_c
-
-    """
-    if train_in_abc:
-        if not plc_logic.prev_train_increasing_abc: # only need to do these if its not already true
-            train_f_to_a = train_in_a and prev_train_in_f # check if increasing direction
-            train_a_to_b = train_in_b and prev_train_in_a
-            train_b_to_c = train_in_c and prev_train_in_b
-
-        if not plc_logic.prev_train_decreasing_abc:
-            train_d_to_c = train_in_c and prev_train_in_d # check if decreasing direction
-            train_c_to_b = train_in_b and prev_train_in_c
-            train_b_to_a = train_in_a and prev_train_in_b
-            train_y_to_c = train_in_c and prev_train_in_y
-
-        if not plc_logic.prev_train_decreasing_abc:
-            train_c_to_d = train_in_d and prev_train_in_c
-            train_d_to_e = train_in_e and prev_train_in_d
-
-
-        train_increasing_abc = train_f_to_a or train_a_to_b or train_b_to_c or plc_logic.prev_train_increasing_abc
-        train_decreasing_abc = train_d_to_c or train_c_to_b or train_b_to_a or plc_logic.prev_train_decreasing_abc
-        train_decreasing_de = train_c_to_d or train_d_to_e or plc_logic.prev_train_decreasing_de
-    else: # reset the values if there are no trains
-        train_increasing_abc = False
-        train_decreasing_abc = False
-        train_decreasing_de = False
-    """
-    """
-    switch_positions[0] = ((not (train_in_abc or train_in_d) or # if no trains are nearby switch to the yard
-                          (train_decreasing_abc and not train_in_d) or # if already is a train heading away from the yard
-                          (train_increasing_abc)) and # NEED EXIT BLOCK LOGIC HERE MOST LIKELY (CASE FOR TRAIN ENTERING THE YARD)
-                          not train_decreasing_de) # finally check if there is not a train trying to exit away from the loop from d or e
-    """
-
-
-    switch_positions[0] = not train_in_abc or train_in_d
+    switch_positions[0] = True
     light_signals[1] = not switch_positions[0]
     light_signals[5] = switch_positions[0]
     
-    switch_positions[1] = not train_in_f and train_in_abc or train_in_d or train_in_e
+    
+    switch_positions[1] = False
     light_signals[0] = not switch_positions[1]
     light_signals[2] = not light_signals[0]
 
-    switch_positions[2] = train_in_t
+
+    switch_positions[2] = False
     light_signals[3] = not switch_positions[2]
     light_signals[4] = not light_signals[3]
-    
+
+
     crossing_signals[0] = train_in_d
     
-    
     if not switch_positions[0]:
-        clamps[64] = True
+        clamps[35] = True
     else:
-        clamps[64] = False
-
-
+        clamps[35] = False
 
     if switch_positions[0]:
         clamps[10:12] = [True]*len(clamps[10:12])
