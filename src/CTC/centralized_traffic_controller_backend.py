@@ -93,9 +93,9 @@ class CtcBackEnd(QObject):
             stations = row[1:].dropna().tolist()
 
             # Check if the route name already exists in the routes dictionary
-            if route_name not in self.lines[self.updating_line].routes:
-                self.lines[self.updating_line].routes[route_name] = []  # Initialize an empty list for new routes
-            self.lines[self.updating_line].routes[route_name].extend(stations)
+            if route_name not in self.active_line.routes:
+                self.active_line.routes[route_name] = []  # Initialize an empty list for new routes
+            self.active_line.routes[route_name].extend(stations)
 
             #print(f"{route_name}: {', '.join(stations[0])}")
 
@@ -322,8 +322,10 @@ class CtcBackEnd(QObject):
             
         elif destination_type == 'route':
             #Dispatch on a route
-            for stations in self.lines[self.active_line].routes[destination]:
-                next_block = (self.lines[self.active_line].STATIONS_BLOCKS[stations])
+            route_stations = (self.active_line.routes[destination])
+            for stations in self.active_line.routes[destination]:
+                print("Train destination route: ", route_stations)
+                next_block = (self.active_line.STATIONS_BLOCKS[stations])
                 #print("Station ", stations, "Block ", next_block)
                 full_route.append(next_block)
                 #print("Full route: ", full_route)
