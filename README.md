@@ -51,7 +51,7 @@ What you have to do is manually set the IP of your ethernet connection to be the
 Then double click on your connected ethernet, then click properties (requires admin), then select IPV4 and click properties. Then select "Use the following IP Address", and input IP=192.168.137.1, Subnet Mask=255.255.255.0, and leave gateway blank.  
 This may take a moment to fully go through and be updated.
 
-After this, the hardware setup should be compete. To confirm that you have proper connection with the hardware, open a terminal and run `ssh connor-marsh@192.168.137.10` and the password is `ece1140`. If this ssh connects properly, you can run `exit` to leave ssh. Lastly when you run the code, make sure to pass command line argument saying that you want to use the hardware module. So run `python3 pittsburgh.py USING_HARDWARE`
+After this, the hardware setup should be compete. To confirm that you have proper connection with the hardware, open a terminal and run `ssh connor-marsh@192.168.137.10` and the password is `ece1140`. If this ssh connects properly, you can run `exit` to leave ssh. Lastly when you run the code, make sure to pass command line argument saying that you want to use the hardware module. So run `python3 src/pittsburgh.py USING_HARDWARE`
 
 ## Usage
 ### Starting the Simulation
