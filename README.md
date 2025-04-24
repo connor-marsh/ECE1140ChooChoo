@@ -130,7 +130,7 @@ At the bottom left corner of the window are three lists that show the devices th
 
 ### Wayside Controller Maintenance Window
 A separate window that lets the programmer input values manually into the plc.
-![Maintenance Wayside Window](src/Track/WaysideController/assets/Test.png)
+![Maintenance Wayside Window](src/Track/WaysideController/assets/Maintenance.png)
 #### Block List
 Shows each of the blocks on the wayside's territory and allows the user to select blocks
 - Clicking on the block selects the block
