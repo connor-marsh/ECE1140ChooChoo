@@ -183,6 +183,10 @@ class CtcBackEnd(QObject):
                     if train.line == "Red":
                         if jump_key == (52, 1):
                             return self.lines[self.updating_line].blocks[int(block.id[1:])].id
+                        if jump_key == (9,1):
+                            if train.get_next_stop() != 77:
+                                return self.lines[self.updating_line].blocks[9].id
+
 
 
                     #Check if train is at jump block
@@ -275,6 +279,14 @@ class CtcBackEnd(QObject):
                     else:
                         train.exit_blocks = [[True],[False, True],[True]]
                     self.send_exit_blocks(train.exit_blocks) #Send exit blocks to wayside
+
+            if self.updating_line == "Red":
+                if train.current_block == "B5":
+                    if train.get_next_stop() == 77:
+                        train.exit_blocks =[[True, False, False], [False, False, False, False], [False, False]]
+                    else:
+                        train.exit_blocks =[[False, False, False], [False, False, False, False], [False, False]]
+                    self.send_exit_blocks(train.exit_blocks)
 
         self.lines[self.updating_line].occupancy_change = False
                     
@@ -676,8 +688,8 @@ class Track:
             (1, 0): (16, 1),    # A1 -> F16, increase
             (52, 1): (66, 0),  # J52 -> N66, decrease
             (66, 1): (52, 0),  # N66 -> J52, decrease
-            #(44, 0): (67, 1),  # H44 -> O67, increase
-            #(33, 0): (72, 1),  # H33 -> O72, increase
+            (44, 0): (67, 1),  # H44 -> O67, increase
+            (33, 0): (72, 1),  # H33 -> O72, increase
             (71, 1): (38, 0),  # Q71 -> H38, decrease
             (76, 1): (27, 0)  # T76 -> H27, decrease
             }    

@@ -543,6 +543,23 @@ class TrackModel(QtWidgets.QMainWindow):
             self.update_heaters()
             signals.communication_track.track_temperature.emit(self.temperature, self.name)
 
+    # Get updated station data for a block
+    def get_station_data(self, block_id):
+        return self.runtime_status.get(block_id, {
+            "ticket_sales": 0,
+            "boarding": 0,
+            "departing": 0
+        })
+
+    # Get current light state for a block
+    def get_light_state(self, block_id):
+        return "GREEN" if self.dynamic_track.light_states.get(block_id, False) else "RED"
+
+    # Get current railway crossing state for a block
+    def get_crossing_state(self, block_id):
+        return "ACTIVE" if self.dynamic_track.crossing_states.get(block_id, False) else "INACTIVE"
+
+
 
 
     
