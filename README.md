@@ -39,7 +39,37 @@ Then to update the environment.yml file, run this command:
 
 ## UI Descriptions
 ### CTC UI
+The Centralized Traffic Control (CTC) user interface is organized into three main sections and four functional subsections. Upon launch, the interface defaults to displaying the Green Line on the main screen.
+#### Top Bar Features:
+- Active Train Counter – Displays the number of currently active trains.
+- Line Selector Slider – Switches between the Green and Red lines.
+- Maintenance Mode Toggle – Enables or disables maintenance controls.
+- 12-Hour Clock – Provides real-time timekeeping.
+#### Main Interface Layout:
+#### Left Section (Track View):
+- Displays a visual representation of the currently active track. Users can select individual blocks from this view or from the adjacent table to view specific details, including Block ID, speed limit, and length. The line's total throughput is also shown here. In Maintenance Mode, a large dial becomes available to manually change the state of track switches.
+#### Right Section (Train Table):
+- Displays real-time information about all active trains. Navigation buttons allow users to access the four functional subsections
+#### Subsections:
+#### Dispatch Train
+Allows users to dispatch trains from the yard.
+- Dispatch Type: Choose between dispatching a new train or rerouting an existing one.
+- Destination Type: Select a route, station, or specific block.
+- Once selections are made, the dispatch button becomes active to initiate the process.
 
+#### Select Train
+Enables manual control of any active train.
+- Users input desired authority and speed, which are validated to prevent unsafe entries.
+- Once submitted, the train is marked as being in manual mode via a radio button indicator.
+
+#### Maintenance
+Provides block maintenance functionality.
+- After enabling Maintenance Mode via the top bar, users can select blocks and toggle their maintenance status using "Start Maintenance" and "End Maintenance" buttons.
+
+#### Upload Schedule
+Opens a file explorer dialog allowing the user to upload a schedule file.
+- The selected file is then parsed and integrated into the train scheduling system.
+- This feature supports automated train dispatching and timeline-based coordination based on pre-configured schedules.
 ### Wayside Controller UI
 
 ### Track Model UI
