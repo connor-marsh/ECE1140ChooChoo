@@ -73,6 +73,66 @@ Opens a file explorer dialog allowing the user to upload a schedule file.
 ### Wayside Controller UI
 
 ### Track Model UI
+The Track Model user interface allows for dynamic visualization and interaction with the selected transit line. It supports both the Green and Red Lines and provides real-time feedback for block data, infrastructure status, temperature, and failure simulation.
+
+#### Top Bar Features:
+- Import Track Layout – Opens a file dialog to upload an updated `.xlsx` or `.xls` layout file. The file must match the selected line and contain "Green" or "Red" in cell A2.
+- Line Selector Dropdown – Switches between the Green and Red lines.
+- Block Selector Dropdown – Allows selection of individual blocks by ID.
+- 12-Hour Clock – Displays the current system time.
+- Simulation Speed Input – Adjusts how quickly the simulation runs.
+- Temperature Input – Accepts user input for track temperature.
+- Track Heaters Display – Automatically updates based on the temperature to show whether heaters are enabled or disabled.
+
+#### Main Interface Layout:
+#### Center Section (Track Layout Map):
+- Displays a zoomable, interactive map of the currently selected line.
+- Users can click on individual blocks to view their data or select them via the dropdown.
+- Real-time infrastructure icons appear on the map, including trains, stations, switches, signal lights, crossings, and failure indicators.
+- Block occupancy and failure states are visually reflected on the map.
+
+#### Bottom Left Section (Block Data):
+- Shows detailed attributes for the currently selected block, including:
+  - Block ID
+  - Block Length (yd)
+  - Speed Limit (mph)
+  - Wayside Speed (if available)
+  - Wayside Authority (if available)
+  - Grade (%)
+  - Elevation (yd)
+  - Underground Status
+  - Direction of Travel
+  - Beacon Status
+  - Railway Crossing Status
+
+#### Bottom Center Section (Key):
+- Displays a legend for interpreting icons shown on the track layout map.
+- The following icons are included:
+  - Train
+  - Station
+  - Switch
+  - Signal Light
+  - Railway Crossing
+  - Maintenance Indicator
+  - Track Circuit Failure
+  - Broken Rail Failure
+  - Power Failure
+
+#### Bottom Right Section (Failure Modes and Selected Object Information):
+- Failure Modes:
+  - Toggle individual block failures using the "Edit" buttons:
+    - Track Circuit Failure
+    - Broken Rail Failure
+    - Power Failure
+  - Use the "Reset Errors" button to clear all failures on the map.
+
+- Selected Object Information:
+  - When an infrastructure icon is clicked, its data is displayed.
+    - Train – Displays location, speed, authority, direction, and passenger count.
+    - Station – Displays name, ticket sales, boarding, and departing counts.
+    - Switch – Displays connected blocks and current route.
+    - Signal Light – Shows current signal state.
+    - Railway Crossing – Indicates whether the crossing is active or inactive.
 
 ### Train Model UI
 
