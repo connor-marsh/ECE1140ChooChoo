@@ -426,6 +426,7 @@ class CtcFrontEnd(QMainWindow):
         if self.ctc_ui.sub_dispatch_overide_new_radio.isChecked():
             createNewTrain = True
             train_num = None
+            dispatch_time = 0
         elif self.ctc_ui.sub_dispatch_overide_active_radio.isChecked():
             #existing train needs to be rerouted | not implemented yet
             createNewTrain = False
