@@ -1,3 +1,9 @@
+"""
+Author: PJ Granieri and Connor Marsh
+Date: 4-24-2025
+Description:
+"""
+
 import sys
 import os
 import random
@@ -214,12 +220,6 @@ class Train:
                     # Update station's total ticket sales
                     self.track_model.station_ticket_sales[station_id] += passengers_boarding
 
-                    # Send to Train Model
-                    self.train_model.set_input_data(track_data={
-                        "boarding_passengers": passengers_boarding,
-                        "departing_passengers": passengers_leaving
-                    })
-
                     # Emit ticket sales to CTC via signal
                     signals.communication_track.track_tickets.emit(self.track_model.station_ticket_sales[station_id], self.track_model.name)
 
@@ -340,6 +340,12 @@ class TrackModel(QtWidgets.QMainWindow):
     def update_trains(self):
         for train in self.trains:
             train.update()
+            if train.train_model:
+                train.train_model.set_input_data(track_data={
+                    "passenger_count": train.passenger_count,
+                    "grade": train.current_block.grade if train.current_block else 0.0
+                })
+
 
     # Parsing data sent from main track file
     def parse_track_layout_data(self, filepath):
