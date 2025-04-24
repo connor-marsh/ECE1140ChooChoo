@@ -39,15 +39,84 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     
     # For Wayside #1
     # HAS 36 Blocks in its Territory
-    # Sections: A[0,3) B[3,6) C[6,9) D[9, 12) E[12,15) F[15,20) G[20,23) H[23,31) S[31,34) T[34, 35) T[35,36]
-    # Has 3 Switches C9:(9 - 10, 9 - 77) F16:(16 - 1, 16 - 1) H27:(27 - 28, 27 - 76) 
+    # Sections: A[0,3) B[3,6) C[6,9) D[9, 12) E[12,15) F[15,20) G[20,23) H[23,31) S[31,34) T[34, 35) y[35,36)
+    # Has 3 Switches C9:(9 - 10,9 - 77) F16:(16 - 1, 16 - 1) H27:(27 - 28, 27 - 76) 
     # Has 6 Lights A1, D10, E15, H28, T76, y77
     # Has 1 Crossing D11
 
-    
-    
-    switch_positions[0] = True
+    # create persistent attributes of the function, kind of like static variables in C++
+    if not hasattr(plc_logic, 'prev_train_increasing_abc'):
+        plc_logic.prev_train_increasing_abc = False
+        plc_logic.prev_train_decreasing_abc = False
+        plc_logic.prev_train_decreasing_de = False
+        print("RED LINE INITIALIZED PLC LOGIC")
 
 
+    train_in_a = any(block_occupancies[0:3])
+    train_in_b = any(block_occupancies[3:6])
+    train_in_c = any(block_occupancies[6:9])
+    train_in_d = any(block_occupancies[9:12])
+    train_in_e = any(block_occupancies[12:15])
+    train_in_f = any(block_occupancies[15:20])
+    train_in_g = any(block_occupancies[20:23])
+    train_in_h = any(block_occupancies[23:31])
+    train_in_s = any(block_occupancies[31:34])
+    train_in_t = any(block_occupancies[34:35])
+    train_in_y = any(block_occupancies[35:36])
+
+    prev_train_in_a = any(previous_occupancies[0:3])
+    prev_train_in_b = any(previous_occupancies[3:6])
+    prev_train_in_c = any(previous_occupancies[6:9])
+    prev_train_in_d = any(previous_occupancies[9:12])
+    prev_train_in_e = any(previous_occupancies[12:15])
+    prev_train_in_f = any(previous_occupancies[15:20])
+    prev_train_in_g = any(previous_occupancies[20:23])
+    prev_train_in_h = any(previous_occupancies[23:31])
+    prev_train_in_s = any(previous_occupancies[31:34])
+    prev_train_in_t = any(previous_occupancies[34:35])
+    prev_train_in_y = any(previous_occupancies[35:36])
+
+
+    
+
+    train_in_abc = train_in_a or train_in_b or train_in_c
+
+    if train_in_abc:
+        if not plc_logic.prev_train_increasing_abc: # only need to do these if its not already true
+            train_f_to_a = train_in_a and prev_train_in_f # check if increasing direction
+            train_a_to_b = train_in_b and prev_train_in_a
+            train_b_to_c = train_in_c and prev_train_in_b
+
+        if not plc_logic.prev_train_decreasing_abc:
+            train_d_to_c = train_in_c and prev_train_in_d # check if decreasing direction
+            train_c_to_b = train_in_b and prev_train_in_c
+            train_b_to_a = train_in_a and prev_train_in_b
+            train_y_to_c = train_in_c and prev_train_in_y
+
+        if not plc_logic.prev_train_decreasing_abc:
+            train_c_to_d = train_in_d and prev_train_in_c
+            train_d_to_e = train_in_e and prev_train_in_d
+
+
+        train_increasing_abc = train_f_to_a or train_a_to_b or train_b_to_c or plc_logic.prev_train_increasing_abc
+        train_decreasing_abc = train_d_to_c or train_c_to_b or train_b_to_a or plc_logic.prev_train_decreasing_abc
+        train_decreasing_de = train_c_to_d or train_d_to_e or plc_logic.prev_train_decreasing_de
+    else: # reset the values if there are no trains
+        train_increasing_abc = False
+        train_decreasing_abc = False
+        train_decreasing_de = False
+
+
+    switch_positions[0] = ((not (train_in_abc or train_in_d) or # if no trains are nearby switch to the yard
+                          (train_decreasing_abc and not train_in_d) or # if already is a train heading away from the yard
+                          (train_increasing_abc)) and # NEED EXIT BLOCK LOGIC HERE MOST LIKELY (CASE FOR TRAIN ENTERING THE YARD)
+                          not train_decreasing_de) # finally check if there is not a train trying to exit away from the loop from d or e
+    
+
+
+    # update persistent state
+    plc_logic.prev_train_increasing_abc = train_increasing_abc
+    plc_logic.prev_train_decreasing_abc = train_decreasing_abc
 
     return switch_positions, light_signals, crossing_signals, clamps
+

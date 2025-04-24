@@ -47,13 +47,13 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
 
     train_in_j = any(block_occupancies[22:27])
 
-    train_entering_track = block_occupancies[65]
+    train_entering_track = block_occupancies[64]
 
     switch_positions[0] = (train_in_i and exit_blocks[1]) 
     light_signals[0] = not switch_positions[0]
     light_signals[1] = not light_signals[1]
     
-    switch_positions[1] = train_in_j and not train_entering_track
+    switch_positions[1] = train_in_j
     light_signals[2] = switch_positions[1]
     light_signals[3] = not light_signals[2]
 
@@ -91,10 +91,15 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
 
     # if switch position facing the yard and train in j
     if not switch_positions[1] and train_in_j:
+        print("clamping j")
         clamps[25:27] = [True]*len(clamps[25:27])
     else:
         clamps[25:27] = [False]*len(clamps[25:27])
     
+    if switch_positions[1] and train_entering_track:
+        clamps[64] = True
+    else:
+        clamps[64] = False
     
     return switch_positions, light_signals, crossing_signals, clamps
 

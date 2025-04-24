@@ -216,8 +216,8 @@ class CtcBackEnd(QObject):
             #print("Train ID: ", train.train_id, "Current Block: ", train.current_block)
             # Send initial authorities to train on SPAWN block. Make sure current train is on spawn block, the block is occupied (prevent race condition), and the train hasn't already received it
             #print("Current Block: ", train.current_block, "Entrance Block: ", self.lines[self.updating_line].ENTRANCE_BLOCK.id, "Entrance Occupancy: ", self.lines[self.updating_line].ENTRANCE_BLOCK.occupancy, "Received First Auth: ", train.received_first_auth)
-            if train.current_block == self.lines[self.updating_line].ENTRANCE_BLOCK.id and self.lines[self.updating_line].ENTRANCE_BLOCK.occupancy and not train.received_first_auth:
-                #print("Train ID: ", train.train_id, "Sending initial authority")
+            if train.current_block == self.lines[self.updating_line].ENTRANCE_BLOCK.id and self.lines[self.updating_line].ENTRANCE_BLOCK.occupancy:# and not train.received_first_auth:
+                print("Train ID: ", train.train_id, "Sending initial authority")
                 suggested_speed, suggested_authority = self.get_suggestion_values(train)
                 self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
                 train.received_first_auth = True # Only send once when entering the line
