@@ -127,7 +127,6 @@ class Train:
                 switchState = self.dynamic_track.switch_states[self.current_block.id]
                 nextBlock = switch.positions[1 if switchState else 0].split("-")[1]
                 self.current_block = self.track_data.blocks[int(nextBlock) - 1]
-                print("SWITCH", switch, switchState, nextBlock, self.current_block.id)
             elif self.current_block.switch_exit and not self.previous_switch_entrance:
                 
                 self.previous_switch_exit = True
@@ -152,7 +151,6 @@ class Train:
                     print("TRAIN CRASH FROM SWITCH POSITION")
                     print("TRAIN CRASH FROM SWITCH POSITION")
                     print("TRAIN CRASH FROM SWITCH POSITION")
-                print("SWITCH EXIT", switch, switchState, switchBlocks, self.current_block.id)
             else:
                 self.previous_switch_exit = False
                 self.previous_switch_entrance = False
@@ -162,7 +160,6 @@ class Train:
                     self.dynamic_track.occupancies[self.current_block.id] = Occupancy.UNOCCUPIED
                     return
                 self.current_block = self.track_data.blocks[int(self.current_block.id[1:]) + (self.travel_direction * 2 - 1) - 1]
-                print("NORMAL MOVE", self.travel_direction, self.current_block.id)
 
             # broken rail failure check
             if self.dynamic_track.failures.get(self.current_block.id, Failures.NONE) == Failures.BROKEN_RAIL_FAILURE:

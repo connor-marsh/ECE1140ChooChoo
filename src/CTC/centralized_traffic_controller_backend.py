@@ -471,7 +471,7 @@ class CtcBackEnd(QObject):
             section_dir = self.lines[line_name].sections[section_key].increasing
 
             # This assumes all trains had at least a two block gap to begin with
-            if current_block.occupancy and current_id != start_id:
+            if (current_block.occupancy or current_block.maintenance) and current_id != start_id:
                 # OH NO! There is an occupancy blocking our path
                 # print("BACKTRACKING", current_id, start_id, end_id)
                 # Backtrack 3 blocks
