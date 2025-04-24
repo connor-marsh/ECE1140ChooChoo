@@ -454,10 +454,13 @@ class CtcFrontEnd(QMainWindow):
             #dispatch to selected route
             selected_item = self.ctc_ui.sub_dispatch_train_table.selectedItems()[0]
             row = selected_item.row()
+            print(row)
             route_name_item = self.ctc_ui.sub_dispatch_train_table.item(row, 1) 
+            print(route_name_item)
             
             if route_name_item:
                 route_name = route_name_item.text()
+                print(route_name)
                 #print("Dispatching to route:", route_name)
                 self.backend.dispatch_handler(route_name, 'route', new_train=createNewTrain, selected_train = train_num, dispatch_time = ETA_time) 
 

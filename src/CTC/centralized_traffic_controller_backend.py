@@ -322,8 +322,8 @@ class CtcBackEnd(QObject):
             
         elif destination_type == 'route':
             #Dispatch on a route
-            for stations in self.lines[self.updating_line].routes[destination]:
-                next_block = (self.lines[self.updating_line].STATIONS_BLOCKS[stations])
+            for stations in self.lines[self.active_line].routes[destination]:
+                next_block = (self.lines[self.active_line].STATIONS_BLOCKS[stations])
                 #print("Station ", stations, "Block ", next_block)
                 full_route.append(next_block)
                 #print("Full route: ", full_route)
@@ -703,8 +703,8 @@ class Track:
             (1, 0): (16, 1),    # A1 -> F16, increase
             (52, 1): (66, 0),  # J52 -> N66, decrease
             (66, 1): (52, 0),  # N66 -> J52, decrease
-            #(44, 0): (67, 1),  # H44 -> O67, increase
-            #(33, 0): (72, 1),  # H33 -> O72, increase
+            (44, 0): (67, 1),  # H44 -> O67, increase
+            (33, 0): (72, 1),  # H33 -> O72, increase
             (71, 1): (38, 0),  # Q71 -> H38, decrease
             (76, 1): (27, 0)  # T76 -> H27, decrease
             }    
