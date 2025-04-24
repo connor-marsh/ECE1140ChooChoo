@@ -103,8 +103,10 @@ Opens a file explorer dialog allowing the user to upload a schedule file.
 - The selected file is then parsed and integrated into the train scheduling system.
 - This feature supports automated train dispatching and timeline-based coordination based on pre-configured schedules.
 ### Wayside Controller UI
-This module is responsible for executing the PLC program and operates the devices on the track. The UI displays the controllers name and line in the top left corner.
+This module is responsible for executing the PLC program and operates the devices on the track.
 ![Main Wayside Window](src/Track/WaysideController/assets/Wayside.png)
+#### Top Bar
+The UI displays the controllers name and line in the top left corner.
 #### Import PLC Program
 Allows the programmer to upload a PLC program.
 - Click the green "Import PLC Program Button" to open the file manager
