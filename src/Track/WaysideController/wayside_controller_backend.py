@@ -84,6 +84,7 @@ class WaysideController(QObject):
                         self.to_send_authorities[blocks[i].id] = 0
                         self.commanded_authorities[i] = 0 # set ui
                     elif not clamp and prev_clamps[i] and self.block_occupancies[i]:
+                        self.suggested_authorities[i] = None # reset authorities so ctc can send new ones or the train can revert back to what it was
                         self.commanded_authorities[i] = None
                         self.to_send_authorities[blocks[i].id] = None
                                         

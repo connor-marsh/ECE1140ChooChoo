@@ -34,6 +34,7 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     
     :param clamps: a list of booleans where true indicates the block should be clamped
 
+
     :returns switch_positions, light_signals, light_signals crossing_signals, previous_occupancies:
     """
     # For Wayside #2

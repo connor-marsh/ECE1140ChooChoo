@@ -64,6 +64,7 @@ class TrainModel(QMainWindow):
 
         self.wayside_speed = 0
         self.wayside_authority = 0
+        self.unclamped_authority = 0
         self.beacon_data = ""
 
         self.mass_kg = 37103.86
@@ -154,7 +155,6 @@ class TrainModel(QMainWindow):
         # Calculate new position using the trapezoidal rule.
         new_position = self.position + (dt / 2.0) * (old_velocity + new_velocity)
         self.position = new_position
-
         # Clamp the speed to a maximum of 43.49 mph (≈19.44 m/s)
         max_speed_mps = 43.49 / self.MPS_TO_MPH
         if new_velocity > max_speed_mps:
