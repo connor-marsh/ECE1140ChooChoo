@@ -410,7 +410,7 @@ class CtcFrontEnd(QMainWindow):
             
     def update_throughput(self):
         #updates throughput label on UI
-        self.ctc_ui.main_throughput_label.setText(str(round(self.backend.throughput,2)))
+        self.ctc_ui.main_throughput_label.setText(str(round(self.backend.active_line.throughput,2)))
 
     def update_dispatch_button(self):
         # Updates button state based off selected buttons
