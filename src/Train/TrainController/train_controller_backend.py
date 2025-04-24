@@ -168,12 +168,12 @@ class TrainController(QMainWindow):
         # print(self.current_block.id)
         # print(self.current_block.station)
         
+        # Extract station information from the track data
+        station = self.track_data.stations.get(self.current_block.id, None)
         if (self.wayside_authority < self.current_block.length and self.current_block.station and not self.just_stopped_at_station):
             self.just_stopped_at_station = True
             print("Stopping at station...")
 
-            # Extract station information from the track data
-            station = self.track_data.stations.get(self.current_block.id, None)
 
             # set the next station announcement based on station information
             if station:
