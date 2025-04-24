@@ -1,3 +1,9 @@
+"""
+Author: PJ Granieri
+Date: 04-24-2025
+Description:
+"""
+
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsRectItem, QMainWindow, QGraphicsPixmapItem, QVBoxLayout, QFileDialog, QMessageBox
 from PyQt5.QtGui import QBrush, QPen, QColor, QPainter, QPixmap, QCloseEvent
 from PyQt5.QtCore import Qt, QRectF, QTimer, pyqtSignal
@@ -788,6 +794,11 @@ class TrackModelFrontEnd(QMainWindow):
         if simUpdateSpeed >= 1 and simUpdateSpeed <= self.global_clock.MAX_MULTIPLIER:
             self.global_clock.time_multiplier = simUpdateSpeed
 
+        # Update the global clock display
+        self.ui.clock_display_value.display(self.global_clock.text)
+        self.ui.clock_am_display.setText(self.global_clock.am_pm)
+
+
     # Displays the current block selected
     def on_block_selected(self, block_id):
         self.display_block_info(block_id)
@@ -1184,15 +1195,18 @@ class TrackModelFrontEnd(QMainWindow):
     # Temperature input handler
     def handle_temperature_input(self):
         try:
-            # Get input from QLineEdit and clamp to valid range
             temp = float(self.ui.track_temperature_value.text())
             temp = max(min(temp, 140.0), -140.0)
             self.current_line.set_temperature(temp)
+            self.current_line.update_heaters()  # <-- force heater logic to update immediately
+            self.update_temperature_display(temp, self.current_line_name)  # <-- refresh display
         except ValueError:
-            # Fallback for invalid input
             fallback_temp = 35.0
             self.ui.track_temperature_value.setText(f"{fallback_temp:.1f}")
             self.current_line.set_temperature(fallback_temp)
+            self.current_line.update_heaters()
+            self.update_temperature_display(fallback_temp, self.current_line_name)
+
 
 
     def update_temperature_display(self, new_temp, line_name):
