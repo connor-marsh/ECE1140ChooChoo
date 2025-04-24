@@ -83,7 +83,7 @@ class WaysideController(QObject):
                     if clamp and self.block_occupancies[i]:
                         self.to_send_authorities[blocks[i].id] = 0
                         self.commanded_authorities[i] = 0 # set ui
-                    elif not clamp and prev_clamps[i] and self.block_occupancies[i]:
+                    if not clamp and prev_clamps[i] and self.block_occupancies[i]:
                         self.suggested_authorities[i] = None # reset authorities so ctc can send new ones or the train can revert back to what it was
                         self.commanded_authorities[i] = None
                         self.to_send_authorities[blocks[i].id] = None
@@ -107,7 +107,7 @@ class WaysideController(QObject):
 
         :param occupancies: A dictionary of block occupancies with keyed with the block id
         """
-        if self.collection.track_model != None:
+        if self.collection.track_model != None and not self.maintenance_mode:
             for i, block in enumerate(self.collection.blocks[self.index]): # index the blocks only in the range of this controller
                 occupancy = occupancies.get(block.id, Occupancy.UNOCCUPIED) # read from the dictionary
 
