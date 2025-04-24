@@ -103,6 +103,8 @@ Opens a file explorer dialog allowing the user to upload a schedule file.
 - The selected file is then parsed and integrated into the train scheduling system.
 - This feature supports automated train dispatching and timeline-based coordination based on pre-configured schedules.
 ### Wayside Controller UI
+This module is responsible for executing the PLC program and operates the devices on the track. The UI displays the controllers name and line in the top left corner.
+
 #### Import PLC Program
 Allows the programmer to upload a PLC program.
 - Click the green "Import PLC Program Button" to open the file manager
@@ -309,6 +311,8 @@ This user interface provides real-time monitoring and control capabilities for a
 
 ### Train Controller HW UI
 The hardware train module only exists for a single train at a time, as opposed to the software train module which will list all the trains. When we are using the hardware module, and we dispatch multiple trains from the yard, the *second* train to be dispatched will be created as a hardware train, and the hardware UI will control that train. In the software UI you will see that the second train has most of its functionality missing, because it is in hardware instead. Also if later in time, the hardware train goes to the Yard, then when the next train gets dispatched from the yard, if there is at least one software train on the track, then that train will be hardware. There can only ever be one hardware train at a time.
+
+Note, the hardware code exists on the py-code branch. 
 
 The hardware UI works the same as the SW Train Controller UI, but everything exists with physical buttons, switches, and dials.
 
