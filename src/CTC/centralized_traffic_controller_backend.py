@@ -174,15 +174,23 @@ class CtcBackEnd(QObject):
                     jump_key = (int(block.id[1:]), train.direction)
 
                     #Checks if going to yard
-                    if jump_key == (57, 1):
-                        #If not going to yard, disregard jump block
-                        if train.get_next_stop() != 152:
+                    if train.line == "Green":
+                        if jump_key == (57, 1):
+                            #If not going to yard, disregard jump block
+                            if train.get_next_stop() != 152:
+                                return self.lines[self.updating_line].blocks[int(block.id[1:])].id
+
+                    if train.line == "Red":
+                        if jump_key == (52, 1):
                             return self.lines[self.updating_line].blocks[int(block.id[1:])].id
-                        
+
+
                     #Check if train is at jump block
                     if jump_key in self.lines[self.updating_line].JUMP_BLOCKS:
+                        # print("====JUMPING FROM ", jump_key)
                         next_block, new_dir = self.lines[self.updating_line].JUMP_BLOCKS[jump_key]
                         train.direction = new_dir
+                        # print("====JUMPING TO ", next_block, "Direction: ", train.direction)
                         return self.lines[self.updating_line].blocks[next_block - 1].id
                     
                     #if moving in decreasing direction
@@ -202,6 +210,7 @@ class CtcBackEnd(QObject):
                     train.current_block = train.next_block
                     train.next_block = self.get_expected_next_block(train)
                     #print("[CTC DEBUG] Train ID: ", train.train_id, "Current Block: ", train.current_block, "Next Block: ", train.next_block)
+                    #print(train.__dict__)
                     if train.next_block == -1:
                         #print("Train ID: ", train.train_id, "Exiting the line")
                         self.lines[self.updating_line].current_trains.remove(train) #Remove train from active trains
@@ -423,8 +432,8 @@ class CtcBackEnd(QObject):
             True if we made it all the way to the end, false otherwise
         '''
 
-        # print(start_id)
-        # print(end_id)
+        #print(start_id)
+        #print(end_id)
         start_id -= 1 #Convert to 0-indexed
         end_id -= 1 #Convert to 0-indexed
         current_id = start_id
@@ -480,9 +489,11 @@ class CtcBackEnd(QObject):
                 direction = section_dir
 
             jump_key = (current_id+1, direction)
+            #print(jump_key)
             #print("Current Block: ", current_block.id, "Next Block: ", self.lines[line_name].blocks[current_id+1].id, "Direction: ", direction, "Total Authority: ", authority)
 
-            if jump_key == (57,1) and end_id != 151:
+            if ((line_name == "Green" and jump_key == (57,1) and end_id != 151) or (line_name == "Red" and jump_key == (52, 1) and self.lines[line_name].switch_states == [0,0,0,0,0,0])):
+                    #print("===HIT! Jumping to", current_id + 1, line_name, jump_key)
                     next_id = current_id + 1
             elif jump_key in self.lines[line_name].JUMP_BLOCKS:
                 #print("TRYING TO JUMP")
@@ -504,7 +515,7 @@ class CtcBackEnd(QObject):
                 authority += current_block.length #accumulate authority
             else:
                 post_destination_checks += 1 # One closer to making it all the way there with no backtracking
-            #print("Current Block: ", self.lines[line_name].blocks[current_id].id, "Next Block: ", self.lines[line_name].blocks[next_id].id, "Direction: ", direction, "Total Authority: ", authority)
+            #print("---AUTH--- Current Block: ", self.lines[line_name].blocks[current_id].id, "Next Block: ", self.lines[line_name].blocks[next_id].id, "Direction: ", direction, "Total Authority: ", authority)
 
             # Save block info for backtracking
             last_four_blocks.pop(0)
@@ -662,11 +673,11 @@ class Track:
             (77, 0): (9, 0),   # y77 -> C9, decrease    
             (9, 1): (77, 1),   # C9 -> y77, increase
             (16, 0): (1, 1),   # F16 -> A1, increase
-            (1, 0): (16, 1),
-            (52, 0): (66, 0),  # J52 -> N66, decrease
+            (1, 0): (16, 1),    # A1 -> F16, increase
+            (52, 1): (66, 0),  # J52 -> N66, decrease
             (66, 1): (52, 0),  # N66 -> J52, decrease
-            (44, 0): (67, 1),  # H44 -> O67, increase
-            (33, 0): (72, 1),  # H33 -> O72, increase
+            #(44, 0): (67, 1),  # H44 -> O67, increase
+            #(33, 0): (72, 1),  # H33 -> O72, increase
             (71, 1): (38, 0),  # Q71 -> H38, decrease
             (76, 1): (27, 0)  # T76 -> H27, decrease
             }    
