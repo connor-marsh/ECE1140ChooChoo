@@ -242,7 +242,8 @@ class CtcBackEnd(QObject):
                     train.received_penultimate_block_auth = True
 
                 # Did you make it to the stop
-                elif train.current_block == self.lines[self.updating_line].blocks[train.get_next_stop()-1].id:
+                elif train.current_block == self.lines[self.updating_line].blocks[train.get_next_stop()-1].id and not train.previous_stop == train.get_next_stop():
+                    train.previous_stop = train.get_next_stop()
                     train.received_penultimate_block_auth = False
                     train.route_index += 1 # You made it to the stop
                     # Is there another stop?
@@ -428,8 +429,8 @@ class CtcBackEnd(QObject):
         end_id -= 1 #Convert to 0-indexed
         current_id = start_id
         
-        if start_id == end_id:
-            return None, False
+        # if start_id == end_id:
+        #     return None, False
         if not (0 <= start_id < len(self.lines[line_name].blocks)) or not (0 <= end_id < len(self.lines[line_name].blocks)):
             print("-----ERROR! Invalid block ID-----")
             return -1
@@ -551,6 +552,7 @@ class DummyTrain:
         self.authority = 0
         self.exit_blocks = None
         self.no_obstacles = True
+        self.previous_stop = self.current_block
 
         self.received_first_auth = False
         self.received_penultimate_block_auth = False

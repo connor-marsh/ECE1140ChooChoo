@@ -189,7 +189,6 @@ class TrainController(QMainWindow):
         if (self.wayside_authority < self.current_block.length and self.current_block.station and not self.just_stopped_at_station):
             self.just_stopped_at_station = True
             print("Stopping at station...")
-
             # set the next station announcement based on station information
             if station:
                 # update the next_station field to the station's name
