@@ -323,7 +323,9 @@ class CtcBackEnd(QObject):
                 if str(train.train_id) == str(selected_train):
                     #print("Train ID MATCH")
                     train.set_route(full_route)
-                    speed, auth = self.get_suggestion_values(self.active_line.current_trains[0])
+                    print(full_route)
+                    # NEXT STOP OVERRIDE IS DIRTY PATCH, FIND ROOT CAUSE
+                    speed, auth = self.get_suggestion_values(train, next_stop_override=full_route[0])
                     self.send_suggestions(speed, auth)
         #print("Train Entered into Queue")
 
@@ -349,18 +351,23 @@ class CtcBackEnd(QObject):
         signals.communication_ctc[self.active_line.name].ctc_block_maintenance.emit(self.active_line.blocks[block_id].id, maintenance_val) #int, bool 
         #print("Set Block ", block_id, " Maintenance value to ", maintenance_val)
 
-    def get_suggestion_values(self, train, speed=70, start_halfway=False):
-        if train.get_next_stop():
+    def get_suggestion_values(self, train, speed=70, start_halfway=False, next_stop_override=None):
+        destination = None
+        if next_stop_override:
+            destination = next_stop_override
+        elif train.get_next_stop():
+            destination = train.get_next_stop()
+        if destination:
             new_speed = speed
             suggested_speed = {train.current_block : new_speed}
-            auth, no_obstacles = self.calculate_authority(int(train.current_block[1:]), train.get_next_stop(), line_name=train.line, direction=train.direction, start_halfway=start_halfway)
+            auth, no_obstacles = self.calculate_authority(int(train.current_block[1:]), destination, line_name=train.line, direction=train.direction, start_halfway=start_halfway)
             if auth == None:
                 suggested_authority = {}
             else:
                 # Let train know if its making it to its destination
                 train.no_obstacles = no_obstacles
                 # if going to yard go a little extra
-                if self.lines[train.line].blocks[train.get_next_stop()-1].id[0]=='y' and no_obstacles:
+                if self.lines[train.line].blocks[destination-1].id[0]=='y' and no_obstacles:
                     auth += 300
                 # don't send auth of 0 cause special value
                 if auth == 0:
@@ -389,7 +396,7 @@ class CtcBackEnd(QObject):
 
 
     def send_suggestions(self, suggested_speeds, suggested_authorities):
-        print("Suggested Speeds: ", suggested_speeds, "Suggested Authorities: ", suggested_authorities)
+        # print("Suggested Speeds: ", suggested_speeds, "Suggested Authorities: ", suggested_authorities)
         signals.communication_ctc[self.lines[self.updating_line].name].ctc_suggested.emit(suggested_speeds, suggested_authorities) #Dict, Dict
 
     def send_exit_blocks(self, exit_blocks):
@@ -518,7 +525,7 @@ class CtcBackEnd(QObject):
         authority += self.lines[line_name].blocks[end_id].length / 2
 
         #print("-----END REACHED-----")
-        #print("Current Block: ", current_block.id, "Total Authority: ", authority)
+        # print("Current Block: ", current_block.id, "Total Authority: ", authority)
         return authority, True
 
 
