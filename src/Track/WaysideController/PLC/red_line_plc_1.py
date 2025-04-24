@@ -44,7 +44,7 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     # Has 6 Lights A1, D10, E15, H28, T76, y77
     # Has 1 Crossing D11
 
-    # create persistent attributes of the function, kind of like static variables in C++
+
     if not hasattr(plc_logic, 'prev_train_increasing_abc'):
         plc_logic.prev_train_increasing_abc = False
         plc_logic.prev_train_decreasing_abc = False
@@ -81,6 +81,7 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
 
     train_in_abc = train_in_a or train_in_b or train_in_c
 
+    """
     if train_in_abc:
         if not plc_logic.prev_train_increasing_abc: # only need to do these if its not already true
             train_f_to_a = train_in_a and prev_train_in_f # check if increasing direction
@@ -105,18 +106,44 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
         train_increasing_abc = False
         train_decreasing_abc = False
         train_decreasing_de = False
-
-
+    """
+    """
     switch_positions[0] = ((not (train_in_abc or train_in_d) or # if no trains are nearby switch to the yard
                           (train_decreasing_abc and not train_in_d) or # if already is a train heading away from the yard
                           (train_increasing_abc)) and # NEED EXIT BLOCK LOGIC HERE MOST LIKELY (CASE FOR TRAIN ENTERING THE YARD)
                           not train_decreasing_de) # finally check if there is not a train trying to exit away from the loop from d or e
+    """
+
+
+    switch_positions[0] = not train_in_abc or train_in_d
+    light_signals[1] = not switch_positions[0]
+    light_signals[5] = switch_positions[0]
     
+    switch_positions[1] = not train_in_f and train_in_abc or train_in_d or train_in_e
+    light_signals[0] = not switch_positions[1]
+    light_signals[2] = not light_signals[0]
+
+    switch_positions[2] = train_in_t
+    light_signals[3] = not switch_positions[2]
+    light_signals[4] = not light_signals[3]
+    
+    crossing_signals[0] = train_in_d
+    
+    
+    if not switch_positions[0]:
+        clamps[64] = True
+    else:
+        clamps[64] = False
 
 
+
+    if switch_positions[0]:
+        clamps[10:12] = [True]*len(clamps[10:12])
+    else:
+        clamps[10:12] = [False]*len(clamps[10:12])
     # update persistent state
-    plc_logic.prev_train_increasing_abc = train_increasing_abc
-    plc_logic.prev_train_decreasing_abc = train_decreasing_abc
+    #plc_logic.prev_train_increasing_abc = train_increasing_abc
+    #plc_logic.prev_train_decreasing_abc = train_decreasing_abc
 
     return switch_positions, light_signals, crossing_signals, clamps
 
