@@ -276,6 +276,14 @@ class CtcBackEnd(QObject):
                         train.exit_blocks = [[True],[False, True],[True]]
                     self.send_exit_blocks(train.exit_blocks) #Send exit blocks to wayside
 
+            if self.updating_line == "Red":
+                if train.current_block == "B5":
+                    if train.get_next_stop() == 77:
+                        train.exit_blocks =[[True, False, False], [False, False, False, False], [False, False]]
+                    else:
+                        train.exit_blocks =[[False, False, False], [False, False, False, False], [False, False]]
+                    self.send_exit_blocks(train.exit_blocks)
+
         self.lines[self.updating_line].occupancy_change = False
                     
             

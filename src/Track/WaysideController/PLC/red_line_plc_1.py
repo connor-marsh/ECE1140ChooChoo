@@ -70,7 +70,7 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     prev_train_in_t = any(previous_occupancies[34:35])
     prev_train_in_y = any(previous_occupancies[35:36])
 
-    switch_positions[0] = True
+    switch_positions[0] = not(train_in_a or train_in_b or train_in_c) or exit_blocks[0]
     light_signals[1] = not switch_positions[0]
     light_signals[5] = switch_positions[0]
     
