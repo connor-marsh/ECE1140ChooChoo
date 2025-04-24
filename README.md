@@ -137,6 +137,7 @@ The Track Model user interface allows for dynamic visualization and interaction 
 ### Train Model UI
 
 ### Train Controller SW UI
+The Train Controller SW UI is just one page that has six main boxes for the driver to interact with. Additionally, at the top of the UI exists a drop-down allowing a user to select whichever specific train's controller they would like to look at. The major six boxes include the train information (such as speed, power, brakes, authority, etc.), the failure box for any emergencies, the auxiliary controls box for controlling lights, temperature, etc., the announcements and misc. box for displaying next station announcements and the global time, the control constants box for the train engineer to set the control constant values, and finally the control mode for the driver to be able to switch between auto and manual mode.
 
 ### Train Controller HW UI
 
