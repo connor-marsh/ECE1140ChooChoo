@@ -52,6 +52,7 @@ class WaysideController(QObject):
 
         Signals.communication_ctc[self.collection.LINE_NAME].ctc_suggested.connect(self.handle_suggested_values) # connect signals
         Signals.communication_ctc[self.collection.LINE_NAME].ctc_exit_blocks.connect(self.handle_exit_blocks)
+        Signals.communication_ctc[self.collection.LINE_NAME].ctc_block_maintenance.connect(self.handle_maintenance_blocks)
 
         self.global_clock = global_clock.clock
         self.timer = QTimer() # initialize update timer
@@ -159,7 +160,20 @@ class WaysideController(QObject):
         """
         self.exit_blocks = exit_blocks[self.index]
 
-        
+    @pyqtSlot(str, bool)
+    def handle_maintenance_blocks(self, id, state):
+        """
+        Will set blocks into maintenance when the ctc requests and it is appropriate to do so
+        :param id: The block id to be toggled into or out of maintenance
+        :param state: True or False, True indicates place into maintenance, False indicates place out of maintenance
+        """
+        if (self.collection.track_data.blocks[int(id[1:])].territory != (self.index + 1)) and self.collection.track_model != None:
+            if state:
+                print("Sending maintenance")
+                self.collection.track_model.dynamic_occupancies = Occupancy.MAINTENANCE
+            else:
+                self.collection.track_model.dynamic_occupancies = Occupancy.UNOCCUPIED
+
         
   
 
