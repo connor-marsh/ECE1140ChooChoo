@@ -193,40 +193,36 @@ class Train:
                 train_output = self.train_model.get_output_data()
                 actual_speed = train_output.get("actual_speed", 1.0)
 
-                if actual_speed == 0.0:
-                    station_id = self.current_block.id
-                    ticket_sales = self.track_model.station_ticket_sales.get(station_id, 0)
+                station_id = self.current_block.id
+                ticket_sales = self.track_model.station_ticket_sales.get(station_id, 0)
 
-                    MAX_PASSENGERS = 148
-                    MAX_BOARDING = random.randint(10, 25)  # adjustable range - change as needed
+                MAX_PASSENGERS = 148
+                MAX_BOARDING = random.randint(10, 25)
 
-                    # Ensure space is freed up if near or at capacity
-                    min_required_to_leave = max(0, (self.passenger_count + MAX_BOARDING) - MAX_PASSENGERS)
-                    max_possible_to_leave = min(25, self.passenger_count)
+                min_required_to_leave = max(0, (self.passenger_count + MAX_BOARDING) - MAX_PASSENGERS)
+                max_possible_to_leave = min(25, self.passenger_count)
 
-                    passengers_leaving = random.randint(min_required_to_leave, max_possible_to_leave) if max_possible_to_leave >= min_required_to_leave else self.passenger_count
-                    self.passenger_count -= passengers_leaving
+                passengers_leaving = random.randint(min_required_to_leave, max_possible_to_leave) if max_possible_to_leave >= min_required_to_leave else self.passenger_count
+                self.passenger_count -= passengers_leaving
 
-                    available_space = MAX_PASSENGERS - self.passenger_count
-                    passengers_boarding = min(MAX_BOARDING, available_space)
+                available_space = MAX_PASSENGERS - self.passenger_count
+                passengers_boarding = min(MAX_BOARDING, available_space)
 
-                    self.passenger_count += passengers_boarding
+                self.passenger_count += passengers_boarding
 
-                    print(f"[Station {station_id}] {passengers_leaving} passengers deboarded.")
-                    print(f"[Station {station_id}] {passengers_boarding} passengers boarded.")
-                    print(f"[Train {self.train_id}] now has {self.passenger_count} passengers.")
+                print(f"[Station {station_id}] {passengers_leaving} passengers deboarded.")
+                print(f"[Station {station_id}] {passengers_boarding} passengers boarded.")
+                print(f"[Train {self.train_id}] now has {self.passenger_count} passengers.")
 
-                    # Update station's total ticket sales
-                    self.track_model.station_ticket_sales[station_id] += passengers_boarding
+                self.track_model.station_ticket_sales[station_id] += passengers_boarding
 
-                    # Emit ticket sales to CTC via signal
-                    signals.communication_track.track_tickets.emit(self.track_model.station_ticket_sales[station_id], self.track_model.name)
+                signals.communication_track.track_tickets.emit(self.track_model.station_ticket_sales[station_id], self.track_model.name)
 
-                    # Log for frontend runtime display
-                    self.track_model.runtime_status.setdefault(station_id, {})
-                    self.track_model.runtime_status[station_id]["ticket_sales"] = self.track_model.station_ticket_sales[station_id]
-                    self.track_model.runtime_status[station_id]["boarding"] = passengers_boarding
-                    self.track_model.runtime_status[station_id]["departing"] = passengers_leaving
+                self.track_model.runtime_status.setdefault(station_id, {})
+                self.track_model.runtime_status[station_id]["ticket_sales"] = self.track_model.station_ticket_sales[station_id]
+                self.track_model.runtime_status[station_id]["boarding"] = passengers_boarding
+                self.track_model.runtime_status[station_id]["departing"] = passengers_leaving
+
 
 
 
