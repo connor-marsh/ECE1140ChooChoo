@@ -23,14 +23,44 @@ Install anaconda, open an anaconda powershell prompt through the anaconda naviga
 Navigate in that powershell to this github repositories cloned location, then run this command:
 `conda env create -f environment.yml`
 
+Now activate that environment with `conda activate TeamChooChoo`
+
+Now you are ready to run the code. All the program files are within the ***src*** folder. The main program file is ***pittsburgh.py***
+
+#### Running Project
+To run our project, simply run ***pittsburgh.py*** from the repository root with `python3 src/pittsburgh.py`.
+
+#### Running modules
+To run an individual module, or smaller combination of modules and testbenches, you have to pass that as a command line argument like `python3 src/pittsburgh.py TrainModel`.
+
+To run the fully integrated system, pass command line argument: "all" (default, runs all modules but only starts with green line uploaded) or "allOnRed" (runs all modules but also starts with both green and red lines uploaded)  
+To run individual modules with their testbenches, pass command line argument: "CTC", "WaysideController", "TrackModel", "TrainModel", "TrainController" or "TrainControllerHW" (requires hardware to be setup and connected)  
+To run specific combinations of modules, pass argument: "CTCWayside" (runs just those two modules and tests their comms), "TrackWayside" (Fully integrated system but with no CTC) or "Train" (Train model and train controller integrated, testbench to get values from track model)
+
 ### Adding packages
 To add a new package, run this command:
 `conda install -c conda-forge [module_name]=[module_version]`
+If the conda-forge channel doesn't have that package, you can remove the `-c conda-forge` part. You can also search packages on [Anaconda website](anaconda.org) to see which channels have a certain package.
+
 Then to update the environment.yml file, run this command:
 `conda env export > environment.yml`
 ***Then remove the prefix line, which is specific to your computer. After that you are good to commit the new environment file.***
 
-### Raspberry Pi Setup
+### Raspberry Pi/Hardware Train Controller Module Setup
+To setup the hardware train controller module, there are extra steps you have to take. First off you need to have the physical hardware module, which is a rasberrypi connected to an arduino (being used as a glorified analog to digital converter), connected to a breadboard with a handful of IO peripherals such as LED's, buttons, switches, and OLED displays.
+
+Make sure that rasperry pi is powered on, you should see the green light on the board. The arduino should be connected to the pi over usb, it should also be powered on now with two orange lights and one green light.
+
+#### Connection between hardware and software
+The communication between hardware and software uses ssh over ethernet connection. To have your computer communicate with the pi without going through a wifi router first, we have to mess around with the IP addressing of the devices.
+
+The pi is already set up so that it has a static IP of 192.168.137.10, a subnet mask of 24, and a gateway of 192.168.137.1. The gateway is the IP of the host device which it is communicating with.
+
+What you have to do is manually set the IP of your ethernet connection to be the correct IP settings. Go into Control Panel, Network and Internet, Network and Sharing Center, Change adapter settings.  
+Then double click on your connected ethernet, then click properties (requires admin), then select IPV4 and click properties. Then select "Use the following IP Address", and input IP=192.168.137.1, Subnet Mask=255.255.255.0, and leave gateway blank.  
+This may take a moment to fully go through and be updated.
+
+After this, the hardware setup should be compete. To confirm that you have proper connection with the hardware, open a terminal and run `ssh connor-marsh@192.168.137.10` and the password is `ece1140`. If this ssh connects properly, you can run `exit` to leave ssh. Lastly when you run the code, make sure to pass command line argument saying that you want to use the hardware module. So run `python3 pittsburgh.py USING_HARDWARE`
 
 ## Usage
 ### Starting the Simulation
@@ -230,6 +260,12 @@ This user interface provides real-time monitoring and control capabilities for a
 
 
 ### Train Controller HW UI
+The hardware train module only exists for a single train at a time, as opposed to the software train module which will list all the trains. When we are using the hardware module, and we dispatch multiple trains from the yard, the *second* train to be dispatched will be created as a hardware train, and the hardware UI will control that train. In the software UI you will see that the second train has most of its functionality missing, because it is in hardware instead. Also if later in time, the hardware train goes to the Yard, then when the next train gets dispatched from the yard, if there is at least one software train on the track, then that train will be hardware. There can only ever be one hardware train at a time.
+
+The hardware UI works the same as the SW Train Controller UI, but everything exists with physical buttons, switches, and dials.
+
+Also importantly, note that even the HW train module still has a slight software UI component. The train engineer uses the software UI to set the Kp and Ki gains, then the train driver exclusively uses the hardware UI.
+The labeling of all the physical buttons, switches, and dials, are shown in this image: ![Hardware Setup](src/Train/TrainController/hardwareUtils/HW_Train_Setup.jpg)
 
 ## Common User Errors
 1. Windows has modules zoomed in by 200%, may tarnish the view of some modules.
