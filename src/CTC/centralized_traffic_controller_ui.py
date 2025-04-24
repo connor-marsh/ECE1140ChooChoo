@@ -457,11 +457,6 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout.addItem(self.horizontalSpacer_3)
 
-        self.sub_dispatch_manual_radio = QRadioButton(self.widget_4)
-        self.sub_dispatch_manual_radio.setObjectName(u"sub_dispatch_manual_radio")
-
-        self.horizontalLayout.addWidget(self.sub_dispatch_manual_radio)
-
 
         self.horizontalLayout_9.addLayout(self.horizontalLayout)
 
@@ -967,7 +962,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.multiPageWidget.setCurrentIndex(0)
+        self.multiPageWidget.setCurrentIndex(2)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -1029,7 +1024,6 @@ class Ui_MainWindow(object):
         self.main_switch_to_select_button.setText(QCoreApplication.translate("MainWindow", u"Select Train", None))
         self.sub_return_button.setText(QCoreApplication.translate("MainWindow", u"<- Back", None))
         self.label_17.setText(QCoreApplication.translate("MainWindow", u"Dispatch Train", None))
-        self.sub_dispatch_manual_radio.setText(QCoreApplication.translate("MainWindow", u"Manual", None))
         ___qtablewidgetitem15 = self.sub_dispatch_train_table.horizontalHeaderItem(0)
         ___qtablewidgetitem15.setText(QCoreApplication.translate("MainWindow", u"Designator", None));
         ___qtablewidgetitem16 = self.sub_dispatch_train_table.horizontalHeaderItem(1)
@@ -1038,7 +1032,7 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem17.setText(QCoreApplication.translate("MainWindow", u"Stop #n", None));
         self.sub_manual_override_box.setTitle(QCoreApplication.translate("MainWindow", u"Manual Override", None))
         self.label_5.setText("")
-        self.sub_dispatch_overide_new_radio.setText(QCoreApplication.translate("MainWindow", u"Send new train to block:", None))
+        self.sub_dispatch_overide_new_radio.setText(QCoreApplication.translate("MainWindow", u"Dispatch New Train", None))
         self.sub_dispatch_overide_active_radio.setText(QCoreApplication.translate("MainWindow", u"Reroute Active Train", None))
         self.sub_dispatch_block_select_radio.setText(QCoreApplication.translate("MainWindow", u"Send to Block", None))
         self.sub_dispatch_station_select_radio.setText(QCoreApplication.translate("MainWindow", u"Send to Station", None))
@@ -1093,4 +1087,6 @@ class Ui_MainWindow(object):
         self.sub_activate_maintenance_button.setText(QCoreApplication.translate("MainWindow", u"Start Maintenance", None))
         self.sub_end_maintenance_button.setText(QCoreApplication.translate("MainWindow", u"End Maintenance", None))
     # retranslateUi
+
+
 
