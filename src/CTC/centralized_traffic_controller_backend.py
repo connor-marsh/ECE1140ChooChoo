@@ -296,12 +296,12 @@ class CtcBackEnd(QObject):
         else:
             if selected_train == None:
                 print("ERROR! Invalid Train Selection")
-            for train in self.lines[self.updating_line].current_trains:
+            for train in self.active_line.current_trains:
                 print("Train ID: ", train.train_id, "Selected Train ID: ", selected_train)
                 if str(train.train_id) == str(selected_train):
                     print("Train ID MATCH")
                     train.set_route(full_route)
-                    speed, auth = self.get_suggestion_values(self.lines[self.updating_line].current_trains[0])
+                    speed, auth = self.get_suggestion_values(self.active_line.current_trains[0])
                     self.send_suggestions(speed, auth)
         #print("Train Entered into Queue")
 
