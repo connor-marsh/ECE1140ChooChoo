@@ -645,6 +645,35 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_18.addWidget(self.frame_5)
 
+        self.frame_7 = QFrame(self.sub_manual_override_box)
+        self.frame_7.setObjectName(u"frame_7")
+        self.frame_7.setFrameShape(QFrame.StyledPanel)
+        self.frame_7.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout_8 = QHBoxLayout(self.frame_7)
+        self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
+        self.horizontalLayout_8.setContentsMargins(0, 0, 0, 0)
+        self.label_6 = QLabel(self.frame_7)
+        self.label_6.setObjectName(u"label_6")
+        self.label_6.setFrameShape(QFrame.Box)
+        self.label_6.setLineWidth(1)
+
+        self.horizontalLayout_8.addWidget(self.label_6)
+
+        self.sub_dispatch_ETA_hr = QSpinBox(self.frame_7)
+        self.sub_dispatch_ETA_hr.setObjectName(u"sub_dispatch_ETA_hr")
+        self.sub_dispatch_ETA_hr.setMaximum(23)
+
+        self.horizontalLayout_8.addWidget(self.sub_dispatch_ETA_hr)
+
+        self.sub_dispatch_ETA_min = QSpinBox(self.frame_7)
+        self.sub_dispatch_ETA_min.setObjectName(u"sub_dispatch_ETA_min")
+        self.sub_dispatch_ETA_min.setMaximum(59)
+
+        self.horizontalLayout_8.addWidget(self.sub_dispatch_ETA_min)
+
+
+        self.verticalLayout_18.addWidget(self.frame_7)
+
 
         self.verticalLayout_10.addWidget(self.sub_manual_override_box)
 
@@ -938,7 +967,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.multiPageWidget.setCurrentIndex(1)
+        self.multiPageWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -1038,6 +1067,7 @@ class Ui_MainWindow(object):
 
         self.sub_station_combo.setCurrentText("")
         self.sub_station_combo.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Station", None))
+        self.label_6.setText(QCoreApplication.translate("MainWindow", u"Suggested ETA:", None))
         self.sub_dispatch_confirm_button.setText(QCoreApplication.translate("MainWindow", u"Dispatch Train", None))
         self.sub_return_button2.setText(QCoreApplication.translate("MainWindow", u"<- Back", None))
         self.label_18.setText(QCoreApplication.translate("MainWindow", u"Select Train", None))
@@ -1063,3 +1093,4 @@ class Ui_MainWindow(object):
         self.sub_activate_maintenance_button.setText(QCoreApplication.translate("MainWindow", u"Start Maintenance", None))
         self.sub_end_maintenance_button.setText(QCoreApplication.translate("MainWindow", u"End Maintenance", None))
     # retranslateUi
+
