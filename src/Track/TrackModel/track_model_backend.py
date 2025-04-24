@@ -107,6 +107,9 @@ class Train:
 
     def update(self):
         train_position = self.train_model.get_output_data()["position"]
+        left_open = self.train_model.get_output_data()["left_doors"]
+        right_open = self.train_model.get_output_data()["right_doors"]
+        
         train_length = 35.21435
         distance_within_block = train_position - self.distance_traveled
 
@@ -187,18 +190,24 @@ class Train:
                 send_to_train = {}
                 send_to_train["beacon_data"] = self.track_data.beacons[self.current_block.id].data
                 self.train_model.set_input_data(track_data=send_to_train)
+            self.added_passengers = False
+            
+        # Check for station in new block, if its there, add and remove passengers from train
+        if self.current_block.station:
+            train_output = self.train_model.get_output_data()
+            actual_speed = train_output.get("actual_speed", 1.0)
+            print(left_open)
+            print(right_open)
 
-            # Check for station in new block, if its there, add and remove passengers from train
-            if hasattr(self.current_block, "station") and self.current_block.station:
-                train_output = self.train_model.get_output_data()
-                actual_speed = train_output.get("actual_speed", 1.0)
-
+            if left_open or right_open and not self.added_passengers:
+                self.added_passengers = True
                 station_id = self.current_block.id
                 ticket_sales = self.track_model.station_ticket_sales.get(station_id, 0)
 
                 MAX_PASSENGERS = 148
-                MAX_BOARDING = random.randint(10, 25)
+                MAX_BOARDING = random.randint(10, 25)  # adjustable range - change as needed
 
+                # Ensure space is freed up if near or at capacity
                 min_required_to_leave = max(0, (self.passenger_count + MAX_BOARDING) - MAX_PASSENGERS)
                 max_possible_to_leave = min(25, self.passenger_count)
 
@@ -214,15 +223,17 @@ class Train:
                 print(f"[Station {station_id}] {passengers_boarding} passengers boarded.")
                 print(f"[Train {self.train_id}] now has {self.passenger_count} passengers.")
 
+                # Update station's total ticket sales
                 self.track_model.station_ticket_sales[station_id] += passengers_boarding
 
+                # Emit ticket sales to CTC via signal
                 signals.communication_track.track_tickets.emit(self.track_model.station_ticket_sales[station_id], self.track_model.name)
 
+                # Log for frontend runtime display
                 self.track_model.runtime_status.setdefault(station_id, {})
                 self.track_model.runtime_status[station_id]["ticket_sales"] = self.track_model.station_ticket_sales[station_id]
                 self.track_model.runtime_status[station_id]["boarding"] = passengers_boarding
                 self.track_model.runtime_status[station_id]["departing"] = passengers_leaving
-
 
 
 
