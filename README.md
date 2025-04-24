@@ -136,6 +136,58 @@ The Track Model user interface allows for dynamic visualization and interaction 
 
 ### Train Model UI
 
+This user interface provides real-time visualization and interaction with a simulated train model. It is organized into distinct sections for intuitive monitoring of model state, failure injection, control toggles, and displaying live train data.
+
+#### Train Selection
+- **Train ID:** Displays the identifier of the current train model instance being simulated.
+
+#### Advertisements
+- **Rotating Banners:** Cycles through a series of advertisement images at startup and every 5 seconds thereafter.
+
+#### Announcement and Clock
+- **ANNOUNCEMENT:** Shows any system or operator messages.  
+- **Global Clock:** Displays current time in 12-hour format (e.g., 07:03 AM).
+
+#### Failure Box
+- **Brake Failure:** Toggleable status indicator (Enabled/Disabled).  
+- **Signal Failure:** Toggleable status indicator (Enabled/Disabled).  
+- **Engine Failure:** Toggleable status indicator (Enabled/Disabled).  
+- **Emergency Brake:** Large red button that immediately engages the emergency brake on the model. (Can only be enabled by passengers, not disabled)
+
+#### Model Metrics
+- **Current Engine Power (kW):** Real-time display of the engine’s power output.  
+- **Acceleration (ft/s²):** Shows the current model acceleration.  
+- **Actual Velocity (mph):** Displays the train’s simulated speed.
+
+#### Live Train Data
+- **Wayside Speed (mph):** Speed limit imposed by the wayside controller.  
+- **Wayside Authority (yds):** Remaining distance the train is permitted to travel.  
+- **Vehicle Length (ft):** Physical length of the train.  
+- **Height (ft):** Height of the train model.  
+- **Width (ft):** Width of the train model.  
+- **Vehicle Mass (lbs):** Mass used for physics calculations.  
+- **Passengers:** Number of passengers currently onboard.  
+- **Crew Count:** Number of crew members.  
+- **Grade (%):** Track incline percentage.  
+- **Distance Travelled (yds):** Total distance covered since spawn.
+
+#### Auxiliary Controls (Confirmation Lights)
+- **Service Brakes:** Toggle ON/OFF to apply or release service brakes.  
+- **Exterior Lights:** Toggle ON/OFF lighting for exterior fixtures.  
+- **Interior Lights:** Toggle ON/OFF lighting inside the cabin.  
+- **Left Door / Right Door:** Buttons to OPEN or CLOSE each side’s doors.
+
+#### Cabin Temperature
+- **Temperature Display (°F):** Shows current cabin temperature in Fahrenheit.
+
+---
+
+#### Notes
+- Advertisements are for demonstration only and can be replaced via the `Assets` directory.  
+- Failure toggles simulate fault conditions; use these to test control-mode responses.  
+- All numerical displays update in real time based on the underlying simulation loop.  
+- Emergency Brake overrides all other controls until the failure is cleared/Train Driver disables it
+
 ### Train Controller SW UI
 
 This user interface provides real-time monitoring and control capabilities for a train controller system. It is organized into distinct sections for intuitive interaction and quick access to critical information.
