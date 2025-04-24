@@ -44,5 +44,5 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     # Has 3 Lights J53, N66, O67
     # Has 1 Crossing I47
 
-    switch_positions[0] = False
+    switch_positions[0] = True
     return switch_positions, light_signals, crossing_signals, clamps
