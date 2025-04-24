@@ -385,12 +385,12 @@ class Ui_MainWindow(object):
 
         self.LiveTrainDataGrid.addWidget(self.MassVehicleLabel, 5, 0, 1, 1)
 
-        self.SpeedLimitValue = QLCDNumber(self.gridLayoutWidget)
-        self.SpeedLimitValue.setObjectName(u"SpeedLimitValue")
-        self.SpeedLimitValue.setFont(font2)
-        self.SpeedLimitValue.setSegmentStyle(QLCDNumber.Flat)
+        self.WaysideAuthValue = QLCDNumber(self.gridLayoutWidget)
+        self.WaysideAuthValue.setObjectName(u"WaysideAuthValue")
+        self.WaysideAuthValue.setFont(font2)
+        self.WaysideAuthValue.setSegmentStyle(QLCDNumber.Flat)
 
-        self.LiveTrainDataGrid.addWidget(self.SpeedLimitValue, 1, 1, 1, 1)
+        self.LiveTrainDataGrid.addWidget(self.WaysideAuthValue, 1, 1, 1, 1)
 
         self.LengthVehicleLabel = QLabel(self.gridLayoutWidget)
         self.LengthVehicleLabel.setObjectName(u"LengthVehicleLabel")
@@ -436,13 +436,13 @@ class Ui_MainWindow(object):
 
         self.LiveTrainDataGrid.addWidget(self.CrewCountValue, 7, 1, 1, 1)
 
-        self.SpeedLimitLabel = QLabel(self.gridLayoutWidget)
-        self.SpeedLimitLabel.setObjectName(u"SpeedLimitLabel")
-        self.SpeedLimitLabel.setFont(font7)
-        self.SpeedLimitLabel.setFrameShape(QFrame.WinPanel)
-        self.SpeedLimitLabel.setFrameShadow(QFrame.Sunken)
+        self.WaysideAuthLabel = QLabel(self.gridLayoutWidget)
+        self.WaysideAuthLabel.setObjectName(u"WaysideAuthLabel")
+        self.WaysideAuthLabel.setFont(font7)
+        self.WaysideAuthLabel.setFrameShape(QFrame.WinPanel)
+        self.WaysideAuthLabel.setFrameShadow(QFrame.Sunken)
 
-        self.LiveTrainDataGrid.addWidget(self.SpeedLimitLabel, 1, 0, 1, 1)
+        self.LiveTrainDataGrid.addWidget(self.WaysideAuthLabel, 1, 0, 1, 1)
 
         self.WidthValue = QLCDNumber(self.gridLayoutWidget)
         self.WidthValue.setObjectName(u"WidthValue")
@@ -511,6 +511,21 @@ class Ui_MainWindow(object):
         self.GradePercentageValue.setSegmentStyle(QLCDNumber.Flat)
 
         self.LiveTrainDataGrid.addWidget(self.GradePercentageValue, 8, 1, 1, 1)
+
+        # --- NEW SECTION: Distance Travelled (yards) ---
+        self.DistanceTravelledLabel = QLabel(self.gridLayoutWidget)
+        self.DistanceTravelledLabel.setObjectName(u"DistanceTravelledLabel")
+        self.DistanceTravelledLabel.setFont(font7)
+        self.DistanceTravelledLabel.setFrameShape(QFrame.WinPanel)
+        self.DistanceTravelledLabel.setFrameShadow(QFrame.Sunken)
+        self.LiveTrainDataGrid.addWidget(self.DistanceTravelledLabel, 9, 0, 1, 1)
+
+        self.DistanceTravelledValue = QLCDNumber(self.gridLayoutWidget)
+        self.DistanceTravelledValue.setObjectName(u"DistanceTravelledValue")
+        self.DistanceTravelledValue.setFont(font2)
+        self.DistanceTravelledValue.setSegmentStyle(QLCDNumber.Flat)
+        self.LiveTrainDataGrid.addWidget(self.DistanceTravelledValue, 9, 1, 1, 1)
+        # --- END NEW SECTION ---
 
         self.gridLayoutWidget_2 = QWidget(self.Main)
         self.gridLayoutWidget_2.setObjectName(u"gridLayoutWidget_2")
@@ -793,7 +808,7 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Train Model", None))
         self.FailureBox.setTitle(QCoreApplication.translate("MainWindow", u"Failure Box", None))
         self.FailBrake.setText(QCoreApplication.translate("MainWindow", u"Brake Failure", None))
         self.Enabled1.setText(QCoreApplication.translate("MainWindow", u"Enabled", None))
@@ -809,17 +824,16 @@ class Ui_MainWindow(object):
         self.button_emergency.setText(QCoreApplication.translate("MainWindow", u"Emergency \n"
 "Brake", None))
         self.LiveTrainData.setTitle(QCoreApplication.translate("MainWindow", u"Live Train Data", None))
-        self.MassVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Mass of Vehicle \n"
+        self.MassVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Vehicle Mass \n"
 "(lbs)", None))
-        self.LengthVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Length of \n"
-"Vehicle (ft)", None))
+        self.LengthVehicleLabel.setText(QCoreApplication.translate("MainWindow", u"Vehicle Length \n"
+"(ft)", None))
         self.HeightLabel.setText(QCoreApplication.translate("MainWindow", u"Height (ft)", None))
-        self.SpeedLimitLabel.setText(QCoreApplication.translate("MainWindow", u"Wayside \nAuthority (yard)", None))
+        self.WaysideAuthLabel.setText(QCoreApplication.translate("MainWindow", u"Wayside \nAuthority (yds)", None))
         self.CrewCountLabel.setText(QCoreApplication.translate("MainWindow", u"Crew Count", None))
         self.WidthLabel.setText(QCoreApplication.translate("MainWindow", u"Width (ft)", None))
-        self.CommandedSpeedLabel.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Wayside </p><p>Speed (mph)</p></body></html>", None))
-        self.PassengerCountLabel.setText(QCoreApplication.translate("MainWindow", u"Passenger \n"
-"Count", None))
+        self.CommandedSpeedLabel.setText(QCoreApplication.translate("MainWindow", u"Wayside \nSpeed (mph)", None))
+        self.PassengerCountLabel.setText(QCoreApplication.translate("MainWindow", u"Passengers", None))
         self.GradePercentage.setText(QCoreApplication.translate("MainWindow", u"Grade (%)", None))
         self.Acceleration.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Acceleration </p><p>(ft/s<span style=\" vertical-align:super;\">2</span>)</p></body></html>", None))
         self.Power.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Current Engine</p><p>Power (kW)</p></body></html>", None))
@@ -846,4 +860,7 @@ class Ui_MainWindow(object):
         self.Advertisements_2.setText("")
         self.Advertisements_3.setText("")
         self.menuTrain_ID_1.setTitle(QCoreApplication.translate("MainWindow", u"Train ID 1", None))
+        # --- NEW TRANSLATION FOR DISTANCE TRAVELLED ---
+        self.DistanceTravelledLabel.setText(QCoreApplication.translate("MainWindow", u"Distance \nTravelled (yds)", None))
+        # --- END NEW TRANSLATION ---
     # retranslateUi

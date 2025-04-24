@@ -34,6 +34,7 @@ class TrainModelTestbench(QMainWindow):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_train_model)
         self.timer.start(100)  # 10 Hz update rate
+        self.authflag = False
 
     def update_train_model(self):
         # Get the currently selected train from the front end.
@@ -42,6 +43,14 @@ class TrainModelTestbench(QMainWindow):
             # Read inputs from the testbench UI.
             track_data, lights_data, physical_data = self.read_inputs()
             
+            # # Make sure we only send new authorities
+            # if self.train_integrated:
+            #     if self.authflag:
+            #         del track_data["wayside_authority"]
+            #         return
+            #     if track_data["wayside_authority"]==100:
+            #         self.authflag=True
+
             # Force the emergency flag to True if the backend is already in emergency state.
             if self.train_collection.train_model_ui.current_train.emergency_brake:
                 physical_data["emergency_brake"] = True
@@ -166,7 +175,7 @@ class TrainModelTestbench(QMainWindow):
 
         auth_val = backend.wayside_authority
         if abs(auth_val) > 0.0001:
-            self.ui.WaysideAuthority_2.setText(f"{(auth_val * backend.M_TO_FT):.2f}")
+            self.ui.WaysideAuthority_2.setText(f"{(auth_val * backend.M_TO_YARD):.2f}")
         else:
             self.ui.WaysideAuthority_2.setText("Not Displayed")
 

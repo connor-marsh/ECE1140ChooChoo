@@ -1,6 +1,6 @@
 '''
 Author: Aaron Kuchta
-Date: 4-1-2025
+Date: 4-16-2025
 '''
 
 
@@ -10,34 +10,20 @@ import time
 import queue 
 import pandas as pd
 import openpyxl 
-from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt, pyqtSlot, pyqtSignal
+from PyQt5.QtCore import QTimer, QDateTime, QTime, Qt, QObject, pyqtSlot, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem
 from PyQt5.QtGui import QColor
 
-from centralized_traffic_controller_ui import Ui_MainWindow as CtcUI
-from centralized_traffic_controller_test_bench_ui import Ui_ctc_TestBench as CtcTestBenchUI
-import globals.global_clock as global_clock
-import globals.track_data_class as init_track_data
+#from centralized_traffic_controller_ui import Ui_MainWindow as CtcUI
+#from centralized_traffic_controller_test_bench_ui import Ui_ctc_TestBench as CtcTestBenchUI
+import globals.track_data_class as global_track_data
+import globals.global_clock  as global_clock
 import globals.signals as signals
 
 
-class CtcBackEnd():
-
-    #Stations located green line
-    G_STATIONS = ("Pioneer", "Edgebrook", "Station", "Whited", "South Bank", "Central", "Inglewood", "Overbrook", "Glenbury", "Dormont", 
-                "MT Lebanon", "Poplar", "Castle Shannon", "Dormont", "Glenbury", "Overbrook", "Inglewood", "Central")
-    G_STATIONS_BLOCKS = (2, 9, 16, 22, 31, 39, 48, 57, 65, 73, 77, 88, 96, 105, 114, 123, 132, 141)
-
-    EDGEBROOK_EXIT_BLOCKS = [[0,0,1], [0,0,1], [0,0,1]] #1 hot vector for each wayside exit blocks - Need to find which blocks
-    
-    #Stations located on red line
-    #R_STATIONS = ()
-    #R_STATIONS_BLOCKS = ()
-
+class CtcBackEnd(QObject):
     def __init__(self): 
         super().__init__()
-        self.route_data = {}
-
         #Controls active track data
         self.green_line = Track("Green")
         #self.red_line = Track("Red") #No red line implementation yet
@@ -48,72 +34,56 @@ class CtcBackEnd():
         self.wall_clock = global_clock.clock
 
         #Read in signal from Track Model
-        signals.track_tickets.connect(self.update_tickets) 
-
-        signals.wayside_block_occupancies.connect(self.update_occupancy)
-        signals.wayside_switches.connect(self.update_switches())
-        signals.wayside_lights.connect(self.update_lights())
-        signals.wayside_crossings.connect(self.update_crossings())
+        signals.communication.track_tickets.connect(self.update_tickets)  #int
+        signals.communication.wayside_block_occupancies.connect(self.update_occupancy) #List
+        signals.communication.wayside_plc_outputs.connect(self.update_from_plc)
         
         
-        self.suggested_speed = [] #length of track, each block has a suggested speed, speed limit for now
-        self.suggested_authority = [] #length of track, each block has a suggested authority, -1 for no change
-        self.manual_switch_states = [] #length of switch count, each block has a switch state, 0 for first option, 1 for second option
+        self.suggested_speed = {} #key is block data is sent to
+        self.suggested_authority = {} #Key is block data is being sent to
 
         self.total_tickets = 0
         self.throughput = 0
-        self.train_count = 0
         self.elapsed_mins = 0
-        self.last_minute = self.wall_clock.get_minute()
+        self.last_minute = self.wall_clock.minute
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.backend_update)
-        self.timer.start(100)  # 10 Hz update
+        self.timer.start(self.wall_clock.ctc_dt)  # 10 Hz update
 
         
 
     def backend_update(self):
-        if self.wall_clock.get_minute() != self.last_minute:
+        if self.wall_clock.minute != self.last_minute:
             self.elapsed_mins += 1
-            self.last_minute = self.wall_clock.get_minute()
-
-        self.dispatch_queue_handler() #Dispatch queue handler    
-        self.send_suggestions() #Send suggestions to wayside     
+            self.last_minute = self.wall_clock.minute
+        self.dispatch_queue_handler() #Dispatch queue handler  
+        self.active_train_handler()
         
-    def get_blocks(self):
-        return self.active_line.blocks
+
+    def get_map_data(self):
+        return self.active_line.blocks, self.active_line.station_names, self.active_line.switch_data, self.active_line.switch_states, self.active_line.lights, self.active_line.crossings
 
     def process_route_data(self, file_data):
         if(file_data is not None):
             self.read_route_file(file_data)
-            self.initialize_route_table()   
 
     def read_route_file(self, file_data):
-        for index, row in file_data.iterrows():
-            if row['Designation'] != "":
-                designation = row['Designation']
-                total_stops = row['Total # of Stops']
-                all_stops = [int(stop) for stop in row.iloc[2:].dropna().tolist()]
+        for _, row in file_data.iterrows():
+            #Get the route name
+            route_name = row.iloc[0]  #Think about storing for refrence?
+            #print("Route Name: ", route_name)
+            
+            #Get all the station names
+            stations = row[1:].dropna().tolist()
 
-                self.route_data[index] = {
-                    'designation': designation,
-                    'num_stops': total_stops,
-                    'listed_stops': all_stops
-                }
+            # Check if the route name already exists in the routes dictionary
+            if route_name not in self.active_line.routes:
+                self.active_line.routes[route_name] = []  # Initialize an empty list for new routes
+            self.active_line.routes[route_name].extend(stations)
 
-    def initialize_route_table(self):
+            #print(f"{route_name}: {', '.join(stations[0])}")
 
-        pass
-
-    def upload_train_schedule(self):
-        #uploads train schedule file | activated by button
-        pass
-
-
-    def update_active_trains_count(self):
-        #Updated mainscreen train count
-        #reads number of rows from train data file + manual sent trains
-        pass
 
     def update_manual_suggested(self):
         if self.ctc_ui.sub_enter_speed_override.value() > 0:
@@ -132,91 +102,389 @@ class CtcBackEnd():
         override_authority = self.ctc_ui.sub_enter_authority_override.text()
         self.test_bench.print_suggested_authority(override_authority)
 
-
     @pyqtSlot(int)
     def update_tickets(self, num_tickets):
         #Takes tickets sold from track model and updates throughput
         self.total_tickets += num_tickets
         self.throughput = self.total_tickets / (self.elapsed_mins/60) #Tickets per hour
-        #Send throughput to UI
-        self.frontend.update_throughput(self.throughput)
 
-    @pyqtSlot(list)
-    def update_occupancy(self, occupancy_list):
-        pass
+    @pyqtSlot(dict)
+    def update_occupancy(self, occupancies):
+        #Updates occupancy list | called by wayside controller
+        for i, block in enumerate(self.active_line.blocks):
+             if block.id in occupancies:
+                 self.active_line.blocks[i].occupancy = occupancies[block.id]
+            
 
-    @pyqtSlot(list)
-    def update_switches(self, switch_list):
-        pass
+    @pyqtSlot(list,list,list,list)
+    def update_from_plc(self, sorted_blocks, switches, lights, crossings):
+        switch_index = 0
+        light_index = 0
+        crossing_index = 0
 
-    @pyqtSlot(list)
-    def update_lights(self, light_list):
-        pass
+        for block_index, block in enumerate(sorted_blocks): # each WAYSIDE sends its portion of the track sorted by territory
 
-    @pyqtSlot(list)
-    def update_crossings(self, block_id, crossing_state):
-        pass
+            if block.switch: # if the block has a switch
+                self.active_line.blocks[block_index].switch_state = switches[switch_index] # plc outputs have there own index since the first switch isnt at the first block etc.
+                switch_index += 1
+
+            if block.light:
+                self.active_line.blocks[block_index].light_state = lights[light_index]
+                light_index += 1
+            
+            if block.crossing:
+                self.active_line.blocks[block_index].crossing_state = crossings[crossing_index]
+                crossing_index += 1
+
+
+    def get_expected_next_block(self, train): #may need to be updated to include switch states
+            #Check each block in line
+            for block in self.active_line.blocks:
+                #ensure current train location
+                if block.occupancy and block.id == train.current_block:
+                    
+                    if train.current_block == self.active_line.EXIT_BLOCK.id:
+                        return -1 #Train reached ending block
+
+                    #Get direction of train
+                    section_key = block.id[0]  # Get section letter
+                    section_dir = self.active_line.sections[section_key].increasing
+
+                    #update train direction if not bidirectional
+                    if section_dir != 2:  
+                        train.direction = section_dir
+
+                    jump_key = (int(block.id[1:]), train.direction)
+
+                    #Checks if going to yard
+                    if jump_key == (57, 1):
+                        #print("Train going to: ", train.get_next_stop())
+                        #If not going to yard, disregard jump block
+                        if train.get_next_stop() != 152:
+                            return self.active_line.blocks[int(block.id[1:])].id
+                        
+                    #Check if train is at jump block
+                    if jump_key in self.active_line.JUMP_BLOCKS:
+                        next_block, new_dir = self.active_line.JUMP_BLOCKS[jump_key]
+                        train.direction = new_dir
+                        return self.active_line.blocks[next_block - 1].id
+                    
+                    #if moving in decreasing direction
+                    if train.direction == 0:
+                        return self.active_line.blocks[int(block.id[1:]) - 2].id
+                    #if moving in increasing direction
+                    elif train.direction == 1:
+                        return self.active_line.blocks[int(block.id[1:])].id
+
+            #if no block occupancy, set to entrance block - not needed?
+            #return self.active_line.blocks[self.active_line.ENTRANCE_BLOCK - 1].id
+
+    def update_train_location(self):
+        for train in self.active_line.current_trains:
+            #Check if train moved to next block
+            for block in self.active_line.blocks:
+                if block.id == train.next_block and block.occupancy:
+                    train.current_block = train.next_block
+                    train.next_block = self.get_expected_next_block(train)
+                    #print("[CTC DEBUG] Train ID: ", train.train_id, "Current Block: ", train.current_block, "Next Block: ", train.next_block)
+                    if train.next_block == -1:
+                        print("Train ID: ", train.train_id, "Exiting the line")
+                        self.active_line.current_trains.remove(train) #Remove train from active trains
+                        self.active_line.active_trains_count -= 1 #Decrement train count
+                    break
+
+
+    def active_train_handler(self):
+        for train in self.active_line.current_trains:
+            # print("Train ID: ", train.train_id, "Current Block: ", train.current_block)
+            # Send initial authorities to train on SPAWN block. Make sure current train is on spawn block, the block is occupied (prevent race condition), and the train hasn't already received it
+            if train.current_block == self.active_line.ENTRANCE_BLOCK.id and self.active_line.ENTRANCE_BLOCK.occupancy and not train.received_first_auth:
+                suggested_speed, suggested_authority = self.get_suggestion_values(train)
+                self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
+                train.received_first_auth = True # Only send once when entering the line
+            # # If train was stopped by an obstacle, recalculate its authority to see if obstacle has moved
+            elif not train.no_obstacles:
+                suggested_speed, suggested_authority = self.get_suggestion_values(train)
+                self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
+            elif train.get_next_stop(): # make sure there are stops left
+
+                # Did you just make it to block before your stop?
+                if train.next_block == self.active_line.blocks[train.get_next_stop()-1].id and not train.received_penultimate_block_auth:
+                    # If so, resend auth once, so that the train has an accurate authority
+                    suggested_speed, suggested_authority = self.get_suggestion_values(train)
+                    self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
+                    train.received_penultimate_block_auth = True
+
+                # Did you make it to the stop
+                if train.current_block == self.active_line.blocks[train.get_next_stop()-1].id:
+                    train.received_penultimate_block_auth = False
+                    train.route_index += 1 # You made it to the stop
+                    
+                    # if we made it the last stop, the get_suggestion_values will be empty dicts
+                    suggested_speed, suggested_authority = self.get_suggestion_values(train)
+                    self.send_suggestions(suggested_speed, suggested_authority) #Send suggestions to wayside
+
+            if self.active_line == self.green_line:
+                if train.current_block == "I51":
+                    if train.get_next_stop() == 152:
+                        train.exit_blocks = [[True],[True, False],[True]]
+                    else:
+                        train.exit_blocks = [[True],[False, True],[True]]
+                    self.send_exit_blocks(train.exit_blocks) #Send exit blocks to wayside
+                    
+            self.update_train_location()
+            
+            #print("Current Block", train.current_block, "Route: ", train.get_next_stop())
+
 
     def first_blocks_free(self):
         #Checks if first blocks are free | called by dispatch queue handler
-        block_1 = self.active_line.blocks[self.active_line.entrance_blocks[0]] 
-        block_2 = self.active_line.blocks[self.active_line.entrance_blocks[1]]
-        block_3 = self.active_line.blocks[self.active_line.entrance_blocks[2]]
+        block_1 = self.active_line.ENTRANCE_BLOCK.occupancy or self.active_line.ENTRANCE_BLOCK.maintenance
+        block_2 = self.active_line.blocks[self.active_line.ENTRANCE_CHECK[0]-1].occupancy or self.active_line.blocks[self.active_line.ENTRANCE_CHECK[0]-1].maintenance
+        block_3 = self.active_line.blocks[self.active_line.ENTRANCE_CHECK[1]-1].occupancy or self.active_line.blocks[self.active_line.ENTRANCE_CHECK[1]-1].maintenance
+        block_4 = self.active_line.blocks[self.active_line.ENTRANCE_CHECK[2]-1].occupancy or self.active_line.blocks[self.active_line.ENTRANCE_CHECK[2]-1].maintenance
+        print("Block 2 saved val: ", self.active_line.blocks[self.active_line.ENTRANCE_CHECK[0]-1].id, "Block 3 saved val: ", self.active_line.blocks[self.active_line.ENTRANCE_CHECK[1]-1].id, "Block 4 saved val: ", self.active_line.blocks[self.active_line.ENTRANCE_CHECK[2]-1].id)
 
-        if block_1['occupancy'] == 0 and block_2['occupancy'] == 0 and block_3['occupancy'] == 0: #Needs updated after new track class implemented
+        #print("Block ", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].id, "Occupancy is", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].occupancy, " and has maintenance ", self.active_line.blocks[self.active_line.ENTRANCE_BLOCK].maintenance)
+        if not(block_1 or block_2 or block_3 or block_4): # Check entrance and first three blocks
             return True
         else:
+            print("Entrance Blocks Occupied")
             return False
 
-    def dispatch_handler(self, destination, destination_type):
+    def dispatch_handler(self, destination, destination_type, new_train=True, selected_train=None):
         #Train dispatch handler | called by front end
+        full_route = []
         if destination_type == 'station':
             #Dispatch to station
-            destination_block = int(self.G_STATION_BLOCKS[destination])
+            destination_set = int(self.active_line.STATIONS_BLOCKS[destination])
+            full_route.append(destination_set) #Maybe Temporary
+
         elif destination_type == 'block':
             #Dispatch to block
-            destination_block = int(destination)
-
-        self.train_queue.put(destination_block)
+            destination_set = int(destination)
+            full_route.append(destination_set) 
+            
+        elif destination_type == 'route':
+            #Dispatch on a route
+            # last_block = self.active_line.ENTRANCE_BLOCK #Starting track block
+            
+            route_stations = (self.active_line.routes[destination]) #Get first block of route
+            #print("Train destination route: ", route_stations)
+            for stations in self.active_line.routes[destination]:
+                next_block = (self.active_line.STATIONS_BLOCKS[stations])
+                #print("Station ", stations, "Block ", next_block)
+                full_route.append(next_block)
+                #print("Full route: ", full_route)
+                #print("Auth to block", next_block, "from block", last_block, "is ", auth)
+                last_block = next_block #Update last block to current block
+                
+            #print("Full route: ", full_route)
+        if new_train:
+            new_train = DummyTrain(self.active_line.train_ID_count, full_route, "manual", "y151")
+            self.active_line.train_ID_count += 1
+            self.train_queue.put(new_train) 
+        else:
+            if selected_train == None:
+                print("ERROR! Invalid Train Selection")
+            for train in self.active_line.current_trains:
+                print("Train ID: ", train.train_id, "Selected Train ID: ", selected_train)
+                if str(train.train_id) == str(selected_train):
+                    print("Train ID MATCH")
+                    train.set_route(full_route)
+                    speed, auth = self.get_suggestion_values(self.active_line.current_trains[0])
+                    self.send_suggestions(speed, auth)
+        #print("Train Entered into Queue")
 
     def dispatch_queue_handler(self):
-        #Handles train queue | called by update function
+        # Handles train queue | called by update function
         if not self.train_queue.empty() and self.first_blocks_free():
-            #get destination block from queue
-            destination_block = self.train_queue.get()
-            Track.add_active_train(self.train_count, destination_block, "manual")
-            self.train_count += 1
-            self.update_active_trains_count() #Move to own function eventually, update periodicly
-            #Update active train list
+            #get train object from queue
+            dispatching_train = self.train_queue.get()
+            self.active_line.add_train_object(dispatching_train) #Add train to active line trains
+            self.active_line.active_trains_count += 1 #Increment train count
             self.send_dispatch_train() 
  
     def send_dispatch_train(self):
-        signals.ctc_dispatch.emit()
+        signals.communication.ctc_dispatch.emit() # Just signal, no param
+        print("Train Dispatched from CTC")
 
-    def send_maintenance(self, block_id, maintenance_val):
-        signals.ctc_maintenance.emit(block_id, maintenance_val)
+    def send_block_maintenance(self, block_id, maintenance_val):
+        signals.communication.ctc_block_maintenance.emit(self.active_line.blocks[block_id].id, maintenance_val) #int, bool 
+        #print("Set Block ", block_id, " Maintenance value to ", maintenance_val)
+        #print("Stored Block value: ", self.active_line.blocks[block_id].id, " ", self.active_line.blocks[block_id].maintenance)
+
+    def get_suggestion_values(self, train, speed=70, start_halfway=False):
+        if train.get_next_stop():
+            new_speed = speed
+            suggested_speed = {train.current_block : new_speed}
+            auth, no_obstacles = self.calculate_authority(int(train.current_block[1:]), train.get_next_stop(), direction=train.direction, start_halfway=start_halfway)
+            if auth == None:
+                suggested_authority = {}
+            else:
+                # Let train know if its making it to its destination
+                train.no_obstacles = no_obstacles
+                # if going to yard go a little extra
+                if self.active_line.blocks[train.get_next_stop()-1].id[0]=='y' and no_obstacles:
+                    auth += 300
+                # don't send auth of 0 cause special value
+                if auth == 0:
+                    auth = 0.1
+                suggested_authority = {train.current_block : auth}
+            return suggested_speed, suggested_authority
+        return {}, {}
 
     def send_suggestions(self, suggested_speeds, suggested_authorities):
-        signals.ctc_suggested.emit(suggested_speeds, suggested_authorities)
+        signals.communication.ctc_suggested.emit(suggested_speeds, suggested_authorities) #Dict, Dict
 
     def send_exit_blocks(self, exit_blocks):
-        signals.ctc_exit_blocks.emit() #Currently Unused, need for iteration #4
+        #print("Exit Blocks: ", exit_blocks)
+        signals.communication.ctc_exit_blocks.emit(exit_blocks) #List
 
-    def send_switch_states():
-        switch_id = "0" #String to locate switch
-        switch_state = False #False for first option, True for second option
-        signals.ctc_switch_states.emit(switch_id, switch_state)
+    def send_switch_states(self, block_id, switch_state): #KNOWN ERROR - SENDS SWITCH VAL WHEN EXITING MAINTENANCE
+        switch_id = self.active_line.blocks[block_id].id
+        signals.communication.ctc_switch_maintenance.emit(switch_id, switch_state) #String, bool
+        #print("Switch on Block ", switch_id, " set to ", switch_state)
 
     
+    def calculate_authority(self, start_id, end_id, direction=1, start_halfway=False):
+        '''
+        Parameters:
+            start_id: The block ID to start from (1-150)
+            end_id: The block ID to end on (1-150)
+            direction: Starting movment direction, 0 for decreasing, 1 for increasing
+            adjust: Boolean flag. If True, subtract half of the start block length and half of the
+                    destination block length to account for the train being in the middle of a block.
+
+        Returns: 
+            Authority needed to reach end from start, or safe authority to next occupancy
+            True if we made it all the way to the end, false otherwise
+    
+        TODO:
+            - Adapt for red line
+            - Adapt for yard entrance/exit blocks
+        '''
+
+        # print(start_id)
+        # print(end_id)
+        start_id -= 1 #Convert to 0-indexed
+        end_id -= 1 #Convert to 0-indexed
+        current_id = start_id
+        
+        if start_id == end_id:
+            return None
+        if not (0 <= start_id < len(self.active_line.blocks)) or not (0 <= end_id < len(self.active_line.blocks)):
+            print("-----ERROR! Invalid block ID-----")
+            return -1
+        
+        authority = 0
+
+        # If we are already halfway through the start block
+        # we must subtract half its length to account for that
+        if start_halfway:
+            authority -= self.active_line.blocks[start_id].length/2
+        # if self.active_line.blocks[start_id].id != self.active_line.track_data.SPAWN_BLOCK.id:
+        #     authority -= self.active_line.blocks[start_id].length/2
+
+        # Add up the authority it would take to go from start of start_id to end of end_id
+        # But stop short with a 3 block gap between any other occupancies
+        last_four_blocks = [None, None, None, None] # this will act as a shift register, push to index N, pop from index 0
+        reached_destination = False
+        reached_yard = False
+        post_destination_checks = 0
+        while post_destination_checks < 3 and not reached_yard:
+
+            #Added bounds check
+            if not (0 <= current_id < len(self.active_line.blocks)):
+                print("-----ERROR! Current ID out of range:", current_id, "-----")
+                return -1
+            
+            current_block = self.active_line.blocks[current_id]
+            section_key = current_block.id[0]  #Gets section letter
+            section_dir = self.active_line.sections[section_key].increasing
+
+            # This assumes all trains had at least a two block gap to begin with
+            if current_block.occupancy and current_id != start_id:
+                # OH NO! There is an occupancy blocking our path
+
+                # Backtrack 3 blocks
+                for i in reversed(range(1, len(last_four_blocks))):
+                    if last_four_blocks[i]:
+                        authority -= last_four_blocks[i].length
+                    
+                
+                # Then backtrack a half length to stop halfway through that block
+                if last_four_blocks[0]:
+                    authority -= last_four_blocks[0].length / 2
+                return authority, False # And we are done
+
+            if section_dir != 2:
+                direction = section_dir
+
+            jump_key = (current_id+1, direction)
+
+            if jump_key == (57,1) and end_id != 151:
+                    next_id = current_id + 1
+            elif jump_key in self.active_line.JUMP_BLOCKS:
+                next_id, new_dir = self.active_line.JUMP_BLOCKS[jump_key]
+                next_id -= 1 #Convert to 0-indexed
+                direction = new_dir
+            else:
+                if direction == 0:
+                    next_id = current_id - 1
+                elif direction == 1:
+                    next_id = current_id + 1
+
+            if not (0 <= next_id < len(self.active_line.blocks)):
+                print("-----ERROR! Next ID out of range:", next_id, "-----")
+                return -1
+
+            if not reached_destination: # Don't add past destination
+                authority += current_block.length #accumulate authority
+            else:
+                post_destination_checks += 1 # One closer to making it all the way there with no backtracking
+            #print("Current Block: ", self.active_line.blocks[current_id].id, "Next Block: ", self.active_line.blocks[next_id].id, "Direction: ", direction, "Total Authority: ", authority)
+
+            # Save block info for backtracking
+            last_four_blocks.pop(0)
+            last_four_blocks.append(current_block)
+
+            current_id = next_id #Update current block
+
+            # Check if we are the destination, if so remaining blocks won't do anything
+            # other than cause back tracking potentially
+            if current_id == end_id:
+                reached_destination = True
+            # Check if we are at yard, if so set flag to get out early, no need to check past there
+            if current_id == int(self.active_line.EXIT_BLOCK.id[1:])-1:
+                reached_yard = True
+            
+
+        # Add half the length of last block, to stop halfway through it
+        authority += self.active_line.blocks[end_id].length / 2
+
+        #print("-----END REACHED-----")
+        #print("Current Block: ", current_block.id, "Total Authority: ", authority)
+        return authority, True
+
+
 class DummyTrain:
-    def __init__(self, train_id, route, mode):
+    def __init__(self, train_id, route, mode, start_block):
         super().__init__()
         self.train_id = train_id
         self.route = route
+        self.route_index = 0
         self.mode = mode
-        self.current_block = 62 #Starting block for green line
+        self.current_block = start_block 
+        self.next_block = "K63" #First block out of yard on green line
+        self.direction = 1 #1 for increasing, 0 for decreasing
         self.speed = 0
         self.authority = 0
+        self.exit_blocks = None
+        self.no_obstacles = True
+
+        self.received_first_auth = False
+        self.received_penultimate_block_auth = False
 
     def set_current_block(self, block_id):
         self.current_block = block_id
@@ -228,43 +496,117 @@ class DummyTrain:
         self.mode = mode
 
     def set_route(self, route):
+        self.route_index = 0
         self.route = route
 
+    def get_next_stop(self):
+        # encapsulates this functionality
+        # returns none if there are no stops left
+        if self.route_index < len(self.route):
+            return self.route[self.route_index]
+        else:
+            return None
+
+
+    
+class TrackBlocks:
+    def __init__(self, block):
+        self.id = block.id
+        self.length = block.length 
+        self.speed_limit = block.speed_limit
+        self.grade = block.grade
+        self.underground = block.underground
+        self.has_station = block.station
+        self.has_switch = block.switch
+        self.has_light = block.light
+        self.has_crossing = block.crossing
+        self.has_beacon = block.beacon
+        self.switch_exit = block.switch_exit
+
+        self.occupancy = False
+        self.maintenance = False
+        self.switch_state = 0 #0 for first option, 1 for second option
+        self.light_state = 0 #0 for red, 1 for green
+        self.crossing_state = 0
+        self.suggested_speed = 0
+        self.suggested_authority = 0
+        self.updated = True
 
 class Track: 
     def __init__(self, name):
-        super().__init__()
-        self.name = name
-        self.active_trains = {}
+        self.JUMP_BLOCKS = {}  
 
+        self.track_data = global_track_data.lines[name]
+        self.name = name
+        self.current_trains = []
+        self.active_trains_count = 0
+        self.train_ID_count = 1
+        self.blocks = []
+        self.sections = self.track_data.sections
+        self.switch_data = self.track_data.switches
+        self.station_names = self.track_data.stations
+        self.switch_states = [0,0,0,0,0,0] 
+        self.lights = [0,0,0,0,0,0]
+        self.crossings = [0,0] 
+        self.routes = {}
 
         if name == "Green":
-            self.entrance_blocks = [62, 63, 64] #Entrance blocks for green line
+            self.ENTRANCE_CHECK = [63, 64, 65] #Entrance blocks for green line
+            self.JUMP_BLOCKS = { 
+            (100, 1): (85, 0),   # Q100 -> N85, decrease
+            (77, 0): (101, 1),   # N77 -> R101, increase
+            (150, 1): (28, 0),   # Z150 -> F28, decrease
+            (1, 0): (13, 1),    #A1 -> D13, increase
+            (151, 1): (63, 1), #Yard -> K63, increase
+            (57, 1): (152, 1)} #I57 -> Yard, increase}     
+
+            self.STATIONS_BLOCKS = {
+                "Pioneer": 2,
+                "Edgebrook": 9,
+                "Bronny": 16,
+                "Whited": 22,
+                "South Bank": 31,
+                "Central-I": 39,
+                "Inglewood-I": 48,
+                "Overbrook-I": 57,
+                "Glenbbury-K": 65,
+                "Dormont-N": 73,
+                "Mt. Lebanon": 77,
+                "Poplar": 88,
+                "Castle Shannon": 96,
+                "Dormont-T": 105,
+                "Glenbbury-U": 114,
+                "Overbrook-W": 123,
+                "Inglewood-W": 132,
+                "Central-W": 141,
+                "Yard": 152 
+            }
         #elif name == "Red":
         #    self.entrance_blocks = [1, 2, 3] #Entrance blocks for red line
         else:
             print("ERROR: Track name not recognized. Please use 'Green'.") # "or 'Red'"
 
         self.initialize_blocks()
-
-
+        # Setup spawn and despawn blocks for reference
+        self.ENTRANCE_BLOCK = self.blocks[int(self.track_data.SPAWN_BLOCK.id[1:])-1]
+        self.EXIT_BLOCK = self.blocks[int(self.track_data.DESPAWN_BLOCK.id[1:])-1]
 
     def initialize_blocks(self):
-        track_data = init_track_data.lines[self.name]
-        self.LINE_NAME = self.name
-        self.blocks = track_data.blocks 
-        self.switches = track_data.switches
-        self.lights = track_data.lights
-        self.crossings = track_data.crossings
+        self.blocks = [TrackBlocks(block) for block in self.track_data.blocks]
 
-    def add_active_train(self, train_id, train_route, train_mode):
+    def add_train_data(self, train_id, train_route, train_mode, start_block):
         #Adds train to active trains list
-        new_train = DummyTrain(train_id, train_route, train_mode)
-        self.active_trains[train_id] = new_train
+        new_train = DummyTrain(train_id, train_route, train_mode, start_block)
+        self.current_trains.append(new_train) 
+        
+
+    def add_train_object(self, train_object):
+        #Adds train object to active trains list
+        self.current_trains.append(train_object)
         
 
     def get_train_data(self, train_id):
-        if train_id not in self.active_trains:
+        if train_id not in self.current_trains:
             return None
         else:
-            return self.active_trains[train_id]
+            return self.current_trains[train_id]

@@ -8,6 +8,13 @@ os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 import globals.global_clock as global_clock
 import globals.track_data_class as track_data
 import globals.signals as signals
+import globals.settings as settings
+
+# Make sure to set this setting before we potentially run the hardware module
+if __name__=="__main__":
+    if "USING_HARDWARE" in sys.argv:
+        settings.USING_HARDWARE = True
+
 from Train.train_collection import TrainCollection
 from Train.TrainModel.train_model_frontend import TrainModelFrontEnd
 from Train.TrainModel.train_model_testbench import TrainModelTestbench
@@ -16,12 +23,32 @@ from Train.TrainController.train_controller_testbench import TrainControllerTest
 from Train.TrainController.train_controller_hw_backend import TrainControllerHW
 from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
 from Track.TrackModel.track_model_frontend import TrackModelFrontEnd
+from CTC.centralized_traffic_controller_frontend import CtcFrontEnd
+from CTC.centralized_traffic_controller_backend import CtcBackEnd
 
 
 if __name__=="__main__":
+    # Set this one if not using command line args
+    if len(sys.argv)==1:
+        running_module = "all" # all, CTC, WaysideController, TrackModel, Train, TrackWayside TrainModel, TrainController, TrainControllerHW, CtcWayside
+    # These are for if using command line args
+    elif len(sys.argv) == 2:
+        if sys.argv[1] == "USING_HARDWARE":
+            running_module = "all"
+        else:
+            running_module = sys.argv[1]
+    elif len(sys.argv) == 3:
+        if sys.argv[1] == "USING_HARDWARE":
+            running_module = sys.argv[2]
+        elif sys.argv[2] == "USING_HARDWARE":
+            running_module = sys.argv[1]
+        else:
+            print("INVALID COMMAND LINE ARGUMENTS")
+            sys.exit(1)
+    else:
+        print("INVALID COMMAND LINE ARGUMENTS")
+        sys.exit(1)
 
-    running_module = "TrackWayside" # all, CTC, WaysideController, TrackModel, Train, TrainModel, TrainController, TrainControllerHW
-    
     # Create App
     app = QApplication(sys.argv)
 
@@ -31,13 +58,32 @@ if __name__=="__main__":
     signals.init()
     # Instatiate Modules
     if running_module == "all":
-        pass
+        ctc_backend = CtcBackEnd()
+        ctc_frontend = CtcFrontEnd(ctc_backend)
+        track_model = TrackModelFrontEnd()
+        track_model.show()
+        ctc_frontend.show()
+
     elif running_module == "CTC":
-        pass
+        ctc_backend = CtcBackEnd()
+        ctc_frontend = CtcFrontEnd(ctc_backend)
+        ctc_frontend.show()
+        
+    elif running_module == "CtcWayside":
+        ctc_backend = CtcBackEnd()
+        ctc_frontend = CtcFrontEnd(ctc_backend)
+        ctc_frontend.show()
+        try:
+            line_name = "Green"
+            collection = WaysideControllerCollection(track_model=None,line_name=line_name,auto_import_programs=True)
+            collection.frontend.show()
+        except KeyError as e:
+            print(f"\n❌ {e}\nPlease enter a valid line name. \'{line_name}\' is not in the list of imported lines.")
     elif running_module == "TrackWayside":
         track_model = TrackModelFrontEnd()
+        track_model.show()
         # track_model.upload_track_layout_data("GreenLine_Layout.xlsx")
-        track_model.change_temperature(35)
+        # track_model.change_temperature(35)
     elif running_module == "WaysideController":
         try:
             line_name = "Green"
@@ -47,8 +93,9 @@ if __name__=="__main__":
             print(f"\n❌ {e}\nPlease enter a valid line name. \'{line_name}\' is not in the list of imported lines.")
     elif running_module == "TrackModel":
         track_model = TrackModelFrontEnd(wayside_integrated=False)
+        track_model.show()
         # track_model.upload_track_layout_data("GreenLine_Layout.xlsx")
-        track_model.change_temperature(35)
+        # track_model.change_temperature(35)
     elif running_module == "Train":
         train_collection = TrainCollection(num_trains=3)
         train_model_testbench = TrainModelTestbench(train_collection, train_integrated=True)    

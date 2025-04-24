@@ -31,6 +31,9 @@ class TrainModelFrontEnd(QMainWindow):
         self.train_ui = TrainModelUI()
         self.train_ui.setupUi(self)
         
+        # flag to track announcements
+        self.station_announced = False
+
         # UI state dictionary to hold frontend-specific failure states and announcements (keyed by train id in dropdown)
         # Keys: Failure states, Announcement
         self.ui_states = {}
@@ -180,7 +183,8 @@ class TrainModelFrontEnd(QMainWindow):
             # Dynamic values from backend.
             velocity_mph = self.current_train.actual_speed * self.current_train.MPS_TO_MPH
             cmd_speed_mph = self.current_train.wayside_speed * self.current_train.MPS_TO_MPH
-            wayside_authority_ft = self.current_train.wayside_authority * self.current_train.M_TO_FT
+            wayside_authority_yd = self.current_train.wayside_authority# * self.current_train.M_TO_YARD
+            distance_yd = self.current_train.position * self.current_train.M_TO_YARD
             
             acceleration_fts2 = self.current_train.current_acceleration * 3.281
             commanded_power = self.current_train.commanded_power
@@ -188,7 +192,8 @@ class TrainModelFrontEnd(QMainWindow):
             self.train_ui.AccValue.display(acceleration_fts2)
             self.train_ui.SpeedValue.display(velocity_mph)
             self.train_ui.CommandedSpeedValue.display(cmd_speed_mph)
-            self.train_ui.SpeedLimitValue.display(wayside_authority_ft)
+            self.train_ui.WaysideAuthValue.display(wayside_authority_yd)
+            self.train_ui.DistanceTravelledValue.display(distance_yd)
             self.train_ui.PowerValue.display(commanded_power / 1000.0)
 
             try:
@@ -220,10 +225,8 @@ class TrainModelFrontEnd(QMainWindow):
             self.train_ui.button_emergency.setEnabled(not self.current_train.emergency_brake)
             self.train_ui.button_emergency.setChecked(self.current_train.emergency_brake)
             
-            # Leave emergency and failure states alone; their propagation happens in the handlers.
-            announcements = self.current_train.announcement
             if hasattr(self.train_ui, "Announcement_2"):
-                self.train_ui.Announcement_2.setText(announcements)
+                self.train_ui.Announcement_2.setText(self.current_train.announcement)
                 self.train_ui.Announcement_2.setStyleSheet("font-size: 20px; font-weight: bold;")
 
             if hasattr(self.train_ui, "Temperature"):

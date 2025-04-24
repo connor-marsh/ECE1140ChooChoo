@@ -1,4 +1,4 @@
-def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signals, previous_occupancies, exit_blocks):
+def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signals, previous_occupancies, exit_blocks, clamps):
     """
     User-defined logic for controlling track switches.
 
@@ -34,12 +34,67 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     
     :returns switch_positions, light_signals, light_signals crossing_signals, previous_occupancies:
     """
-    train_in_i = any(block_occupancies[15:22])
+    # For Wayside #2
+    # HAS 66 Blocks in its Territory
+    # Sections: I[0,22) J[22,27) K[27,33) L[33,39) U[39,43) V[43,48) W[48,64) y[64,66)
+    # Has 2 Switches I57 (57 - 152, 57-58), K63 (63 - 151, 63 - 62) 
+    # Has 4 Lights J58, J62, y151, y152
+    # Has 0 Crossings
+
+
+
+    train_in_i = any(block_occupancies[0:22])
 
     train_in_j = any(block_occupancies[22:27])
 
-    switch_positions[0] = not train_in_i
+    train_entering_track = block_occupancies[65]
 
-    switch_positions[1] = train_in_j
+    switch_positions[0] = (train_in_i and exit_blocks[1]) 
+    light_signals[0] = not switch_positions[0]
+    light_signals[1] = not light_signals[1]
+    
+    switch_positions[1] = train_in_j and not train_entering_track
+    light_signals[2] = switch_positions[1]
+    light_signals[3] = not light_signals[2]
 
-    return switch_positions, light_signals, crossing_signals
+
+    territory_branch_i_l = list(range(0,39))
+    territory_branch_u_w = list(range(39,64))
+
+    for i, block_idx in enumerate(territory_branch_i_l):
+        if block_occupancies[block_idx]:  # only need to check until overlap section reached or a few blocks before a switch
+            distance_to_end = abs(len(territory_branch_i_l) - i)
+            if distance_to_end > 2:
+                if block_occupancies[block_idx] and previous_occupancies[block_idx - 1 if block_idx > 0 else 0]:
+                    if block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = True
+                elif block_occupancies[block_idx] and previous_occupancies[block_idx]:
+                    if block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = True
+                if clamps[block_idx]:
+                    if not block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = False
+
+    for i, block_idx in enumerate(territory_branch_u_w):
+        if block_occupancies[block_idx]:
+            distance_to_end = abs(len(territory_branch_i_l) - i)
+            if distance_to_end > 2: # only need to check until overlap section reached or a few blocks before a switch
+                if block_occupancies[block_idx] and previous_occupancies[block_idx - 1 if block_idx > 0 else 0]:
+                    if block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = True
+                elif block_occupancies[block_idx] and previous_occupancies[block_idx]:
+                    if block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = True
+                if clamps[block_idx]:
+                    if not block_occupancies[block_idx + 2]:
+                        clamps[block_idx] = False
+
+    # if switch position facing the yard and train in j
+    if not switch_positions[1] and train_in_j:
+        clamps[25:27] = [True]*len(clamps[25:27])
+    else:
+        clamps[25:27] = [False]*len(clamps[25:27])
+    
+    
+    return switch_positions, light_signals, crossing_signals, clamps
+

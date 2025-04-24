@@ -6,6 +6,7 @@ Description:
 """
 import sys
 import os
+import math
 from pathlib import Path
 from Track.WaysideController.wayside_controller_collection import WaysideControllerCollection
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QTableWidget, QTableWidgetItem, QFileDialog, QListWidget, QListWidgetItem, QLabel 
@@ -32,19 +33,19 @@ class WaysideControllerFrontend(QMainWindow):
         super().__init__()
         self.collection = collection_reference
         self.current_controller_index = 0 # Tells the ui which backend controller from the collection to reference
-        self.current_range = None # Tells the ui which range of blocks to display (initial value should guarantee that the update runs to change the table row count)
         self.ui = WaysideUi() # create a ui from the exported file
         self.ui.setupUi(self) 
         self.setWindowTitle("Wayside Controller Module")
-       
+        
 
         # Initialize any Ui elements that are dynamic
         self.init_table()
         self.init_combo_box()
         
+        self.controller_changed = True
          # Create a timer
         self.timer = QTimer(self)
-        self.timer.setInterval(250) # Below 50ms and weird stuff happens since i prob wrote my update weird
+        self.timer.setInterval(300) # Below 50ms and weird stuff happens since i prob wrote my update weird
         
         # Connect Signals to Slots
         self.ui.import_plc_button.clicked.connect(self.handle_input_program)
@@ -59,9 +60,9 @@ class WaysideControllerFrontend(QMainWindow):
         if(auto_import_programs): # auto import the programs if necessary
             for i in range(3):
                 # i sure hope these filepaths exists
-                
-                filepath = "src\Track\WaysideController\PLC\green_line_plc_" + str(i+1) + ".py"
-                self.auto_get_program(i,filepath)
+                if self.collection.LINE_NAME == 'Green':
+                    filepath = "src\Track\WaysideController\PLC\green_line_plc_" + str(i+1) + ".py"
+                    self.auto_get_program(i,filepath)
 
         self.timer.start()
     
@@ -106,12 +107,12 @@ class WaysideControllerFrontend(QMainWindow):
         :return changed: If the row count has changed then this value will be True
         """
 
-        if self.current_range != self.collection.BLOCK_RANGES[self.current_controller_index]: # check to see if the controller changed
-            self.current_range = self.collection.BLOCK_RANGES[self.current_controller_index] # update the range to match the current controller
+        if self.controller_changed:
+            self.controller_changed = False
             table.setRowCount(self.collection.BLOCK_COUNTS[self.current_controller_index]) # update the row count of the table
-            for i in range(*self.current_range): # * is the unpacking operator, it unpacks the tuple so that the 0th entry is the lower bound and the 1st entry is the upper
-                row = 0 + i - self.current_range[0] # The range of the blocks that is referenced does not match the indexing to the rows
-                text = self.collection.blocks[i].id # want to use the block id as the label for the row
+            for i, block in enumerate(self.collection.blocks[self.current_controller_index]): # * is the unpacking operator, it unpacks the tuple so that the 0th entry is the lower bound and the 1st entry is the upper
+                row = i # The range of the blocks that is referenced does not match the indexing to the rows
+                text = self.collection.blocks[self.current_controller_index][i].id # want to use the block id as the label for the row
                 if table.verticalHeaderItem(row) != None: # check to see if it exists
                     table.verticalHeaderItem(row).setText(text) # can just set the text of the current item
                 else: # it does in fact exist
@@ -138,19 +139,20 @@ class WaysideControllerFrontend(QMainWindow):
                 active_controller.commanded_speeds,
                 active_controller.commanded_authorities]
         
-        for col in range(table.columnCount()): # Each Column in the table is one of the lists in the matrix above
-            row = 0
-            for value in data[col]: 
-                if value != None: # Skip items that don't need to be written
-                    item = QTableWidgetItem() # Create an item to go in the table
-                    unit = " yards" if col % 2 == 0 else " mph" # Figure out what the unit should be depending on the position in the table
+        for col in range(table.columnCount()): # loop through each column except for commanded speed and authority
+            for row, value in enumerate(data[col]): 
+                item = QTableWidgetItem() # Create an item to go in the table
+                unit = " yards" if col % 2 == 0 else " mph" # Figure out what the unit should be depending on the position in the table
+                if value != None:
                     if type(value) is float or type(value) is int: # If the column has a numeric value it should have a unit attatched
-                        text = str(value) + unit
+                        text = str(math.floor(value)) + unit
                     elif type(value) is bool: # For bools the text should say occupied/unoccupied since only bool in table is occupancy
                         text = "Occupied" if value else "Unoccupied"
                     item.setText(text) # set the items text attribute
                     table.setItem(row, col, item) # put the item in the table
-                row += 1
+                else:
+                    item.setText("Not Sent")
+                    table.setItem(row,col,item)
     
     def populate_lists(self):
         """
@@ -160,8 +162,7 @@ class WaysideControllerFrontend(QMainWindow):
         self.ui.light_list.clear()
         self.ui.crossing_list.clear()
         
-        for i in range(*self.current_range):
-            block = self.collection.blocks[i]
+        for i, block in enumerate(self.collection.blocks[self.current_controller_index]):
             if block.switch: # if the block has a switch (I BELIEVE THESE ARE MUTUALLY EXCLUSIVE)
                 text = "Switch " + block.id
                 item = QListWidgetItem(text)
@@ -271,6 +272,7 @@ class WaysideControllerFrontend(QMainWindow):
         """
         if controller_index != self.current_controller_index: # only change it if it changes? not really sure this line is needed alas safety first
             self.current_controller_index = controller_index
+            self.controller_changed = True
             
             
 
@@ -444,7 +446,7 @@ class WaysideControllerTestbench(QMainWindow):
         """
         Called when the confirmation next to the switch is clicked, writes values directly to corresponding backend controller
         """
-        block = self.collection.blocks[self.current_block_index + self.block_range[0]] # lookup if the block has a switch
+        block = self.collection.blocks[self.current_block_index][self.current_block_index + self.block_range[0]] # lookup if the block has a switch
         if block.switch:
             self.switch_positions[self.current_block_index] = self.ui.switch_position_combo_box.currentIndex()
             self.collection.controllers[self.controller_index].switch_positions[self.current_block_index] = self.ui.switch_position_combo_box.currentIndex()
@@ -455,7 +457,7 @@ class WaysideControllerTestbench(QMainWindow):
         """
         Called when the confirmation next to the switch is clicked, writes values directly to corresponding backend controller
         """
-        block = self.collection.blocks[self.current_block_index + self.block_range[0]] # lookup if the block has a light
+        block = self.collection.blocks[self.current_block_index][self.current_block_index + self.block_range[0]] # lookup if the block has a light
         if block.light:
             self.light_signals[self.current_block_index] = self.ui.light_signal_combo_box.currentIndex()
             self.collection.controllers[self.controller_index].light_signals[self.current_block_index] = self.ui.light_signal_combo_box.currentIndex()
@@ -465,7 +467,7 @@ class WaysideControllerTestbench(QMainWindow):
         """
         Called when the confirmation next to the switch is clicked, writes values directly to corresponding backend controller
         """
-        block = self.collection.blocks[self.current_block_index + self.block_range[0]] # lookup if the block has a crossing
+        block = self.collection.blocks[self.current_block_index][self.current_block_index + self.block_range[0]] # lookup if the block has a crossing
         if block.crossing:
             self.crossing_signals[self.current_block_index] = self.ui.crossing_signal_combo_box.currentIndex()
             self.collection.controllers[self.controller_index].crossing_signals[self.current_block_index] = self.ui.crossing_signal_combo_box.currentIndex()
@@ -500,8 +502,8 @@ class WaysideControllerTestbench(QMainWindow):
         
         # Reset the values set to the wayside
         active_controller.block_occupancies =     [False] * len(active_controller.block_occupancies)
-        active_controller.suggested_speeds =      [0] * len(active_controller.suggested_speeds)
-        active_controller.suggested_authorities = [0] * len(active_controller.suggested_authorities)
+        active_controller.suggested_speeds =      [None] * len(active_controller.suggested_speeds)
+        active_controller.suggested_authorities = [None] * len(active_controller.suggested_authorities)
 
         # Reset UI elements
         self.ui.block_occupancy_combo_box.setCurrentIndex(-1)
@@ -523,8 +525,7 @@ class WaysideControllerTestbench(QMainWindow):
         """
         Adds entries to the list on the testbench ui corresponding to the territory the wayside controller testbench is connected to
         """
-        for i in range(*self.block_range): # unpacking operator, remember ranges are [lower, upper)
-            block = self.collection.blocks[i]
+        for block in self.collection.blocks[self.controller_index]: # unpacking operator, remember ranges are [lower, upper)
             text = "Block " + block.id
             if block.switch:
                 text = text + ', Has Switch'

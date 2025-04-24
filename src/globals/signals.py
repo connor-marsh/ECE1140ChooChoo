@@ -13,14 +13,12 @@ class Signals(QObject):
     ctc_switch_maintenance = pyqtSignal(str, bool) 
     ctc_exit_blocks = pyqtSignal(list)
     ctc_dispatch = pyqtSignal()
-    ctc_block_maintenance = pyqtSignal(int, bool)
-    ctc_suggested = pyqtSignal(list,list)
+    ctc_block_maintenance = pyqtSignal(str, bool)
+    ctc_suggested = pyqtSignal(dict,dict)
 
 
-    wayside_block_occupancies = pyqtSignal(list)
-    wayside_switches = pyqtSignal(list)
-    wayside_lights = pyqtSignal(list)
-    wayside_crossings = pyqtSignal(list)
+    wayside_block_occupancies = pyqtSignal(dict)
+    wayside_plc_outputs = pyqtSignal(list,list,list,list)
 
     track_tickets = pyqtSignal(int)
 
