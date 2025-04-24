@@ -87,13 +87,13 @@ class CtcFrontEnd(QMainWindow):
     def toggle_active_line(self):
         if self.ctc_ui.main_line_slider.value() == 0:
             self.backend.active_line = self.backend.lines["Green"]
-            print("Active Line: ", self.backend.active_line.name)
+            #print("Active Line: ", self.backend.active_line.name)
             self.initialize_map()
             self.initialize_block_combo()
             self.initialize_station_combo()
         elif self.ctc_ui.main_line_slider.value() == 1:
             self.backend.active_line = self.backend.lines["Red"]
-            print("Active Line: ", self.backend.active_line.name)
+            #print("Active Line: ", self.backend.active_line.name)
             self.initialize_map()
             self.initialize_block_combo()
             self.initialize_station_combo()
