@@ -500,19 +500,18 @@ class WaysideControllerTestbench(QMainWindow):
         # Reset the testbench values
         self.current_block_index =    None
         self.block_occupancies =     [None] * len(self.block_occupancies)
-        self.suggested_speeds =      [None] * len(self.suggested_speeds)
-        self.suggested_authorities = [None] * len(self.suggested_authorities)
-
+       
         
         # Reset the values set to the wayside
         active_controller.block_occupancies =     [False] * len(active_controller.block_occupancies)
-        active_controller.suggested_speeds =      [None] * len(active_controller.suggested_speeds)
-        active_controller.suggested_authorities = [None] * len(active_controller.suggested_authorities)
-
+        active_controller.switch_positions = [False]* len(active_controller.switch_positions)
+        active_controller.light_signals = [False]* len(active_controller.light_signals)
+        active_controller.crossing_signals = [False]* len(active_controller.crossing_signals)
         # Reset UI elements
         self.ui.block_occupancy_combo_box.setCurrentIndex(-1)
-        self.ui.suggested_authority_line_edit.clear()
-        self.ui.suggested_speed_line_edit.clear()
+        self.ui.switch_position_combo_box.setCurrentIndex(-1)
+        self.ui.light_signal_combo_box.setCurrentIndex(-1)
+        self.ui.crossing_signal_combo_box.setCurrentIndex(-1)
         self.ui.select_block_list.setCurrentRow(-1)
         
         self.collection.controllers[self.controller_index].maintenance_mode = False # User has closed the window so maintenance mode should no longer be active
