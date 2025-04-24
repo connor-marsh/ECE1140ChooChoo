@@ -62,12 +62,15 @@ class TrainController(QMainWindow):
         self.started_timer2 = False
         self.stop_asap = False
         
-        #TODO: these defaults should be fixed - currently hard-coded
-        self.current_block = self.track_data.blocks[63-1]
+        # Spawn defaults
+        self.current_block = self.track_data.SPAWN_BLOCK
         self.current_section = self.current_block.id[0]
         self.previous_switch_entrance = False
         self.previous_switch_exit = True
-        self.travel_direction = self.track_data.sections[self.current_section].increasing
+        if self.line_name == "Red":
+            self.travel_direction = self.track_data.sections[self.current_section].decreasing
+        else:
+            self.travel_direction = self.track_data.sections[self.current_section].increasing
 
         # Default for power calculation
         self.integral_error = 0.0
@@ -141,6 +144,9 @@ class TrainController(QMainWindow):
             self.current_section = self.current_block.id[0]
 
     def update_auxiliary(self):
+        # Extract station information from the track data
+        station = self.track_data.stations.get(self.current_block.id, None)
+        
         # Set the HVAC Signals
         self.air_conditioning_signal = self.actual_temperature > self.desired_temperature
         self.heating_signal = self.actual_temperature < self.desired_temperature
@@ -158,7 +164,19 @@ class TrainController(QMainWindow):
         if (self.actual_speed > 0):
             self.left_doors = False
             self.right_doors = False
-
+        # Open doors if the train is stopped and not in manual mode.
+        elif self.actual_speed == 0.0 and not self.manual_mode and self.dwell:
+            if station:
+                # If a station defines which doors to open, use that information.
+                # For this example, assume 0 means left doors, 1 means right doors, and 2 means both.
+                if station.doors == 0:
+                    self.left_doors = True
+                elif station.doors == 1:
+                     self.right_doors = True
+                else:
+                    self.left_doors = True
+                    self.right_doors = True
+        
         # ----- Dwelling Logic -----
         # Detect if we're stopping at a station:
         # A common condition might be:
@@ -167,13 +185,10 @@ class TrainController(QMainWindow):
         #   - The train’s speed has reached zero.
         # print(self.current_block.id)
         # print(self.current_block.station)
-        
+
         if (self.wayside_authority < self.current_block.length and self.current_block.station and not self.just_stopped_at_station):
             self.just_stopped_at_station = True
             print("Stopping at station...")
-
-            # Extract station information from the track data
-            station = self.track_data.stations.get(self.current_block.id, None)
 
             # set the next station announcement based on station information
             if station:
@@ -253,19 +268,6 @@ class TrainController(QMainWindow):
 
     def start_dwell(self):
         self.dwell = True
-        # Open doors if the train is stopped and not in manual mode.
-        if self.actual_speed == 0.0 and not self.manual_mode:
-            station = self.track_data.stations.get(self.current_block.id, None)
-            if station:
-                # If a station defines which doors to open, use that information.
-                # For this example, assume 0 means left doors, 1 means right doors, and 2 means both.
-                if station.doors == 0:
-                    self.left_doors = True
-                elif station.doors == 1:
-                     self.right_doors = True
-                else:
-                    self.left_doors = True
-                    self.right_doors = True
         # Set a timer to end dwell after 30 seconds.
         QTimer.singleShot(int(self.DWELL_TIME_MS / self.global_clock.time_multiplier), self.end_dwell)
 
