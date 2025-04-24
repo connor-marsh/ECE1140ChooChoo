@@ -60,6 +60,8 @@ To run our fully integrated simulation, simply run ***pittsburgh.py*** from the 
 #### Running modules
 To run an individual module, or smaller combination of modules and testbenches, you have to pass that as a command line argument like `python3 src/pittsburgh.py TrainModel`.
 
+Note that some modules may not run individually at the moment due to last minute changes during integration. The system is best run when fully integrated.
+
 ##### Run the fully integrated system
 Command line argument: "all" (default, runs all modules but only starts with green line uploaded) or "allOnRed" (runs all modules but also starts with both green and red lines uploaded)  
 ##### Run individual modules with their testbenches
@@ -101,12 +103,58 @@ Opens a file explorer dialog allowing the user to upload a schedule file.
 - The selected file is then parsed and integrated into the train scheduling system.
 - This feature supports automated train dispatching and timeline-based coordination based on pre-configured schedules.
 ### Wayside Controller UI
+#### Import PLC Program
+Allows the programmer to upload a PLC program.
+- Click the green "Import PLC Program Button" to open the file manager
+- The user must select a .py file.
+- If the selected file does not conform, ie. is not a .py, sends non-boolean values, or does not contain the "plc_logic" function, then the file manager will reopen until a proper file has been selected
+- Once a valid program has been uploaded, The name of the program is displayed on the ui above the "Import PLC" button.
+#### Controller Selection Drop Down
+A combo box / drop down that shows the mode of the controller
+#### Automatic Mode Drop Down
+A combo box / drop down that shows the mode of the controller.
+- Clicking on the drop down will show the modes available to select
+- The user can choose between automatic and maintenance mode
+- If the mode cannot be selected, ie. there is a train in the territory of the wayside controller, then the mode will not change
+- Entering maintenance mode opens another window, where the user can edit values input into the wayside controller.
+#### Central Block Table
+The main table that displays, occupancies, suggested speeds, suggested authorities, commanded speeds, and commanded authorities.
+- The user can scroll to view the values at each block in a wayside's territory.
+#### Device Lists
+At the bottom left corner of the window are three lists that show the devices that the wayside has control of.
+- Clicking on an item on the list shows the output that is currently being made by the PLC program on the corresponding label in the bottom right of the screen.
+### Wayside Controller Maintenance Window
+A separate window that lets the programmer input values manually into the plc.
+#### Block List
+Shows each of the blocks on the wayside's territory and allows the user to select blocks
+- Clicking on the block selects the block
+- Scrolling allows the user to see all of the blocks in the territory
+- List indicates which devices on are the track.
+#### Set Occupancy Drop Down and Confirm Button
+A combo box that changes the status of the selected block's occupancy and a Button to send the change to the main UI
+- Three options, unoccupied, occupied, and maintenance
+#### Set Switch Position Drop Down and Confirm Button
+A combo box that changes the status of the selected switches' state and a Button to send the change to the main UI
+- Select between the two switch states, displays the block numbers which corresponds to the switch
+#### Set Light Signal Drop Down and Confirm Button
+A combo box that changes the status of the selected light's state and a Button to send the change to the main UI
+- Select Red or Green
+#### Set Crossing Signal Drop Down and Confirm Button
+A combo box that changes the status of the selected crossing's state and a Button to send the change to the main UI
+- Select Inactive or Active
 
 ### Track Model UI
 The Track Model user interface allows for dynamic visualization and interaction with the selected transit line. It supports both the Green and Red Lines and provides real-time feedback for block data, infrastructure status, temperature, and failure simulation.
 
 #### Top Bar Features:
 - Import Track Layout – Opens a file dialog to upload an updated `.xlsx` or `.xls` layout file. The file must match the selected line and contain "Green" or "Red" in cell A2.
+- Track Layout must contain two sheets.
+- Track Layout must contain columns called "Line", "Section", "Block Number", "Block Length", "Block Grade", "Station"...
+- Continued, Track Layout must contain columns called "Station Side", "Switch", "Light", "Crossing", "Beacon", "Beacon Data"...
+- Continued, "Territory", "Exit Blocks", "Switch Exits", "Speed Limit (MPH)", "Block Length (y)", "Underground" and "Traversal Time"
+- Track Layout second sheet must have a column named "Sections" and a column named "Increasing"
+- Sections are alphabetical values
+- Increasing is "0", "1" or "2"
 - Line Selector Dropdown – Switches between the Green and Red lines.
 - Block Selector Dropdown – Allows selection of individual blocks by ID.
 - 12-Hour Clock – Displays the current system time.
