@@ -104,7 +104,7 @@ Opens a file explorer dialog allowing the user to upload a schedule file.
 - This feature supports automated train dispatching and timeline-based coordination based on pre-configured schedules.
 ### Wayside Controller UI
 This module is responsible for executing the PLC program and operates the devices on the track. The UI displays the controllers name and line in the top left corner.
-
+![Main Wayside Window](src/Track/WaysideController/assets/Wayside.png)
 #### Import PLC Program
 Allows the programmer to upload a PLC program.
 - Click the green "Import PLC Program Button" to open the file manager
@@ -125,8 +125,10 @@ The main table that displays, occupancies, suggested speeds, suggested authoriti
 #### Device Lists
 At the bottom left corner of the window are three lists that show the devices that the wayside has control of.
 - Clicking on an item on the list shows the output that is currently being made by the PLC program on the corresponding label in the bottom right of the screen.
+
 ### Wayside Controller Maintenance Window
 A separate window that lets the programmer input values manually into the plc.
+![Maintenance Wayside Window](src/Track/WaysideController/assets/Test.png)
 #### Block List
 Shows each of the blocks on the wayside's territory and allows the user to select blocks
 - Clicking on the block selects the block
