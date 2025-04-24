@@ -40,7 +40,7 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     # For Wayside #1
     # HAS 36 Blocks in its Territory
     # Sections: A[0,3) B[3,6) C[6,9) D[9, 12) E[12,15) F[15,20) G[20,23) H[23,31) S[31,34) T[34, 35) y[35,36)
-    # Has 3 Switches C9:(9 - 10,9 - 77) F16:(16 - 1, 16 - 1) H27:(27 - 28, 27 - 76) 
+    # Has 3 Switches C9:(9 - 10,9 - 77) F16:(16 - 1, 16 - 15) H27:(27 - 28, 27 - 76) 
     # Has 6 Lights A1, D10, E15, H28, T76, y77
     # Has 1 Crossing D11
 
@@ -70,17 +70,17 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     prev_train_in_t = any(previous_occupancies[34:35])
     prev_train_in_y = any(previous_occupancies[35:36])
 
-    switch_positions[0] = True
+    switch_positions[0] = not(train_in_a or train_in_b or train_in_c or train_in_d or train_in_e) or exit_blocks[0]
     light_signals[1] = not switch_positions[0]
     light_signals[5] = switch_positions[0]
     
     
-    switch_positions[1] = False
+    switch_positions[1] = (train_in_d or train_in_e)
     light_signals[0] = not switch_positions[1]
     light_signals[2] = not light_signals[0]
 
 
-    switch_positions[2] = False
+    switch_positions[2] = not(any(block_occupancies[0:31]))
     light_signals[3] = not switch_positions[2]
     light_signals[4] = not light_signals[3]
 
@@ -92,10 +92,15 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     else:
         clamps[35] = False
 
-    if switch_positions[0]:
+    if not switch_positions[1]:
         clamps[10:12] = [True]*len(clamps[10:12])
     else:
         clamps[10:12] = [False]*len(clamps[10:12])
+
+    if not switch_positions[2]:
+        clamps[33:35] = [True]*len(clamps[33:35])
+    else:
+        clamps[33:35] = [False]*len(clamps[33:35])
     # update persistent state
     #plc_logic.prev_train_increasing_abc = train_increasing_abc
     #plc_logic.prev_train_decreasing_abc = train_decreasing_abc

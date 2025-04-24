@@ -410,7 +410,7 @@ class CtcFrontEnd(QMainWindow):
             
     def update_throughput(self):
         #updates throughput label on UI
-        self.ctc_ui.main_throughput_label.setText(str(round(self.backend.throughput,2)))
+        self.ctc_ui.main_throughput_label.setText(str(round(self.backend.active_line.throughput,2)))
 
     def update_dispatch_button(self):
         # Updates button state based off selected buttons
@@ -472,6 +472,8 @@ class CtcFrontEnd(QMainWindow):
             block_info.maintenance = 1
             self.update_maintenance(block_info)
             self.backend.send_block_maintenance(self.selected_row-1, 1) #Calls backend to send data to wayside
+            # Tell trains to update
+            self.backend.active_line.occupancy_change = True
             #self.test_bench.print_maintenance(block_info['block_id'], 1)
         
     def end_maintenance(self):
@@ -481,6 +483,8 @@ class CtcFrontEnd(QMainWindow):
             block_info.maintenance = 0
             self.update_maintenance(block_info)
             self.backend.send_block_maintenance(self.selected_row-1, 0) #Calls backend to send data to wayside
+            # Tell trains to update
+            self.backend.active_line.occupancy_change = True
             #self.test_bench.print_maintenance(block_info['block_id'], 0)
     
     def update_maintenance(self, block_info):

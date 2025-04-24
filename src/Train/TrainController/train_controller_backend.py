@@ -110,7 +110,6 @@ class TrainController(QMainWindow):
             None
         """
         # Check if auto or manual mode and calculate power
-        self.speed_limit = self.current_block.speed_limit
         if self.manual_mode:
             self.target_speed = self.driver_target_speed
         else:
@@ -123,7 +122,7 @@ class TrainController(QMainWindow):
         commanded_power_1 = (self.Kp * self.error) + (self.Ki * self.integral_error)
         commanded_power_2 = (self.Kp * self.error) + (self.Ki * self.integral_error)
         commanded_power_3 = (self.Kp * self.error) + (self.Ki * self.integral_error)
-        if (commanded_power_1 == commanded_power_2 and commanded_power_1 == commanded_power_3 and commanded_power_2 == commanded_power_3):
+        if (commanded_power_1 == commanded_power_2 and commanded_power_1 == commanded_power_3):
             self.unramped_commanded_power = commanded_power_1
         else:
             self.commanded_power = 0
@@ -255,6 +254,8 @@ class TrainController(QMainWindow):
         Returns:
             None
         """
+        # update speed limit
+        self.speed_limit = self.current_block.speed_limit
         # Ramp up power for passenger comfort
         if self.unramped_commanded_power > self.commanded_power:
             ramp_rate = 10000.0
@@ -307,6 +308,7 @@ class TrainController(QMainWindow):
         #     self.service_brake = False # Service Brake is not toggled off once activated in manual mode
 
         if (self.emergency_brake or self.service_brake):
+
             self.commanded_power = 0.0 # Kill engine if emergency brake is activated
             self.integral_error = 0
 

@@ -127,7 +127,6 @@ class Train:
                 switchState = self.dynamic_track.switch_states[self.current_block.id]
                 nextBlock = switch.positions[1 if switchState else 0].split("-")[1]
                 self.current_block = self.track_data.blocks[int(nextBlock) - 1]
-                print("SWITCH", switch, switchState, nextBlock, self.current_block.id)
             elif self.current_block.switch_exit and not self.previous_switch_entrance:
                 
                 self.previous_switch_exit = True
@@ -152,7 +151,6 @@ class Train:
                     print("TRAIN CRASH FROM SWITCH POSITION")
                     print("TRAIN CRASH FROM SWITCH POSITION")
                     print("TRAIN CRASH FROM SWITCH POSITION")
-                print("SWITCH EXIT", switch, switchState, switchBlocks, self.current_block.id)
             else:
                 self.previous_switch_exit = False
                 self.previous_switch_entrance = False
@@ -162,7 +160,6 @@ class Train:
                     self.dynamic_track.occupancies[self.current_block.id] = Occupancy.UNOCCUPIED
                     return
                 self.current_block = self.track_data.blocks[int(self.current_block.id[1:]) + (self.travel_direction * 2 - 1) - 1]
-                print("NORMAL MOVE", self.travel_direction, self.current_block.id)
 
             # broken rail failure check
             if self.dynamic_track.failures.get(self.current_block.id, Failures.NONE) == Failures.BROKEN_RAIL_FAILURE:
@@ -196,40 +193,36 @@ class Train:
                 train_output = self.train_model.get_output_data()
                 actual_speed = train_output.get("actual_speed", 1.0)
 
-                if actual_speed == 0.0:
-                    station_id = self.current_block.id
-                    ticket_sales = self.track_model.station_ticket_sales.get(station_id, 0)
+                station_id = self.current_block.id
+                ticket_sales = self.track_model.station_ticket_sales.get(station_id, 0)
 
-                    MAX_PASSENGERS = 148
-                    MAX_BOARDING = random.randint(10, 25)  # adjustable range - change as needed
+                MAX_PASSENGERS = 148
+                MAX_BOARDING = random.randint(10, 25)
 
-                    # Ensure space is freed up if near or at capacity
-                    min_required_to_leave = max(0, (self.passenger_count + MAX_BOARDING) - MAX_PASSENGERS)
-                    max_possible_to_leave = min(25, self.passenger_count)
+                min_required_to_leave = max(0, (self.passenger_count + MAX_BOARDING) - MAX_PASSENGERS)
+                max_possible_to_leave = min(25, self.passenger_count)
 
-                    passengers_leaving = random.randint(min_required_to_leave, max_possible_to_leave) if max_possible_to_leave >= min_required_to_leave else self.passenger_count
-                    self.passenger_count -= passengers_leaving
+                passengers_leaving = random.randint(min_required_to_leave, max_possible_to_leave) if max_possible_to_leave >= min_required_to_leave else self.passenger_count
+                self.passenger_count -= passengers_leaving
 
-                    available_space = MAX_PASSENGERS - self.passenger_count
-                    passengers_boarding = min(MAX_BOARDING, available_space)
+                available_space = MAX_PASSENGERS - self.passenger_count
+                passengers_boarding = min(MAX_BOARDING, available_space)
 
-                    self.passenger_count += passengers_boarding
+                self.passenger_count += passengers_boarding
 
-                    print(f"[Station {station_id}] {passengers_leaving} passengers deboarded.")
-                    print(f"[Station {station_id}] {passengers_boarding} passengers boarded.")
-                    print(f"[Train {self.train_id}] now has {self.passenger_count} passengers.")
+                print(f"[Station {station_id}] {passengers_leaving} passengers deboarded.")
+                print(f"[Station {station_id}] {passengers_boarding} passengers boarded.")
+                print(f"[Train {self.train_id}] now has {self.passenger_count} passengers.")
 
-                    # Update station's total ticket sales
-                    self.track_model.station_ticket_sales[station_id] += passengers_boarding
+                self.track_model.station_ticket_sales[station_id] += passengers_boarding
 
-                    # Emit ticket sales to CTC via signal
-                    signals.communication_track.track_tickets.emit(self.track_model.station_ticket_sales[station_id], self.track_model.name)
+                signals.communication_track.track_tickets.emit(self.track_model.station_ticket_sales[station_id], self.track_model.name)
 
-                    # Log for frontend runtime display
-                    self.track_model.runtime_status.setdefault(station_id, {})
-                    self.track_model.runtime_status[station_id]["ticket_sales"] = self.track_model.station_ticket_sales[station_id]
-                    self.track_model.runtime_status[station_id]["boarding"] = passengers_boarding
-                    self.track_model.runtime_status[station_id]["departing"] = passengers_leaving
+                self.track_model.runtime_status.setdefault(station_id, {})
+                self.track_model.runtime_status[station_id]["ticket_sales"] = self.track_model.station_ticket_sales[station_id]
+                self.track_model.runtime_status[station_id]["boarding"] = passengers_boarding
+                self.track_model.runtime_status[station_id]["departing"] = passengers_leaving
+
 
 
 
@@ -545,6 +538,23 @@ class TrackModel(QtWidgets.QMainWindow):
             self.temperature += 0.5
             self.update_heaters()
             signals.communication_track.track_temperature.emit(self.temperature, self.name)
+
+    # Get updated station data for a block
+    def get_station_data(self, block_id):
+        return self.runtime_status.get(block_id, {
+            "ticket_sales": 0,
+            "boarding": 0,
+            "departing": 0
+        })
+
+    # Get current light state for a block
+    def get_light_state(self, block_id):
+        return "GREEN" if self.dynamic_track.light_states.get(block_id, False) else "RED"
+
+    # Get current railway crossing state for a block
+    def get_crossing_state(self, block_id):
+        return "ACTIVE" if self.dynamic_track.crossing_states.get(block_id, False) else "INACTIVE"
+
 
 
 

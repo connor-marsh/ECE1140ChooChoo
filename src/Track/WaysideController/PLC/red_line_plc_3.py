@@ -45,4 +45,16 @@ def plc_logic(block_occupancies, switch_positions, light_signals, crossing_signa
     # Has 1 Crossing I47
 
     switch_positions[0] = any(block_occupancies[8:22])
+
+    if switch_positions[0]:
+        clamps[4:8] = [True]*len(clamps[4:8])
+    else:
+        clamps[4:8] = [False]*len(clamps[4:8])
+
+
+    if not switch_positions[0]:
+        clamps[19:22] = [True]*len(clamps[19:22])
+    else:
+        clamps[19:22] = [False]*len(clamps[19:22])
+
     return switch_positions, light_signals, crossing_signals, clamps

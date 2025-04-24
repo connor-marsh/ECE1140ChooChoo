@@ -671,6 +671,10 @@ class TrackModelFrontEnd(QMainWindow):
 
         # Dynamic Infrastructure Display
         self.infrastructure_display = InfrastructureDisplay()
+        self.active_infra_type = None
+        self.active_block_id = None
+        self.infra_timer = QTimer()
+        self.infra_timer.timeout.connect(self.refresh_infrastructure_display)
         infra_layout = QVBoxLayout()
         infra_layout.setContentsMargins(0, 0, 0, 0)
         infra_layout.addWidget(self.infrastructure_display)
@@ -1022,6 +1026,17 @@ class TrackModelFrontEnd(QMainWindow):
         if payload:
             self.infrastructure_display.update_display(icon_type, payload)
 
+            # Set active type/block for dynamic infrastructure updates
+            if icon_type in ("station", "traffic_light", "railway_crossing", "switch"):
+                self.active_infra_type = icon_type
+                self.active_block_id = block_id
+                self.infra_timer.start(500)  # Refresh every 0.5 seconds
+            else:
+                self.active_infra_type = None
+                self.active_block_id = None
+                self.infra_timer.stop()
+
+
 
     # Sends Dynamic Infrastructure payload data
     def build_infrastructure_display_payload(self, icon_type, block_id):
@@ -1049,8 +1064,10 @@ class TrackModelFrontEnd(QMainWindow):
                 "icon_path": os.path.join(BASE_DIR, "Resources", icon),
                 "line1": ("Ticket Sales", str(status.get("ticket_sales", "N/A"))),
                 "line2": ("Boarding", str(status.get("boarding", "N/A"))),
-                "line3": ("Departing", str(status.get("departing", "N/A")))
+                "line3": ("Departing", str(status.get("departing", "N/A"))),
+                "line4": ("Block ID", block_id)
             })
+
 
         elif icon_type == "switch":
             switch = backend.track_data.switches.get(block_id)
@@ -1084,7 +1101,6 @@ class TrackModelFrontEnd(QMainWindow):
                 "exit_bottom": bottom_exit
             })
 
-            print(f"[SWITCH PAYLOAD] block_id={block_id}, route={route}, icon={direction_icon}, top={top_exit}, bottom={bottom_exit}")
 
 
             payload.update({
@@ -1095,7 +1111,6 @@ class TrackModelFrontEnd(QMainWindow):
                 "exit_bottom": bottom_exit
             })
 
-            print(f"[SWITCH PAYLOAD] block_id={block_id}, state={state}, route={route}, direction_icon={direction_icon}")
 
 
 
@@ -1105,8 +1120,10 @@ class TrackModelFrontEnd(QMainWindow):
                 "name": "Railway Crossing",
                 "icon_path": os.path.join(BASE_DIR, "Resources",
                     "railway_crossing_icon_active.png" if crossing_state else "railway_crossing_icon_inactive.png"),
-                "line1": ("State", "Active" if crossing_state else "Inactive")
+                "line1": ("State", "Active" if crossing_state else "Inactive"),
+                "line2": ("Block ID", block_id)
             })
+
 
         elif icon_type == "traffic_light":
             light_state = backend.dynamic_track.light_states.get(block_id, False)
@@ -1114,8 +1131,10 @@ class TrackModelFrontEnd(QMainWindow):
                 "name": "Traffic Light",
                 "icon_path": os.path.join(BASE_DIR, "Resources",
                     "traffic_light_icon_green.png" if light_state else "traffic_light_icon_red.png"),
-                "line1": ("State", "Green" if light_state else "Red")
+                "line1": ("State", "Green" if light_state else "Red"),
+                "line2": ("Block ID", block_id)
             })
+
 
         elif icon_type == "train":
             return None
@@ -1225,6 +1244,16 @@ class TrackModelFrontEnd(QMainWindow):
         selected = self.ui.block_selected_value.text()
         if selected:
             self.display_block_info(selected)
+
+    def refresh_infrastructure_display(self):
+        if not self.active_block_id or not self.active_infra_type:
+            self.infra_timer.stop()
+            return
+
+        payload = self.build_infrastructure_display_payload(self.active_infra_type, self.active_block_id)
+        if payload:
+            self.infrastructure_display.update_display(self.active_infra_type, payload)
+
 
 
 

@@ -186,6 +186,10 @@ class CtcBackEnd(QObject):
                     if train.line == "Red":
                         if jump_key == (52, 1):
                             return self.lines[self.updating_line].blocks[int(block.id[1:])].id
+                        if jump_key == (9,1):
+                            if train.get_next_stop() != 77:
+                                return self.lines[self.updating_line].blocks[9].id
+
 
 
                     #Check if train is at jump block
@@ -282,10 +286,12 @@ class CtcBackEnd(QObject):
             if self.updating_line == "Red":
                 if train.current_block == "B5":
                     if train.get_next_stop() == 77:
-                        train.exit_blocks = [[True, False, False],[False, False, False, False],[False, False]]
+
+                        train.exit_blocks =[[True, False, False], [False, False, False, False], [False, False]]
                     else:
-                        train.exit_blocks = [[False, False, False],[False, False, False, False],[False, False]]
-                    self.send_exit_blocks(train.exit_blocks) #Send exit blocks to wayside
+                        train.exit_blocks =[[False, False, False], [False, False, False, False], [False, False]]
+                    self.send_exit_blocks(train.exit_blocks)
+
 
         self.lines[self.updating_line].occupancy_change = False
                     
@@ -499,7 +505,7 @@ class CtcBackEnd(QObject):
             section_dir = self.lines[line_name].sections[section_key].increasing
 
             # This assumes all trains had at least a two block gap to begin with
-            if current_block.occupancy and current_id != start_id:
+            if (current_block.occupancy or current_block.maintenance) and current_id != start_id:
                 # OH NO! There is an occupancy blocking our path
                 # print("BACKTRACKING", current_id, start_id, end_id)
                 # Backtrack 3 blocks
@@ -664,6 +670,7 @@ class Track:
         self.occupancy_change = True # Used to refresh trains
 
         self.throughput = 0
+        self.total_tickets = 0
 
         if name == "Green":
             self.ENTRANCE_CHECK = [63, 64, 65] #Entrance blocks for green line
