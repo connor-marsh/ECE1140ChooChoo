@@ -575,7 +575,7 @@ class Ui_MainWindow(object):
         self.signal_failure_light.setText(_translate("MainWindow", "Active"))
         self.brake_failure_light.setText(_translate("MainWindow", "Active"))
         self.engine_failure_light.setText(_translate("MainWindow", "Active"))
-        self.emergency_button.setText(_translate("MainWindow", "Emergency Stop"))
+        self.emergency_button.setText(_translate("MainWindow", "Emergency Brake"))
         self.label_27.setText(_translate("MainWindow", "Engine Failure"))
         self.label_21.setText(_translate("MainWindow", "Brake Failure"))
         self.label_19.setText(_translate("MainWindow", "Signal Failure"))
