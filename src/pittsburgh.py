@@ -8,6 +8,13 @@ os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 import globals.global_clock as global_clock
 import globals.track_data_class as track_data
 import globals.signals as signals
+import globals.settings as settings
+
+# Make sure to set this setting before we potentially run the hardware module
+if __name__=="__main__":
+    if "USING_HARDWARE" in sys.argv:
+        settings.USING_HARDWARE = True
+
 from Train.train_collection import TrainCollection
 from Train.TrainModel.train_model_frontend import TrainModelFrontEnd
 from Train.TrainModel.train_model_testbench import TrainModelTestbench
@@ -21,9 +28,26 @@ from CTC.centralized_traffic_controller_backend import CtcBackEnd
 
 
 if __name__=="__main__":
-
-    running_module = "allOnRed" # all, allOnRed CTC, WaysideController, TrackModel, Train, TrackWayside TrainModel, TrainController, TrainControllerHW, CtcWayside
-    
+    # Set this one if not using command line args
+    if len(sys.argv)==1:
+        running_module = "allWithRedLine" # all, allWithRedLine, CTC, WaysideController, TrackModel, Train, TrackWayside TrainModel, TrainController, TrainControllerHW, CtcWayside
+    # These are for if using command line args
+    elif len(sys.argv) == 2:
+        if sys.argv[1] == "USING_HARDWARE":
+            running_module = "all"
+        else:
+            running_module = sys.argv[1]
+    elif len(sys.argv) == 3:
+        if sys.argv[1] == "USING_HARDWARE":
+            running_module = sys.argv[2]
+        elif sys.argv[2] == "USING_HARDWARE":
+            running_module = sys.argv[1]
+        else:
+            print("INVALID COMMAND LINE ARGUMENTS")
+            sys.exit(1)
+    else:
+        print("INVALID COMMAND LINE ARGUMENTS")
+        sys.exit(1)
     # Create App
     app = QApplication(sys.argv)
 
