@@ -226,6 +226,8 @@ The Track Model user interface allows for dynamic visualization and interaction 
 
 This user interface provides real-time visualization and interaction with a simulated train model. It is organized into distinct sections for intuitive monitoring of model state, failure injection, control toggles, and displaying live train data.
 
+![Train Model UI](src/Train/TrainModel/Assets/Train_Model_UI.png)
+
 #### Train Selection
 - **Train ID:** Displays the identifier of the current train model instance being simulated.
 
