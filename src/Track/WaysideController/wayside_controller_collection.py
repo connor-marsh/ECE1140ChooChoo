@@ -60,7 +60,6 @@ class WaysideControllerCollection(QObject):
             light_count = self.track_data.device_counts[i + 1]['lights']
             crossing_count = self.track_data.device_counts[i + 1]['crossings']
             exit_block_count = self.track_data.device_counts[i + 1]['exits']
-            print(exit_block_count)
             self.BLOCK_COUNTS.append(block_count)
             self.SWITCH_COUNTS.append(switch_count)
             self.LIGHT_COUNTS.append(light_count)
@@ -153,8 +152,7 @@ class WaysideControllerCollection(QObject):
         """
         Connects any necessary local and global signals for communication using the pyqt framework
         """
-
-        signals.communication.ctc_dispatch.connect(self.handle_dispatch)
+        signals.communication_ctc[self.LINE_NAME].ctc_dispatch.connect(self.handle_dispatch)
  
 
 

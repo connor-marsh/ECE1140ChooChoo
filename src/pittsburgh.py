@@ -30,7 +30,7 @@ from CTC.centralized_traffic_controller_backend import CtcBackEnd
 if __name__=="__main__":
     # Set this one if not using command line args
     if len(sys.argv)==1:
-        running_module = "all" # all, CTC, WaysideController, TrackModel, Train, TrackWayside TrainModel, TrainController, TrainControllerHW, CtcWayside
+        running_module = "allWithRedLine" # all, allWithRedLine, CTC, WaysideController, TrackModel, Train, TrackWayside TrainModel, TrainController, TrainControllerHW, CtcWayside
     # These are for if using command line args
     elif len(sys.argv) == 2:
         if sys.argv[1] == "USING_HARDWARE":
@@ -48,7 +48,6 @@ if __name__=="__main__":
     else:
         print("INVALID COMMAND LINE ARGUMENTS")
         sys.exit(1)
-
     # Create App
     app = QApplication(sys.argv)
 
@@ -63,13 +62,25 @@ if __name__=="__main__":
         track_model = TrackModelFrontEnd()
         track_model.show()
         ctc_frontend.show()
+    
+    if running_module == "allOnRed":
+        # red line stuff that should prob change 
+        red_line = track_data.TrackData("src/Track/TrackModel/redline_layout.xlsx")
+        track_data.lines[red_line.line_name] = red_line
+        signals.communication_ctc["Red"] = signals.SignalsCtc()
+
+        ctc_backend = CtcBackEnd()
+        ctc_frontend = CtcFrontEnd(ctc_backend)
+        track_model = TrackModelFrontEnd()
+        track_model.show()
+        ctc_frontend.show()
 
     elif running_module == "CTC":
         ctc_backend = CtcBackEnd()
         ctc_frontend = CtcFrontEnd(ctc_backend)
         ctc_frontend.show()
         
-    elif running_module == "CtcWayside":
+    elif running_module == "CTCWayside":
         ctc_backend = CtcBackEnd()
         ctc_frontend = CtcFrontEnd(ctc_backend)
         ctc_frontend.show()

@@ -1,15 +1,13 @@
 """
 Author: Aragya Goyal and Connor Marsh
-Date: 03-20-2025
-Description:
-
+Date: 2025-04-24
+Description: This file implements the backend of the Train Controller. The Train Controller backend interacts with the backend of the Train Model to get its inputs and send outputs to.
 """
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtCore import QTimer
 import globals.global_clock as global_clock
 import globals.track_data_class as global_track_data
 import math
-import time
 
 class TrainController(QMainWindow):
     MPS_TO_MPH  = 2.23694
@@ -21,6 +19,17 @@ class TrainController(QMainWindow):
     DWELL_TIME_MS = 30000
 
     def __init__(self, train_integrated=False, line_name="Green"):
+        """
+        Initializes a Train Controller Backend instance per Train and initializes all the variables necessary.
+
+        Args:
+            train_integrated (bool) : Whether the train has been integrated with rest of system
+            line_name (string) : What line does this train belong to
+
+        Returns:
+            None
+        """
+        
         super().__init__()
 
         # Set up static memory
@@ -62,12 +71,15 @@ class TrainController(QMainWindow):
         self.started_timer2 = False
         self.stop_asap = False
         
-        #TODO: these defaults should be fixed - currently hard-coded
-        self.current_block = self.track_data.blocks[63-1]
+        # Spawn defaults
+        self.current_block = self.track_data.SPAWN_BLOCK
         self.current_section = self.current_block.id[0]
         self.previous_switch_entrance = False
         self.previous_switch_exit = True
-        self.travel_direction = self.track_data.sections[self.current_section].increasing
+        if self.line_name == "Red":
+            self.travel_direction = self.track_data.sections[self.current_section].decreasing
+        else:
+            self.travel_direction = self.track_data.sections[self.current_section].increasing
 
         # Default for power calculation
         self.integral_error = 0.0
@@ -77,6 +89,7 @@ class TrainController(QMainWindow):
         # For Dwelling
         self.stopping = False
         self.dwell = False
+        self.just_stopped_at_station = False
 
         self.global_clock = global_clock.clock
 
@@ -87,6 +100,15 @@ class TrainController(QMainWindow):
             self.timer.start(self.global_clock.train_dt)
     
     def update(self):
+        """
+        General update function called by update function of Train Model.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         # Check if auto or manual mode and calculate power
         if self.manual_mode:
             self.target_speed = self.driver_target_speed
@@ -100,7 +122,7 @@ class TrainController(QMainWindow):
         commanded_power_1 = (self.Kp * self.error) + (self.Ki * self.integral_error)
         commanded_power_2 = (self.Kp * self.error) + (self.Ki * self.integral_error)
         commanded_power_3 = (self.Kp * self.error) + (self.Ki * self.integral_error)
-        if (commanded_power_1 == commanded_power_2 and commanded_power_1 == commanded_power_3 and commanded_power_2 == commanded_power_3):
+        if (commanded_power_1 == commanded_power_2 and commanded_power_1 == commanded_power_3):
             self.unramped_commanded_power = commanded_power_1
         else:
             self.commanded_power = 0
@@ -110,9 +132,19 @@ class TrainController(QMainWindow):
         self.update_safety()
 
     def update_track_location(self):
+        """
+        Tracks where we are on the track using trains' static data.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         # Calculate distance within the block
         distance_within_block = self.position - self.block_distance_traveled
         if distance_within_block > self.current_block.length:
+            self.just_stopped_at_station = False
             self.block_distance_traveled += self.current_block.length
             if self.current_block.switch and not self.previous_switch_exit:
                 self.previous_switch_exit = True
@@ -138,6 +170,18 @@ class TrainController(QMainWindow):
             self.current_section = self.current_block.id[0]
 
     def update_auxiliary(self):
+        """
+        Updates "Auxiliary" Components of the train i.e. HVAC, Announcements, Doors, Lights
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        # Extract station information from the track data
+        station = self.track_data.stations.get(self.current_block.id, None)
+        
         # Set the HVAC Signals
         self.air_conditioning_signal = self.actual_temperature > self.desired_temperature
         self.heating_signal = self.actual_temperature < self.desired_temperature
@@ -155,7 +199,19 @@ class TrainController(QMainWindow):
         if (self.actual_speed > 0):
             self.left_doors = False
             self.right_doors = False
-
+        # Open doors if the train is stopped and not in manual mode.
+        elif self.actual_speed == 0.0 and not self.manual_mode and self.dwell:
+            if station:
+                # If a station defines which doors to open, use that information.
+                # For this example, assume 0 means left doors, 1 means right doors, and 2 means both.
+                if station.doors == 0:
+                    self.left_doors = True
+                elif station.doors == 1:
+                     self.right_doors = True
+                else:
+                    self.left_doors = True
+                    self.right_doors = True
+        
         # ----- Dwelling Logic -----
         # Detect if we're stopping at a station:
         # A common condition might be:
@@ -164,13 +220,10 @@ class TrainController(QMainWindow):
         #   - The train’s speed has reached zero.
         # print(self.current_block.id)
         # print(self.current_block.station)
-        
-        # Extract station information from the track data
-        station = self.track_data.stations.get(self.current_block.id, None)
-        
-        if (self.wayside_authority > 300 and self.previous_authority < 300 and self.current_block.station and not self.dwell):
-            print("Stopping at station...")
 
+        if (self.wayside_authority < self.current_block.length and self.current_block.station and not self.just_stopped_at_station):
+            self.just_stopped_at_station = True
+            print("Stopping at station...")
             # set the next station announcement based on station information
             if station:
                 # update the next_station field to the station's name
@@ -192,6 +245,15 @@ class TrainController(QMainWindow):
             self.service_brake = True
 
     def update_safety(self):
+        """
+        Checks Safety of trains after all calculations.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         # update speed limit
         self.speed_limit = self.current_block.speed_limit
         # Ramp up power for passenger comfort
@@ -243,7 +305,7 @@ class TrainController(QMainWindow):
                 self.ebrake_from_auth = False
                 self.emergency_brake = False
         # else:
-        #     self.service_brake = False #TODO: Ask profeta how we should handle manual mode service brakes if he wants a toggle but also wants it vital.
+        #     self.service_brake = False # Service Brake is not toggled off once activated in manual mode
 
         if (self.emergency_brake or self.service_brake):
 
@@ -251,24 +313,29 @@ class TrainController(QMainWindow):
             self.integral_error = 0
 
     def start_dwell(self):
+        """
+        Starts a dwelling phase for the train based on self.DWELL_TIME_MS in simulated time.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.dwell = True
-        # Open doors if the train is stopped and not in manual mode.
-        if self.actual_speed == 0.0 and not self.manual_mode:
-            station = self.track_data.stations.get(self.current_block.id, None)
-            if station:
-                # If a station defines which doors to open, use that information.
-                # For this example, assume 0 means left doors, 1 means right doors, and 2 means both.
-                if station.doors == 0:
-                    self.left_doors = True
-                elif station.doors == 1:
-                     self.right_doors = True
-                else:
-                    self.left_doors = True
-                    self.right_doors = True
         # Set a timer to end dwell after 30 seconds.
         QTimer.singleShot(int(self.DWELL_TIME_MS / self.global_clock.time_multiplier), self.end_dwell)
 
     def end_dwell(self):
+        """
+        Ends a dwell phase for the train after self.DWELL_TIME_MS in simulated time.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         print("Leaving station")
         # Close Doors
         self.left_doors = False
@@ -278,6 +345,15 @@ class TrainController(QMainWindow):
         self.stopping = False
 
     def process_beacon_data(self):
+        """
+        Processes Beacon Data to update where we are on the track when we go over switches.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.previous_switch_entrance = True
         self.previous_switch_exit = False
         switch = self.track_data.switches[self.current_block.id]
@@ -300,6 +376,15 @@ class TrainController(QMainWindow):
                 self.current_block = self.track_data.blocks[int(switch_block_1)-1]
 
     def set_input_data(self, testbench_data=None, train_model_data=None):
+        """
+        Sets data gotten from Train Model.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         selected_data = None
         selected = ""
 
@@ -314,18 +399,14 @@ class TrainController(QMainWindow):
             self.actual_speed = selected_data.get("actual_speed", self.actual_speed)
             self.wayside_speed = selected_data.get("wayside_speed", self.wayside_speed)
             temp_authority = selected_data.get("wayside_authority", self.wayside_authority)
-            if "wayside_authority" in selected_data:
-                #print("RECEIVED AUTH", temp_authority)
-                pass
+
             if (temp_authority != 0 or self.wayside_authority == 0):
                 self.wayside_authority = temp_authority
                 if self.stop_asap and not self.manual_mode:
                     self.emergency_brake = False
                     self.stop_asap = False
-                    self.desired_temperature = 69
             else:
                 self.stop_asap = True
-                self.desired_temperature=34
             self.position = selected_data.get("position", self.position)
 
             if self.beacon_data != selected_data.get("beacon_data", self.beacon_data):
@@ -333,8 +414,8 @@ class TrainController(QMainWindow):
             self.beacon_data = selected_data.get("beacon data", self.beacon_data)
 
             # Passengers can turn on the ebrake but not turn it off
-            passengerEbrake = selected_data.get("emergency_brake", False)
-            if passengerEbrake:
+            passenger_emergency_brake = selected_data.get("emergency_brake", False)
+            if passenger_emergency_brake:
                 self.emergency_brake = True
 
             self.actual_temperature = selected_data.get("actual_temperature", self.actual_temperature)
@@ -343,6 +424,15 @@ class TrainController(QMainWindow):
             self.engine_failure = selected_data.get("engine_failure", self.engine_failure)
 
     def get_output_data(self):
+        """
+        Sets output data to be sent to Train Model.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         data = {}
         data["commanded_power"] = self.commanded_power
         data["service_brake"] = self.service_brake

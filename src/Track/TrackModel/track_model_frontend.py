@@ -1,20 +1,26 @@
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsRectItem, QMainWindow
-from PyQt5.QtGui import QBrush, QPen, QColor, QPainter
+"""
+Author: PJ Granieri
+Date: 04-24-2025
+Description:
+"""
+
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsRectItem, QMainWindow, QGraphicsPixmapItem, QVBoxLayout, QFileDialog, QMessageBox
+from PyQt5.QtGui import QBrush, QPen, QColor, QPainter, QPixmap, QCloseEvent
 from PyQt5.QtCore import Qt, QRectF, QTimer, pyqtSignal
-from PyQt5.QtWidgets import QGraphicsPixmapItem, QVBoxLayout
-from PyQt5.QtGui import QPixmap
 from Track.TrackModel.track_model_ui import Ui_MainWindow
 from Track.TrackModel.track_model_backend import TrackModel
 from Track.TrackModel.track_model_enums import Occupancy
 from Track.TrackModel.track_model_enums import Failures
 import globals.global_clock as global_clock
+import globals.track_data_class as track_data_class
+import globals.signals as signals
 
 import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 # HARDCODED LAYOUT DATA: (block_id, x, y, width, height) GREEN LINE
-HARDCODED_LAYOUT = [
+HARDCODED_LAYOUT_GREEN = [
     ("A1", 174, 7, 13, 14),
     ("A2", 181, 16, 13, 14),
     ("A3", 188, 25, 13, 14),
@@ -169,6 +175,88 @@ HARDCODED_LAYOUT = [
     ("y152", 259, 148, 59, 8), # Originally 259, 141, 59, 21, DESPAWN block
 ]
 
+# RED LINE
+HARDCODED_LAYOUT_RED = [
+    ("A1", 231, 91, 16, 10),
+    ("A2", 244, 86, 16, 12),
+    ("A3", 256, 78, 16, 14),
+    ("B4", 264, 64, 12, 17),
+    ("B5", 270, 55, 16, 15),
+    ("B6", 282, 52, 16, 11),
+    ("C7", 299, 52, 16, 10),
+    ("C8", 313, 54, 18, 12),
+    ("C9", 326, 61, 19, 16),
+    ("D10", 325, 79, 20, 15),
+    ("D11", 308, 88, 20, 13),
+    ("D12", 286, 93, 24, 11),
+    ("E13", 269, 96, 18, 8),
+    ("E14", 251, 96, 18, 8),
+    ("E15", 233, 96, 18, 8),
+    ("F16", 227, 96, 6, 8),
+    ("F17", 220, 96, 7, 8),
+    ("F18", 213, 96, 7, 8),
+    ("F19", 206, 96, 7, 8),
+    ("F20", 199, 96, 7, 8),
+    ("G21", 185, 96, 14, 10),
+    ("G22", 170, 101, 16, 14),
+    ("G23", 166, 106, 14, 16),
+    ("H24", 166, 118, 8, 7),
+    ("H25", 166, 125, 8, 7),
+    ("H26", 166, 132, 8, 7),
+    ("H27", 166, 139, 8, 7),
+    ("H28", 166, 146, 8, 7),
+    ("H29", 166, 153, 8, 7),
+    ("H30", 166, 160, 8, 7),
+    ("H31", 166, 167, 8, 7),
+    ("H32", 166, 174, 8, 7),
+    ("H33", 166, 181, 8, 7),
+    ("H34", 166, 188, 8, 7),
+    ("H35", 166, 195, 8, 7),
+    ("H36", 166, 202, 8, 7),
+    ("H37", 166, 209, 8, 7),
+    ("H38", 166, 216, 8, 7),
+    ("H39", 166, 223, 8, 7),
+    ("H40", 166, 230, 8, 7),
+    ("H41", 166, 237, 8, 7),
+    ("H42", 166, 244, 8, 7),
+    ("H43", 166, 251, 8, 6),
+    ("H44", 166, 257, 8, 6),
+    ("H45", 165, 263, 8, 6),
+    ("I46", 156, 265, 14, 17),
+    ("I47", 145, 276, 16, 13),
+    ("I48", 130, 282, 18, 13),
+    ("J49", 119, 287, 11, 8),
+    ("J50", 108, 287, 11, 8),
+    ("J51", 97, 287, 11, 8),
+    ("J52", 86, 287, 11, 8),
+    ("J53", 75, 287, 11, 8),
+    ("J54", 64, 287, 11, 8),
+    ("K55", 45, 280, 20, 15),
+    ("K56", 30, 266, 20, 22),
+    ("K57", 22, 246, 14, 25),
+    ("L58", 23, 231, 10, 16),
+    ("L59", 27, 217, 12, 17),
+    ("L60", 34, 211, 20, 13),
+    ("M61", 49, 211, 22, 22),
+    ("M62", 64, 229, 12, 24),
+    ("M63", 68, 252, 10, 21),
+    ("N64", 69, 271, 12, 11),
+    ("N65", 75, 278, 12, 11),
+    ("N66", 82, 284, 12, 11),
+    ("O67", 149, 233, 19, 13),
+    ("P68", 145, 229, 8, 8),
+    ("P69", 145, 219, 8, 10),
+    ("P70", 145, 211, 8, 8),
+    ("Q71", 148, 201, 19, 14),
+    ("R72", 149, 163, 19, 11),
+    ("S73", 144, 158, 8, 9),
+    ("S74", 144, 149, 8, 9),
+    ("S75", 144, 141, 8, 8),
+    ("T76", 149, 134, 19, 12),
+    ("y77", 327, 86, 16, 36),  # Yard block
+]
+
+
 # Icon file paths
 ICON_PATHS = {
     "train": os.path.join(BASE_DIR, "Resources/train_icon.png"),
@@ -177,6 +265,13 @@ ICON_PATHS = {
     "traffic_light": os.path.join(BASE_DIR, "Resources/traffic_light_icon.png"),
     "railway_crossing": os.path.join(BASE_DIR, "Resources/railway_crossing_icon.png")
 }
+
+ICON_PATHS.update({
+    "failure_track": os.path.join(BASE_DIR, "Resources/track_circuit_failure_icon.png"),
+    "failure_rail": os.path.join(BASE_DIR, "Resources/broken_rail_icon.png"),
+    "failure_power": os.path.join(BASE_DIR, "Resources/power_failure_icon.png")
+})
+
 
 class TrackMapCanvas(QGraphicsView):
     blockClicked = pyqtSignal(str)
@@ -239,6 +334,7 @@ class TrackMapCanvas(QGraphicsView):
 
         self.update_block_colors()
         self.add_infrastructure_icons()
+        self.train_icons.clear()
 
     # Allows interaction with physical map
     def mousePressEvent(self, event):
@@ -263,15 +359,64 @@ class TrackMapCanvas(QGraphicsView):
     def update_block_colors(self):
         if not self.backend:
             return
+
+        # Update block colors based on occupancy and general failure presence
         for block_id, item in self.block_items.items():
             occ = self.backend.dynamic_track.occupancies.get(block_id, Occupancy.UNOCCUPIED)
             fail = self.backend.dynamic_track.failures.get(block_id, Failures.NONE)
+
             if fail != Failures.NONE:
                 item.setBrush(QBrush(QColor("yellow")))
             elif occ == Occupancy.OCCUPIED:
                 item.setBrush(QBrush(QColor("green")))
             else:
                 item.setBrush(QBrush(QColor("gray")))
+
+        # --- Failure Icon Handling ---
+
+        # Clear existing failure icons
+        for item in self.infrastructure_icons[:]:
+            try:
+                if item is None or item.scene() is None:
+                    self.infrastructure_icons.remove(item)
+                    continue
+                if item.data(0) in ("failure_track", "failure_rail", "failure_power"):
+                    self.scene.removeItem(item)
+                    self.infrastructure_icons.remove(item)
+            except RuntimeError:
+                if item in self.infrastructure_icons:
+                    self.infrastructure_icons.remove(item)
+                continue
+
+
+        # Add new failure icons
+        for block_id, failure in self.backend.dynamic_track.failures.items():
+            if failure == Failures.NONE:
+                continue
+
+            rect = self.block_items.get(block_id)
+            if not rect:
+                continue
+
+            rect_pos = rect.sceneBoundingRect()
+            x, y = rect_pos.x(), rect_pos.y()
+
+            icon_type = {
+                Failures.TRACK_CIRCUIT_FAILURE: "failure_track",
+                Failures.BROKEN_RAIL_FAILURE: "failure_rail",
+                Failures.POWER_FAILURE: "failure_power"
+            }.get(failure)
+
+            if icon_type:
+                pixmap = QPixmap(ICON_PATHS[icon_type]).scaled(14, 14, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                icon = QGraphicsPixmapItem(pixmap)
+                icon.setZValue(9)  # Ensure it overlays above blocks
+                icon.setData(0, icon_type)
+                icon.setData(1, block_id)
+                icon.setPos(x + 2, y + 2)
+                self.scene.addItem(icon)
+                self.infrastructure_icons.append(icon)
+
 
     def add_infrastructure_icons(self):
         self.infrastructure_icons.clear()
@@ -374,10 +519,13 @@ class TrackMapCanvas(QGraphicsView):
 
             self.train_icons[train_id].setPos(x, y)
 
+        # Remove all existing train icons safely if not in train_data
         for tid in list(self.train_icons.keys()):
-            if tid not in current_ids:
-                self.scene.removeItem(self.train_icons[tid])
+            icon = self.train_icons.get(tid)
+            if tid not in current_ids and icon is not None and not icon.scene() is None:
+                self.scene.removeItem(icon)
                 del self.train_icons[tid]
+
 
 ###############################################################################
 # Dynamic Infrastructure Display Class
@@ -489,7 +637,6 @@ class InfrastructureDisplay(QGraphicsView):
 
 
 
-
 ###############################################################################
 # Track Frontend
 ###############################################################################
@@ -499,18 +646,22 @@ class TrackModelFrontEnd(QMainWindow):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.setWindowTitle("Track Model")
+
+        self.track_models = {}
+        self.current_line_name = None
+
+        self.wayside_integrated = wayside_integrated
+        self.initialize_models()
+
 
         self.global_clock = global_clock.clock
         self.ui.simulation_value.setText(str(self.global_clock.time_multiplier))
 
-        # Backend Setup
-        #self.red_line
-        self.green_line = TrackModel("Green", wayside_integrated=wayside_integrated)
-        self.outside_temp = 70.0
-        self.track_heater_status = False
+        signals.communication_track.track_temperature.connect(self.update_temperature_display)
+        self.ui.track_temperature_value.editingFinished.connect(self.handle_temperature_input)
 
-        # Load Map Canvas into GraphicsView
-        # Create a canvas and embed it into the track_map_display placeholder
+        # Create canvas and infrastructure displays
         self.map_canvas = TrackMapCanvas(self.ui.track_map_display)
         self.map_canvas.blockClicked.connect(self.on_block_selected)
         layout = QVBoxLayout()
@@ -520,6 +671,10 @@ class TrackModelFrontEnd(QMainWindow):
 
         # Dynamic Infrastructure Display
         self.infrastructure_display = InfrastructureDisplay()
+        self.active_infra_type = None
+        self.active_block_id = None
+        self.infra_timer = QTimer()
+        self.infra_timer.timeout.connect(self.refresh_infrastructure_display)
         infra_layout = QVBoxLayout()
         infra_layout.setContentsMargins(0, 0, 0, 0)
         infra_layout.addWidget(self.infrastructure_display)
@@ -529,28 +684,19 @@ class TrackModelFrontEnd(QMainWindow):
         if not self.ui.group_infrasturcture.layout():
             self.ui.group_infrasturcture.setLayout(QVBoxLayout())
 
-        # Now it's safe to remove and replace
         self.ui.group_infrasturcture.layout().removeWidget(self.ui.infrastructure_view)
         self.ui.infrastructure_view.deleteLater()
         self.ui.group_infrasturcture.layout().addLayout(infra_layout)
 
+        # Set up backend based on initial selection
+        selected_text = self.ui.track_line_selected.currentText()
+        self.setup_line(selected_text)
 
+        # Hook combobox for changing track lines
+        self.ui.track_line_selected.currentTextChanged.connect(self.setup_line)
 
-        # Mapping combobox with physical blocks
-        self.block_number_to_id = {}
-        self.block_id_to_number = {}
-
-        # Populate mappings
-        for idx, (block_id, *_rest) in enumerate(HARDCODED_LAYOUT, start=1):
-            self.block_number_to_id[str(idx)] = block_id
-            self.block_id_to_number[block_id] = str(idx)
-
-        self.map_canvas.load_from_backend(self.green_line, HARDCODED_LAYOUT)
-        self.populate_block_combobox(HARDCODED_LAYOUT)
-
-
-        # Button Hooks
-        self.ui.import_track_layout_button.clicked.connect(lambda: self.map_canvas.load_from_backend(self.green_line, HARDCODED_LAYOUT))
+        # Other button hooks
+        self.ui.import_track_layout_button.clicked.connect(self.import_new_track_layout)
         self.ui.track_circuit_failure_toggle.clicked.connect(lambda: self.toggle_failure("track"))
         self.ui.broken_rail_failure_toggle.clicked.connect(lambda: self.toggle_failure("rail"))
         self.ui.power_failure_toggle.clicked.connect(lambda: self.toggle_failure("power"))
@@ -564,23 +710,101 @@ class TrackModelFrontEnd(QMainWindow):
 
         self.map_timer = QTimer(self)
         self.map_timer.timeout.connect(self.update_map)
-        self.map_timer.start(100)  # every 100 ms
+        self.map_timer.start(100)
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
-        self.timer.start(500) # doesnt need to be fast
+        self.timer.start(500)
+
+        self.block_coords = {
+            block_id: (x, y)
+            for (block_id, x, y, *_rest) in self.layout_data
+        }
+
+        # Set key icons for the map legend
+        self.ui.train_icon.setPixmap(QPixmap(ICON_PATHS["train"]).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.ui.station_icon.setPixmap(QPixmap(ICON_PATHS["station"]).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.ui.switch_icon.setPixmap(QPixmap(ICON_PATHS["switch"]).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.ui.traffic_signal_icon.setPixmap(QPixmap(ICON_PATHS["traffic_light"]).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.ui.railway_crossing_icon.setPixmap(QPixmap(ICON_PATHS["railway_crossing"]).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+        self.ui.maintenance_icon.setPixmap(QPixmap(os.path.join(BASE_DIR, "Resources/maintenance_icon.png")).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+        self.ui.track_circuit_failure_icon.setPixmap(QPixmap(ICON_PATHS["failure_track"]).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.ui.broken_rail_failure_icon.setPixmap(QPixmap(ICON_PATHS["failure_rail"]).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.ui.power_failure_icon.setPixmap(QPixmap(ICON_PATHS["failure_power"]).scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+
+
+    def setup_line(self, selected_text):
+        line_key = selected_text.strip().replace(" Line", "")
+        layout = HARDCODED_LAYOUT_GREEN if line_key == "Green" else HARDCODED_LAYOUT_RED
+
+
+
+        # Hide previous model's wayside UI if switching
+        if self.current_line_name and self.current_line_name != line_key:
+            prev_model = self.track_models[self.current_line_name]
+            if hasattr(prev_model.wayside_collection, 'frontend'):
+                prev_model.wayside_collection.frontend.closeEvent(event=QCloseEvent(),source=True)
+            if hasattr(self.current_line.train_collection, 'train_model_ui'):
+                prev_model.train_collection.train_model_ui.hide()
+            if hasattr(self.current_line.train_collection, 'train_controller_ui'):
+                prev_model.train_collection.train_controller_ui.hide()
+
+        # Activate the new model
+        line_key = selected_text.strip().replace(" Line", "")
+        self.current_line = self.track_models[line_key]
+        self.current_line_name = line_key
+
+
+        # Show current line’s wayside UI
+        if hasattr(self.current_line.wayside_collection, 'frontend'):
+            self.current_line.wayside_collection.frontend.show()
+        if hasattr(self.current_line.train_collection, 'train_model_ui'):
+            self.current_line.train_collection.train_model_ui.show()
+        if hasattr(self.current_line.train_collection, 'train_controller_ui'):
+            self.current_line.train_collection.train_controller_ui.show()
+
+        self.layout_data = layout
+        self.map_canvas.load_from_backend(self.current_line, layout)
+
+        self.block_number_to_id = {}
+        self.block_id_to_number = {}
+        for idx, (block_id, *_rest) in enumerate(layout, start=1):
+            self.block_number_to_id[str(idx)] = block_id
+            self.block_id_to_number[block_id] = str(idx)
+
+        self.populate_block_combobox(layout)
+
+
+    def initialize_models(self):
+        from globals.track_data_class import lines
+        for line_name in lines:
+            self.track_models[line_name] = TrackModel(line_name, self.wayside_integrated)
+            if line_name != "Green": # gonna default to hide any windows not for the green line
+                if hasattr(self.track_models[line_name].wayside_collection, 'frontend'):
+                    self.track_models[line_name].wayside_collection.frontend.closeEvent(event=QCloseEvent(),source=True)
+                if hasattr(self.track_models[line_name].train_collection, 'train_model_ui'):
+                    self.track_models[line_name].train_collection.train_model_ui.hide()
+                if hasattr(self.track_models[line_name].train_collection, 'train_controller_ui'):
+                    self.track_models[line_name].train_collection.train_controller_ui.hide()
 
     def update(self):
         try:
             simUpdateSpeed = int(self.ui.simulation_value.text())
         except ValueError:
             simUpdateSpeed = self.global_clock.time_multiplier
-        if simUpdateSpeed >= 1 and simUpdateSpeed <= self.global_clock.MAX_MULTIPLIER:
+        if simUpdateSpeed >= 0 and simUpdateSpeed <= self.global_clock.MAX_MULTIPLIER:
             self.global_clock.time_multiplier = simUpdateSpeed
+
+        # Update the global clock display
+        self.ui.clock_display_value.display(self.global_clock.text)
+        self.ui.clock_am_display.setText(self.global_clock.am_pm)
+
 
     # Displays the current block selected
     def on_block_selected(self, block_id):
-        print(f"[DEBUG] Looking for block_number of {block_id} -> {self.block_id_to_number.get(block_id)}")
         self.display_block_info(block_id)
         block_number = self.block_id_to_number.get(block_id)
         if block_number:
@@ -589,6 +813,12 @@ class TrackModelFrontEnd(QMainWindow):
             self.ui.block_number_selected.blockSignals(False)
         else:
             print(f"[WARNING] No block number found for block_id: {block_id}")
+
+        # Update frontend display if selected block is shown
+        block_id = self.ui.block_selected_value.text()
+        if block_id:
+            self.display_block_info(block_id)
+
 
 
         self.map_canvas.update_block_colors()
@@ -600,15 +830,17 @@ class TrackModelFrontEnd(QMainWindow):
             selected_item.setPen(QPen(Qt.red, 2))
 
     def display_block_info(self, block_id):
-        block = next((b for b in self.green_line.track_data.blocks if b.id == block_id), None)
+        block = next((b for b in self.current_line.track_data.blocks if b.id == block_id), None)
         if not block:
             print(f"Block {block_id} not found.")
             return
 
-        occ = self.green_line.dynamic_track.occupancies.get(block_id, Occupancy.UNOCCUPIED)
-        fail = self.green_line.dynamic_track.failures.get(block_id, Failures.NONE)
-        heater = self.track_heater_status
-        temp = self.outside_temp
+        occ = self.current_line.dynamic_track.occupancies.get(block_id, Occupancy.UNOCCUPIED)
+        fail = self.current_line.dynamic_track.failures.get(block_id, Failures.NONE)
+        temp = self.current_line.temperature
+        heater = self.current_line.heater_status.get(block_id, False)
+
+
 
         self.ui.block_selected_value.setText(str(block_id))
         self.ui.block_length_value.setText(f"{float(block.length):.2f}")
@@ -618,23 +850,23 @@ class TrackModelFrontEnd(QMainWindow):
         self.ui.grade_value.setText(f"{block.grade:.2f}")
 
         # Wayside Authority
-        authority = self.green_line.runtime_status.get(block_id, {}).get("wayside_authority", "N/A")
+        authority = self.current_line.runtime_status.get(block_id, {}).get("wayside_authority", "N/A")
         self.ui.wayside_authority_value.setText(f"{authority}" if authority != "N/A" else "N/A")
 
         # Wayside Speed
-        speed = self.green_line.runtime_status.get(block_id, {}).get("wayside_speed", "N/A")
+        speed = self.current_line.runtime_status.get(block_id, {}).get("wayside_speed", "N/A")
         self.ui.wayside_speed_value.setText(f"{speed}" if speed != "N/A" else "N/A")
 
         # Travel Direction from Excel (section info)
         section_id = block_id[0]
-        section = self.green_line.track_data.sections.get(section_id)
+        section = self.current_line.track_data.sections.get(section_id)
         if section:
             if section.increasing == 0:
-                direction = "Descending"
+                direction = "East"
             elif section.increasing == 1:
-                direction = "Ascending"
+                direction = "West"
             elif section.increasing == 2:
-                direction = "Bidirectional"
+                direction = "Both"
             else:
                 direction = "Unknown"
         else:
@@ -642,11 +874,11 @@ class TrackModelFrontEnd(QMainWindow):
         self.ui.direction_of_travel_value.setText(direction)
 
         # Beacon Data
-        beacon = self.green_line.track_data.beacons.get(block_id)
+        beacon = self.current_line.track_data.beacons.get(block_id)
         self.ui.beacon_value.setText(beacon.data if beacon else "None")
 
         # Railway Crossing Status
-        crossing_state = self.green_line.dynamic_track.crossing_states.get(block_id, False)
+        crossing_state = self.current_line.dynamic_track.crossing_states.get(block_id, False)
         self.ui.railway_crossing_value.setText("Active" if crossing_state else "Inactive")
 
         # Environmental Info
@@ -664,58 +896,36 @@ class TrackModelFrontEnd(QMainWindow):
 
     def toggle_failure(self, kind):
         block_id = self.ui.block_selected_value.text()
-        current = self.green_line.dynamic_track.failures.get(block_id, Failures.NONE)
+        current = self.current_line.dynamic_track.failures.get(block_id, Failures.NONE)
 
         if kind == "track":
-            new_failure = Failures.TRACK_CIRCUIT_FAILURE if current != Failures.TRACK_CIRCUIT_FAILURE else Failures.NONE
-        elif kind == "rail":
-            new_failure = Failures.BROKEN_RAIL_FAILURE if current != Failures.BROKEN_RAIL_FAILURE else Failures.NONE
+            new_val = Failures.NONE if current == Failures.TRACK_CIRCUIT_FAILURE else Failures.TRACK_CIRCUIT_FAILURE
         elif kind == "power":
-            new_failure = Failures.POWER_FAILURE if current != Failures.POWER_FAILURE else Failures.NONE
+            new_val = Failures.NONE if current == Failures.POWER_FAILURE else Failures.POWER_FAILURE
+        elif kind == "rail":
+            new_val = Failures.NONE if current == Failures.BROKEN_RAIL_FAILURE else Failures.BROKEN_RAIL_FAILURE
         else:
-            new_failure = Failures.NONE
+            print(f"[ERROR] Unknown failure kind: {kind}")
+            return
 
-        self.green_line.dynamic_track.failures[block_id] = new_failure
+        self.current_line.dynamic_track.failures[block_id] = new_val
 
-        # Update occupancy immediately
-        if new_failure in [Failures.BROKEN_RAIL_FAILURE, Failures.POWER_FAILURE]:
-            self.green_line.dynamic_track.occupancies[block_id] = Occupancy.OCCUPIED
-        elif new_failure == Failures.NONE:
-            # Only reset occupancy if no real train is on it
-            if all(train.current_block.id != block_id for train in self.green_line.trains):
-                self.green_line.dynamic_track.occupancies[block_id] = Occupancy.UNOCCUPIED
-
-        # Immediately push updated occupancies to wayside
-        if self.green_line.wayside_integrated:
-            for controller in self.green_line.wayside_collection.controllers:
-                controller.set_occupancies(self.green_line.dynamic_track.occupancies)
-
-        # Force UI refresh
         self.map_canvas.update_block_colors()
-        self.map_canvas.viewport().update()
 
 
-
-
-    # Resets failures
     def reset_failures(self):
-        for block_id in self.green_line.dynamic_track.failures:
-            self.green_line.dynamic_track.failures[block_id] = Failures.NONE
+        # Clear all failures in backend
+        for block_id in self.current_line.dynamic_track.failures:
+            self.current_line.dynamic_track.failures[block_id] = Failures.NONE
 
-        for block_id, occupancy in self.green_line.dynamic_track.occupancies.items():
-            if occupancy == Occupancy.OCCUPIED and all(train.current_block.id != block_id for train in self.green_line.trains):
-                self.green_line.dynamic_track.occupancies[block_id] = Occupancy.UNOCCUPIED
+        # Force recheck of occupancy states (especially for rail/power failures)
+        self.current_line.update_occupancies_from_failures()
 
-        # Immediately push updated occupancies to wayside
-        if self.green_line.wayside_integrated:
-            for controller in self.green_line.wayside_collection.controllers:
-                controller.set_occupancies(self.green_line.dynamic_track.occupancies)
-
+        # Refresh UI block colors
         self.map_canvas.update_block_colors()
-        self.map_canvas.viewport().update()
-        print("[Reset Failures] All block failures and block colors reset.")
 
-
+        # Update info panel if block is selected
+        selected_block_id = self.ui.block_selected_value.text
 
 
     def update_map(self):
@@ -725,7 +935,7 @@ class TrackModelFrontEnd(QMainWindow):
         # Build a dict of train_id -> current block_id directly from backend
         train_data = {
             train.train_id: train.current_block.id
-            for train in self.green_line.trains
+            for train in self.current_line.trains
             if train.current_block  # Ensure valid block
         }
 
@@ -816,10 +1026,21 @@ class TrackModelFrontEnd(QMainWindow):
         if payload:
             self.infrastructure_display.update_display(icon_type, payload)
 
+            # Set active type/block for dynamic infrastructure updates
+            if icon_type in ("station", "traffic_light", "railway_crossing", "switch"):
+                self.active_infra_type = icon_type
+                self.active_block_id = block_id
+                self.infra_timer.start(500)  # Refresh every 0.5 seconds
+            else:
+                self.active_infra_type = None
+                self.active_block_id = None
+                self.infra_timer.stop()
+
+
 
     # Sends Dynamic Infrastructure payload data
     def build_infrastructure_display_payload(self, icon_type, block_id):
-        backend = self.green_line
+        backend = self.current_line
         status = backend.runtime_status.get(block_id, {})
         payload = {"name": "", "icon_path": "", "line1": ("", ""), "line2": ("", ""), "line3": ("", ""), "line4": ("", ""), "line5": ("", "")}
 
@@ -843,8 +1064,10 @@ class TrackModelFrontEnd(QMainWindow):
                 "icon_path": os.path.join(BASE_DIR, "Resources", icon),
                 "line1": ("Ticket Sales", str(status.get("ticket_sales", "N/A"))),
                 "line2": ("Boarding", str(status.get("boarding", "N/A"))),
-                "line3": ("Departing", str(status.get("departing", "N/A")))
+                "line3": ("Departing", str(status.get("departing", "N/A"))),
+                "line4": ("Block ID", block_id)
             })
+
 
         elif icon_type == "switch":
             switch = backend.track_data.switches.get(block_id)
@@ -853,47 +1076,77 @@ class TrackModelFrontEnd(QMainWindow):
             state = backend.dynamic_track.switch_states.get(block_id, False)
             route = switch.positions[1 if state else 0]
 
-            direction_icon = "switch_icon_up.png" if route > block_id else "switch_icon_down.png"
+            try:
+                entrance_0, exit_0 = switch.positions[0].split("-")
+                entrance_1, exit_1 = switch.positions[1].split("-")
+            except ValueError:
+                print(f"[ERROR] Malformed switch position string for block {block_id}: {switch.positions}")
+                return None
+
+            # Always treat exit_0 as top and exit_1 as bottom - fixed logic
+            top_exit = exit_0
+            bottom_exit = exit_1
+
+            # Determine which route is active
+            route_exit = route.split("-")[1]
+
+            # Set icon direction based on which exit is active (not relabeling)
+            direction_icon = "switch_icon_up.png" if route_exit == top_exit else "switch_icon_down.png"
 
             payload.update({
                 "name": "Switch",
                 "icon_path": os.path.join(BASE_DIR, "Resources", direction_icon),
                 "entrance": block_id,
-                "exit_top": max(switch.positions),
-                "exit_bottom": min(switch.positions)
-
-
+                "exit_top": top_exit,
+                "exit_bottom": bottom_exit
             })
+
+
+
+            payload.update({
+                "name": "Switch",
+                "icon_path": os.path.join(BASE_DIR, "Resources", direction_icon),
+                "entrance": block_id,
+                "exit_top": top_exit,
+                "exit_bottom": bottom_exit
+            })
+
+
+
 
         elif icon_type == "railway_crossing":
             crossing_state = backend.dynamic_track.crossing_states.get(block_id, False)
             payload.update({
                 "name": "Railway Crossing",
-                "icon_path": os.path.join(BASE_DIR, "Resources", 
+                "icon_path": os.path.join(BASE_DIR, "Resources",
                     "railway_crossing_icon_active.png" if crossing_state else "railway_crossing_icon_inactive.png"),
-                "line1": ("State", "Active" if crossing_state else "Inactive")
+                "line1": ("State", "Active" if crossing_state else "Inactive"),
+                "line2": ("Block ID", block_id)
             })
+
 
         elif icon_type == "traffic_light":
             light_state = backend.dynamic_track.light_states.get(block_id, False)
             payload.update({
                 "name": "Traffic Light",
-                "icon_path": os.path.join(BASE_DIR, "Resources", 
+                "icon_path": os.path.join(BASE_DIR, "Resources",
                     "traffic_light_icon_green.png" if light_state else "traffic_light_icon_red.png"),
-                "line1": ("State", "Green" if light_state else "Red")
+                "line1": ("State", "Green" if light_state else "Red"),
+                "line2": ("Block ID", block_id)
             })
 
+
         elif icon_type == "train":
-            # You'd call this only from on_train_icon_clicked(), otherwise skip
             return None
 
         return payload
 
 
+
     # Displays train specific information
     def on_train_icon_clicked(self, train_id):
-        if 0 <= train_id < len(self.green_line.trains):
-            train = self.green_line.trains[train_id]
+        if 0 <= train_id < len(self.current_line.trains):
+            train = self.current_line.trains[train_id]
             data = train.train_model.get_output_data()
 
             block_id = train.current_block.id if train.current_block else "N/A"
@@ -917,6 +1170,92 @@ class TrackModelFrontEnd(QMainWindow):
 
         else:
             print(f"[TRAIN CLICKED] Train {train_id} not found.")
+
+    # Allow excel files to be upload for new tracks
+    def import_new_track_layout(self):
+        from openpyxl import load_workbook
+
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Import Track Layout Excel",
+            "",
+            "Excel Files (*.xlsx *.xls)"
+        )
+
+        if not file_path:
+            return
+
+        try:
+            if not file_path.endswith((".xlsx", ".xls")):
+                raise ValueError("Only Excel files (.xlsx or .xls) are allowed.")
+
+            wb = load_workbook(filename=file_path, data_only=True)
+            sheet = wb["Sheet1"]
+            line_name_cell = sheet["A2"].value.strip() if sheet["A2"].value else ""
+
+            expected_line = self.current_line_name  # "Green" or "Red"
+            if line_name_cell != expected_line:
+                raise ValueError(f"File is for line '{line_name_cell}', but you are on the '{expected_line}' line.")
+
+            # Parse new layout into global data
+            track_data_class.init(file_path)
+
+            # Replace backend for this line
+            self.track_models[expected_line] = TrackModel(expected_line, self.wayside_integrated)
+
+            # Reload UI if it's the current line
+            self.setup_line(f"{expected_line} Line")
+
+            QMessageBox.information(self, "Success", f"{expected_line} Line layout loaded successfully.")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Import Error", f"Track layout import failed:\n{e}")
+
+    # Temperature input handler
+    def handle_temperature_input(self):
+        try:
+            temp = float(self.ui.track_temperature_value.text())
+            temp = max(min(temp, 140.0), -140.0)
+            self.current_line.set_temperature(temp)
+            self.current_line.update_heaters()  # <-- force heater logic to update immediately
+            self.update_temperature_display(temp, self.current_line_name)  # <-- refresh display
+        except ValueError:
+            fallback_temp = 35.0
+            self.ui.track_temperature_value.setText(f"{fallback_temp:.1f}")
+            self.current_line.set_temperature(fallback_temp)
+            self.current_line.update_heaters()
+            self.update_temperature_display(fallback_temp, self.current_line_name)
+
+
+
+    def update_temperature_display(self, new_temp, line_name):
+        if line_name != self.current_line_name:
+            return
+
+        self.ui.track_temperature_value.setText(f"{new_temp:.1f}")
+
+        heater_on = any(
+            self.current_line.heater_status.get(block.id, False)
+            for block in self.current_line.track_data.blocks
+        )
+        self.ui.track_heater_value.setText("Enabled" if heater_on else "Disabled")
+
+        # Force UI panel update for selected block
+        selected = self.ui.block_selected_value.text()
+        if selected:
+            self.display_block_info(selected)
+
+    def refresh_infrastructure_display(self):
+        if not self.active_block_id or not self.active_infra_type:
+            self.infra_timer.stop()
+            return
+
+        payload = self.build_infrastructure_display_payload(self.active_infra_type, self.active_block_id)
+        if payload:
+            self.infrastructure_display.update_display(self.active_infra_type, payload)
+
+
+
 
 
 

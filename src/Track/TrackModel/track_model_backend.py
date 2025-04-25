@@ -1,3 +1,9 @@
+"""
+Author: PJ Granieri and Connor Marsh
+Date: 4-24-2025
+Description:
+"""
+
 import sys
 import os
 import random
@@ -17,6 +23,8 @@ from Track.WaysideController.wayside_controller_collection import WaysideControl
 import globals.global_clock  as global_clock
 import globals.signals as signals
 import globals.track_data_class as global_track_data
+
+
 
 # Ensure proper scaling on high-DPI screens
 os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
@@ -84,7 +92,7 @@ class Train:
         self.dynamic_track = track_model.dynamic_track
         self.train_id = train_id
         self.current_block = initial_block
-        self.previous_block = initial_block
+        self.previous_block = None
         self.current_section = initial_block.id[0] # just a string
         self.previous_switch_entrance = False
         self.previous_switch_exit = True
@@ -113,7 +121,6 @@ class Train:
 
             # Move to new block
             if self.current_block.switch and not self.previous_switch_exit:
-                # print("SWITCH")
                 self.previous_switch_entrance = True
                 self.previous_switch_exit = False
                 switch = self.track_data.switches[self.current_block.id]
@@ -121,7 +128,7 @@ class Train:
                 nextBlock = switch.positions[1 if switchState else 0].split("-")[1]
                 self.current_block = self.track_data.blocks[int(nextBlock) - 1]
             elif self.current_block.switch_exit and not self.previous_switch_entrance:
-                # print("SWITCH")
+                
                 self.previous_switch_exit = True
                 self.previous_switch_entrance = False
                 switch = self.track_data.switches[self.track_data.switch_exits[self.current_block.id].switch_entrance]
@@ -186,46 +193,36 @@ class Train:
                 train_output = self.train_model.get_output_data()
                 actual_speed = train_output.get("actual_speed", 1.0)
 
-                if actual_speed == 0.0:
-                    station_id = self.current_block.id
-                    ticket_sales = self.track_model.station_ticket_sales.get(station_id, 0)
+                station_id = self.current_block.id
+                ticket_sales = self.track_model.station_ticket_sales.get(station_id, 0)
 
-                    MAX_PASSENGERS = 148
-                    MAX_BOARDING = random.randint(10, 25)  # adjustable range - change as needed
+                MAX_PASSENGERS = 148
+                MAX_BOARDING = random.randint(10, 25)
 
-                    # Ensure space is freed up if near or at capacity
-                    min_required_to_leave = max(0, (self.passenger_count + MAX_BOARDING) - MAX_PASSENGERS)
-                    max_possible_to_leave = min(25, self.passenger_count)
+                min_required_to_leave = max(0, (self.passenger_count + MAX_BOARDING) - MAX_PASSENGERS)
+                max_possible_to_leave = min(25, self.passenger_count)
 
-                    passengers_leaving = random.randint(min_required_to_leave, max_possible_to_leave) if max_possible_to_leave >= min_required_to_leave else self.passenger_count
-                    self.passenger_count -= passengers_leaving
+                passengers_leaving = random.randint(min_required_to_leave, max_possible_to_leave) if max_possible_to_leave >= min_required_to_leave else self.passenger_count
+                self.passenger_count -= passengers_leaving
 
-                    available_space = MAX_PASSENGERS - self.passenger_count
-                    passengers_boarding = min(MAX_BOARDING, available_space)
+                available_space = MAX_PASSENGERS - self.passenger_count
+                passengers_boarding = min(MAX_BOARDING, available_space)
 
-                    self.passenger_count += passengers_boarding
+                self.passenger_count += passengers_boarding
 
-                    print(f"[Station {station_id}] {passengers_leaving} passengers deboarded.")
-                    print(f"[Station {station_id}] {passengers_boarding} passengers boarded.")
-                    print(f"[Train {self.train_id}] now has {self.passenger_count} passengers.")
+                print(f"[Station {station_id}] {passengers_leaving} passengers deboarded.")
+                print(f"[Station {station_id}] {passengers_boarding} passengers boarded.")
+                print(f"[Train {self.train_id}] now has {self.passenger_count} passengers.")
 
-                    # Update station's total ticket sales
-                    self.track_model.station_ticket_sales[station_id] += passengers_boarding
+                self.track_model.station_ticket_sales[station_id] += passengers_boarding
 
-                    # Send to Train Model
-                    self.train_model.set_input_data(track_data={
-                        "boarding_passengers": passengers_boarding,
-                        "departing_passengers": passengers_leaving
-                    })
+                signals.communication_track.track_tickets.emit(self.track_model.station_ticket_sales[station_id], self.track_model.name)
 
-                    # Emit ticket sales to CTC via signal
-                    signals.communication.track_tickets.emit(self.track_model.station_ticket_sales[station_id])
+                self.track_model.runtime_status.setdefault(station_id, {})
+                self.track_model.runtime_status[station_id]["ticket_sales"] = self.track_model.station_ticket_sales[station_id]
+                self.track_model.runtime_status[station_id]["boarding"] = passengers_boarding
+                self.track_model.runtime_status[station_id]["departing"] = passengers_leaving
 
-                    # Log for frontend runtime display
-                    self.track_model.runtime_status.setdefault(station_id, {})
-                    self.track_model.runtime_status[station_id]["ticket_sales"] = self.track_model.station_ticket_sales[station_id]
-                    self.track_model.runtime_status[station_id]["boarding"] = passengers_boarding
-                    self.track_model.runtime_status[station_id]["departing"] = passengers_leaving
 
 
 
@@ -234,7 +231,16 @@ class Train:
                 # print("New section")
                 increasing = self.track_data.sections[self.current_block.id[0]].increasing
                 if increasing == 2:
-                    self.travel_direction = 1 if self.current_block.id[0] > self.current_section else 0
+                    # Hard code red line directions cause they dont follow the rules
+                    if self.track_data.line_name == "Red":
+                        if self.current_block.id == "A1":
+                            self.travel_direction = 1
+                        elif self.previous_block == "O67" or self.previous_block == "R72":
+                            self.travel_direction = 1
+                        else:
+                            self.travel_direction = 1 if self.current_block.id[0] > self.current_section else 0
+                    else:
+                        self.travel_direction = 1 if self.current_block.id[0] > self.current_section else 0
                 else:
                     self.travel_direction = increasing
                 self.current_section = self.current_block.id[0]
@@ -273,7 +279,7 @@ class TrackModel(QtWidgets.QMainWindow):
 
         self.trains = []  # holds Train instances
         self.train_counter = 0
-        self.train_collection = TrainCollection()
+        self.train_collection = TrainCollection(line_name=self.name)
         
 
         # Populate dynamic track
@@ -305,12 +311,21 @@ class TrackModel(QtWidgets.QMainWindow):
         self.timer.timeout.connect(self.update)
         self.timer.start(self.global_clock.track_dt)
 
+        self.temperature = 70.0
+        self.heater_status = {}
+
+        self.heater_timer = QtCore.QTimer(self)
+        self.heater_timer.timeout.connect(self.heater_step_up)
+        self.heater_timer.start(2000)  # every 2 seconds
+
+
         
 
     def update(self):
         self.update_trains()
+        self.update_occupancies_from_failures()
 
-    # Update occupancies based on failure state
+        # Update occupancies based on failure state
         for block_id, failure in self.dynamic_track.failures.items():
             if failure in [Failures.POWER_FAILURE, Failures.BROKEN_RAIL_FAILURE]:
                 self.dynamic_track.occupancies[block_id] = Occupancy.OCCUPIED
@@ -319,8 +334,6 @@ class TrackModel(QtWidgets.QMainWindow):
                 train_present = any(train.current_block.id == block_id for train in self.trains)
                 if not train_present:
                     self.dynamic_track.occupancies[block_id] = Occupancy.UNOCCUPIED
-
-
         if self.wayside_integrated:
             for controller in self.wayside_collection.controllers: # have to iterate through each controller now due to what profeta said
                 controller.set_occupancies(self.dynamic_track.occupancies) # use the dictionary for each controller, but the controller only looks at blocks in its territory
@@ -329,6 +342,12 @@ class TrackModel(QtWidgets.QMainWindow):
     def update_trains(self):
         for train in self.trains:
             train.update()
+            if train.train_model:
+                train.train_model.set_input_data(track_data={
+                    "passenger_count": train.passenger_count,
+                    "grade": train.current_block.grade if train.current_block else 0.0
+                })
+
 
     # Parsing data sent from main track file
     def parse_track_layout_data(self, filepath):
@@ -373,25 +392,33 @@ class TrackModel(QtWidgets.QMainWindow):
             send_to_train = {}
 
             # Gather new fresh speed and authority values
-            if train.previous_block.id in wayside_speeds:
-                send_to_train["wayside_speed"] = wayside_speeds[train.previous_block.id]
+            if train.previous_block:
+                if train.previous_block.id in wayside_speeds:
+                    send_to_train["wayside_speed"] = wayside_speeds[train.previous_block.id]
             if train.current_block.id in wayside_speeds:
                 send_to_train["wayside_speed"] = wayside_speeds[train.current_block.id]
 
-            if train.previous_block.id in wayside_authorities:
-                if wayside_authorities[train.previous_block.id] not in (0, None):
-                    send_to_train["wayside_authority"] = wayside_authorities[train.previous_block.id] + train.previous_block.length
+            if train.previous_block:
+                if train.previous_block.id in wayside_authorities:
+                    if wayside_authorities[train.previous_block.id] not in (0, None):
+                        send_to_train["wayside_authority"] = wayside_authorities[train.previous_block.id] + train.previous_block.length
             if train.current_block.id in wayside_authorities:
                 send_to_train["wayside_authority"] = wayside_authorities[train.current_block.id]
 
             # Check if current or previous block has Track Circuit Failure
-            in_failure = (
-                self.dynamic_track.failures.get(train.previous_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE or
-                self.dynamic_track.failures.get(train.current_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE
-            )
+            if train.previous_block:
+                in_failure = (
+                    self.dynamic_track.failures.get(train.previous_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE or
+                    self.dynamic_track.failures.get(train.current_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE
+                )
+            else:
+                in_failure = (
+                    self.dynamic_track.failures.get(train.current_block.id, Failures.NONE) == Failures.TRACK_CIRCUIT_FAILURE
+                )
 
             if in_failure:
                 # If we're still in failure, store the latest command as pending
+                print(f"[Comms] Blocking wayside comm for train {train.train_id} due to TRACK failure on {train.current_block.id}")
                 if send_to_train:
                     train.pending_command = send_to_train  # Overwrite any previous pending
                 continue  # Don't send anything while in failure
@@ -492,6 +519,44 @@ class TrackModel(QtWidgets.QMainWindow):
                 # Only clear if no train is actually occupying the block
                 if all(train.current_block.id != block_id for train in self.trains):
                     self.dynamic_track.occupancies[block_id] = Occupancy.UNOCCUPIED
+
+
+    # Set temperature from frontend
+    def set_temperature(self, temp):
+        self.temperature = temp
+        self.update_heaters()
+
+    def update_heaters(self):
+        for block in self.track_data.blocks:
+            self.heater_status[block.id] = (
+                self.temperature <= 36.0
+            )
+    
+    # Only increase temp if heater is on
+    def heater_step_up(self):
+        if any(self.heater_status.values()) and self.temperature <= 36.0:
+            self.temperature += 0.5
+            self.update_heaters()
+            signals.communication_track.track_temperature.emit(self.temperature, self.name)
+
+    # Get updated station data for a block
+    def get_station_data(self, block_id):
+        return self.runtime_status.get(block_id, {
+            "ticket_sales": 0,
+            "boarding": 0,
+            "departing": 0
+        })
+
+    # Get current light state for a block
+    def get_light_state(self, block_id):
+        return "GREEN" if self.dynamic_track.light_states.get(block_id, False) else "RED"
+
+    # Get current railway crossing state for a block
+    def get_crossing_state(self, block_id):
+        return "ACTIVE" if self.dynamic_track.crossing_states.get(block_id, False) else "INACTIVE"
+
+
+
 
     
     # Ensure the train is travelling the proper direction (ascending or descending)

@@ -29,6 +29,7 @@ class Block: # contains unchanging information about blocks
     crossing: bool = False # has a crossing
     beacon: bool = False # has a beacon
     exit_block: bool = False # is an exit block of the territory
+    traversal_time: float=0 # the time to cross a block distance / speed limit 
     
 @dataclass(frozen=True)
 class Station:
@@ -76,7 +77,7 @@ class TrackData():
             self.populate_blocks(dictionary,dictionary2)
             self.overlaps = [] # this is a list that counts the number of overlaps, overlap count between 1-2 is in index 0, 2-3 in index 2 etc
             self.count_territory()  
-        
+    
 
     def populate_blocks(self, dictionary, dictionary2):
         """
@@ -119,11 +120,13 @@ class TrackData():
                 speed_limit=dictionary["Speed Limit (MPH)"][row],
                 territory=territories,
                 switch_exit=pd.notna(dictionary["Switch Exit"][row]),
-                exit_block=dictionary["Exit Blocks"][row] == 1
+                exit_block=dictionary["Exit Blocks"][row] == 1,
+                traversal_time=dictionary["Traversal Time"][row]
+
             )
 
             self.blocks.append(block)
-
+           
             # Create and store objects that will go into the corresponding dictionaries (devices like switches and lights only need to know their first territory)
             if isinstance(territories, tuple):
                 switch_obj = self.parse_switch(dictionary["Switch"][row], territories[0])
@@ -239,11 +242,17 @@ class TrackData():
         self.territory_counts = dict(temp_territory_counts)
         self.device_counts = {k: dict(v) for k, v in temp_device_counts.items()} 
         
-def init():
-    global lines 
-    lines = {}
-    line = TrackData("src/Track/TrackModel/GreenLine_Layout.xlsx")
-    lines[line.line_name] = line
 
-if __name__ == "__main__":
-    init()
+def init(filepath=None):
+    global lines
+    lines = {}
+
+    if filepath:
+        new_line = TrackData(filepath)
+        lines[new_line.line_name] = new_line
+    else:
+        # Default initialization
+        line = TrackData("src/Track/TrackModel/GreenLine_Layout.xlsx")
+        lines[line.line_name] = line
+#if __name__ == "__main__":
+#    init()

@@ -50,8 +50,9 @@ class WaysideController(QObject):
         self.clamps = [False] * block_count # a list of blocks that should have their authority clamped by the plc
         self.program = None # python file uploaded by programmer
 
-        Signals.communication.ctc_suggested.connect(self.handle_suggested_values) # connect signals
-        Signals.communication.ctc_exit_blocks.connect(self.handle_exit_blocks)
+        Signals.communication_ctc[self.collection.LINE_NAME].ctc_suggested.connect(self.handle_suggested_values) # connect signals
+        Signals.communication_ctc[self.collection.LINE_NAME].ctc_exit_blocks.connect(self.handle_exit_blocks)
+
         self.global_clock = global_clock.clock
         self.timer = QTimer() # initialize update timer
         self.timer.setInterval(self.global_clock.wayside_dt)
@@ -61,6 +62,9 @@ class WaysideController(QObject):
 
     @pyqtSlot()
     def update(self):
+        """
+        The update function of the wayside controller. 
+        """
         if self.program != None:
             prev_clamps = self.clamps[:] # only need previous clamps temporarily
             self.previous_occupancies = self.block_occupancies[:] # get what the previous occupancies are
@@ -79,12 +83,13 @@ class WaysideController(QObject):
                     if clamp and self.block_occupancies[i]:
                         self.to_send_authorities[blocks[i].id] = 0
                         self.commanded_authorities[i] = 0 # set ui
-                    elif not clamp and prev_clamps[i] and self.block_occupancies[i]:
+                    if not clamp and prev_clamps[i] and self.block_occupancies[i]:
+                        self.suggested_authorities[i] = None # reset authorities so ctc can send new ones or the train can revert back to what it was
                         self.commanded_authorities[i] = None
                         self.to_send_authorities[blocks[i].id] = None
                                         
-                Signals.communication.wayside_block_occupancies.emit(self.to_send_occupancies)
-                Signals.communication.wayside_plc_outputs.emit(blocks,self.switch_positions,self.light_signals,self.crossing_signals)
+                Signals.communication_track.wayside_block_occupancies.emit(self.to_send_occupancies, self.collection.LINE_NAME)
+                Signals.communication_track.wayside_plc_outputs.emit(blocks,self.switch_positions,self.light_signals,self.crossing_signals, self.collection.LINE_NAME)
 
                 self.collection.track_model.update_from_plc_outputs(sorted_blocks=blocks,
                                                                     switch_states=self.switch_positions,light_states=self.light_signals,
@@ -102,7 +107,7 @@ class WaysideController(QObject):
 
         :param occupancies: A dictionary of block occupancies with keyed with the block id
         """
-        if self.collection.track_model != None:
+        if self.collection.track_model != None and not self.maintenance_mode:
             for i, block in enumerate(self.collection.blocks[self.index]): # index the blocks only in the range of this controller
                 occupancy = occupancies.get(block.id, Occupancy.UNOCCUPIED) # read from the dictionary
 
@@ -117,6 +122,11 @@ class WaysideController(QObject):
 
     @pyqtSlot(dict, dict)
     def handle_suggested_values(self, speeds, authorities):
+        """
+        Receives suggested values from the ctc and sets commanded values appropriately
+        :param speeds: A dictionary of speeds corresponding to a block that has a new suggested speed
+        :param authorities: A dictionary of authorities corresponding to a block that has a new suggested authority
+        """
         blocks = self.collection.blocks[self.index] # specifies to the list which slice of the track this controller is looking at
         
         # need to enumerate so that I can tell if the current block is occupied or not

@@ -48,18 +48,19 @@ class CtcFrontEnd(QMainWindow):
         self.ctc_ui.sub_dispatch_train_table.cellClicked.connect(self.on_dispatch_row_clicked)
         self.ctc_ui.sub_dispatch_station_select_radio.toggled.connect(self.destination_radio_selected)
         self.ctc_ui.sub_dispatch_block_select_radio.toggled.connect(self.destination_radio_selected)
-        #self.ctc_ui.main_line_slider.sliderReleased.connect(self.toggle_active_line) #Not implemented yet
+        self.ctc_ui.main_line_slider.valueChanged.connect(self.toggle_active_line)
         self.ctc_ui.main_switch_knob.valueChanged.connect(self.set_switch_state)
-        #self.ctc_ui.sub_confirm_override_button.clicked.connect(self.update_suggested)
+        self.ctc_ui.sub_confirm_override_button.clicked.connect(self.update_suggested_values)
         self.ctc_ui.sub_activate_maintenance_button.clicked.connect(self.start_maintenance)
         self.ctc_ui.sub_end_maintenance_button.clicked.connect(self.end_maintenance)
         self.ctc_ui.sub_dispatch_confirm_button.clicked.connect(self.dispatch_pressed)
-        #self.toggle_mode() #toggles manual mode, NEEDS CHANGED 
+        self.ctc_ui.sub_active_trains_table.cellClicked.connect(self.update_train_mode_radio)
+        self.ctc_ui.sub_select_manual_radio.clicked.connect(self.toggle_train_mode)
 
         self.destination_radio_group = QButtonGroup(self)
         self.destination_radio_group.addButton(self.ctc_ui.sub_dispatch_station_select_radio)
         self.destination_radio_group.addButton(self.ctc_ui.sub_dispatch_block_select_radio)
-        self.destination_radio_group.setExclusive(True)  # default behavior
+        self.destination_radio_group.setExclusive(True) 
 
         self.toggle_maintenance_mode()
         self.initialize_map()
@@ -83,6 +84,19 @@ class CtcFrontEnd(QMainWindow):
         self.update_dispatch_button()
         self.update_train_select_combo()
 
+    def toggle_active_line(self):
+        if self.ctc_ui.main_line_slider.value() == 0:
+            self.backend.active_line = self.backend.lines["Green"]
+            #print("Active Line: ", self.backend.active_line.name)
+            self.initialize_map()
+            self.initialize_block_combo()
+            self.initialize_station_combo()
+        elif self.ctc_ui.main_line_slider.value() == 1:
+            self.backend.active_line = self.backend.lines["Red"]
+            #print("Active Line: ", self.backend.active_line.name)
+            self.initialize_map()
+            self.initialize_block_combo()
+            self.initialize_station_combo()
 
     #Stacked Widget Navigation
     def switch_to_dispatch_page(self):
@@ -160,7 +174,7 @@ class CtcFrontEnd(QMainWindow):
         #Restore exclusivity
         self.destination_radio_group.setExclusive(True)
         
-        #self.selected_route_row = row #SETUP LATER TO SELECT ROUTE
+        
 
     def destination_radio_selected(self):
         destination_radio_selected = self.ctc_ui.sub_dispatch_station_select_radio.isChecked() or self.ctc_ui.sub_dispatch_block_select_radio.isChecked()
@@ -185,11 +199,12 @@ class CtcFrontEnd(QMainWindow):
         if self.backend.active_line.name == "Green":
             #initialize block combo box with block ids - Green 1-150
             self.ctc_ui.sub_block_number_combo.clear()
-            for i in range(1, 151):
+            for i in range(1, 153):
                 self.ctc_ui.sub_block_number_combo.addItem(str(i))
         elif self.backend.active_line.name == "Red":
             #initialize block combo box with block ids - Red 1-76
-            for i in range(1, 77):
+            self.ctc_ui.sub_block_number_combo.clear()
+            for i in range(1, 78):
                 self.ctc_ui.sub_block_number_combo.addItem(str(i))
         else:
             QTimer.singleShot(100, self.initialize_block_combo) # If neither track active, retry in 100ms
@@ -210,41 +225,38 @@ class CtcFrontEnd(QMainWindow):
                 self.ctc_ui.sub_select_active_train_combo.addItem(train_id)
 
 
-    def update_active_train_table(self):
-        active_trains = self.backend.active_line.current_trains
-
-        self.ctc_ui.main_active_trains_table.setRowCount(len(active_trains)) 
+    def fill_active_trains_table(self, table_widget, active_trains, blocks):
+        table_widget.setRowCount(len(active_trains)) 
 
         for row, train in enumerate(active_trains):
             train_id = str(train.train_id)
             current_block = str(train.current_block)
-            remaining_stops = str(len(train.route) - train.route_index) 
+            remaining_stops = str(len(train.route) - train.route_index)
             if int(remaining_stops) > 0:
-                upcoming_stop = str(self.backend.active_line.blocks[train.route[train.route_index]-1].id) # Get the next block ID from the route
+                upcoming_stop = str(blocks[train.route[train.route_index] - 1].id)
             else:
                 upcoming_stop = "None"
-                
+
             current_mode = str(train.mode)
 
-            id_item = QTableWidgetItem(train_id)
-            id_item.setTextAlignment(Qt.AlignCenter)
-            self.ctc_ui.main_active_trains_table.setItem(row, 0, id_item)
+            items = [
+                QTableWidgetItem(train_id),
+                QTableWidgetItem(current_block),
+                QTableWidgetItem(upcoming_stop),
+                QTableWidgetItem(remaining_stops),
+                QTableWidgetItem(current_mode),
+            ]
 
-            current_block_item = QTableWidgetItem(current_block)
-            current_block_item.setTextAlignment(Qt.AlignCenter)
-            self.ctc_ui.main_active_trains_table.setItem(row, 1, current_block_item)
+            for col, item in enumerate(items):
+                item.setTextAlignment(Qt.AlignCenter)
+                table_widget.setItem(row, col, item)
 
-            upcoming_stop_item = QTableWidgetItem(upcoming_stop)
-            upcoming_stop_item.setTextAlignment(Qt.AlignCenter)
-            self.ctc_ui.main_active_trains_table.setItem(row, 2, upcoming_stop_item)
+    def update_active_train_table(self):
+        active_trains = self.backend.active_line.current_trains
+        blocks = self.backend.active_line.blocks
 
-            remaining_stops_item = QTableWidgetItem(remaining_stops)
-            remaining_stops_item.setTextAlignment(Qt.AlignCenter)
-            self.ctc_ui.main_active_trains_table.setItem(row, 3, remaining_stops_item)
-
-            mode_item = QTableWidgetItem(current_mode)
-            mode_item.setTextAlignment(Qt.AlignCenter)
-            self.ctc_ui.main_active_trains_table.setItem(row, 4, mode_item)            
+        self.fill_active_trains_table(self.ctc_ui.main_active_trains_table, active_trains, blocks)
+        self.fill_active_trains_table(self.ctc_ui.sub_active_trains_table, active_trains, blocks)            
 
     #Map Initialization
     def initialize_map(self):
@@ -354,10 +366,51 @@ class CtcFrontEnd(QMainWindow):
                 crossing_item.setBackground(QColor("green") if not block.crossing_state else QColor("orange"))
                 self.ctc_ui.main_map_table.setItem(row_index, 6, crossing_item)
                 crossing_index += 1
+    
+    def update_train_mode_radio(self):
+        selected_item = self.ctc_ui.sub_active_trains_table.selectedItems()
+        if selected_item:
+            train = self.backend.active_line.current_trains[selected_item[0].row()]
+            if train.mode == "manual":
+                self.ctc_ui.sub_select_manual_radio.setChecked(True)
+            elif train.mode == "auto":
+                self.ctc_ui.sub_select_manual_radio.setChecked(False)
+            else:
+                pass
+
+    def toggle_train_mode(self):
+        if self.ctc_ui.sub_select_manual_radio.isChecked():
+            selected_item = self.ctc_ui.sub_active_trains_table.selectedItems()
+            if selected_item:
+                train = self.backend.active_line.current_trains[selected_item[0].row()]
+                train.mode = "manual"
+                self.update_train_mode_radio()
+        else:
+            selected_item = self.ctc_ui.sub_active_trains_table.selectedItems()
+            if selected_item:
+                train = self.backend.active_line.current_trains[selected_item[0].row()]
+                train.mode = "automatic"
+                self.update_train_mode_radio()
+
+    def update_suggested_values(self):
+        selected_items = self.ctc_ui.sub_active_trains_table.selectedItems()
+        if selected_items:
+            selected_item = selected_items[0]
+            # Do something with selected_item
+        else:
+            selected_item = None
+
+        
+        if selected_item is not None:
+            trainIndex = selected_item.row()
+            suggested_speed = self.ctc_ui.sub_enter_speed_override.value()
+            suggested_auth = self.ctc_ui.sub_enter_authority_override.value()
+            self.backend.set_suggested_values(trainIndex, suggested_speed, suggested_auth)
+
             
     def update_throughput(self):
         #updates throughput label on UI
-        self.ctc_ui.main_throughput_label.setText(str(round(self.backend.throughput,2)))
+        self.ctc_ui.main_throughput_label.setText(str(round(self.backend.active_line.throughput,2)))
 
     def update_dispatch_button(self):
         # Updates button state based off selected buttons
@@ -370,9 +423,16 @@ class CtcFrontEnd(QMainWindow):
 
     def dispatch_pressed(self):
         # Check if creating new train or rerouting existing train
+        ETA_time = "0:0"
         if self.ctc_ui.sub_dispatch_overide_new_radio.isChecked():
             createNewTrain = True
             train_num = None
+            dispatch_hr = int(self.ctc_ui.sub_dispatch_ETA_hr.value())
+            if dispatch_hr > 12: # convert to 12 hour format
+                dispatch_hr = dispatch_hr - 12
+            dispatch_hr = str(dispatch_hr)
+            dispatch_min = str(self.ctc_ui.sub_dispatch_ETA_min.value())
+            ETA_time = dispatch_hr + ":" + dispatch_min
         elif self.ctc_ui.sub_dispatch_overide_active_radio.isChecked():
             #existing train needs to be rerouted | not implemented yet
             createNewTrain = False
@@ -385,21 +445,24 @@ class CtcFrontEnd(QMainWindow):
         if self.ctc_ui.sub_dispatch_station_select_radio.isChecked():
             #dispatch to station
             destination_station = self.ctc_ui.sub_station_combo.currentText() #CHANGED FROM INDEX
-            self.backend.dispatch_handler(destination_station, 'station', new_train=createNewTrain, selected_train = train_num)
+            self.backend.dispatch_handler(destination_station, 'station', new_train=createNewTrain, selected_train = train_num, dispatch_time = ETA_time)
         elif self.ctc_ui.sub_dispatch_block_select_radio.isChecked():
             #dispatch to block
             destination_block = self.ctc_ui.sub_block_number_combo.currentText()
-            self.backend.dispatch_handler(destination_block, 'block', new_train=createNewTrain, selected_train = train_num)
+            self.backend.dispatch_handler(destination_block, 'block', new_train=createNewTrain, selected_train = train_num, dispatch_time = ETA_time)
         elif self.ctc_ui.sub_dispatch_train_table.selectedItems():
             #dispatch to selected route
             selected_item = self.ctc_ui.sub_dispatch_train_table.selectedItems()[0]
             row = selected_item.row()
+            print(row)
             route_name_item = self.ctc_ui.sub_dispatch_train_table.item(row, 1) 
+            print(route_name_item)
             
             if route_name_item:
                 route_name = route_name_item.text()
+                print(route_name)
                 #print("Dispatching to route:", route_name)
-                self.backend.dispatch_handler(route_name, 'route', new_train=createNewTrain, selected_train = train_num) 
+                self.backend.dispatch_handler(route_name, 'route', new_train=createNewTrain, selected_train = train_num, dispatch_time = ETA_time) 
 
     #maintenance page - Change to send data to backend - UPDATE NEEDED, TRACK CLASS CHANGED
     def start_maintenance(self):
@@ -409,6 +472,8 @@ class CtcFrontEnd(QMainWindow):
             block_info.maintenance = 1
             self.update_maintenance(block_info)
             self.backend.send_block_maintenance(self.selected_row-1, 1) #Calls backend to send data to wayside
+            # Tell trains to update
+            self.backend.active_line.occupancy_change = True
             #self.test_bench.print_maintenance(block_info['block_id'], 1)
         
     def end_maintenance(self):
@@ -418,6 +483,8 @@ class CtcFrontEnd(QMainWindow):
             block_info.maintenance = 0
             self.update_maintenance(block_info)
             self.backend.send_block_maintenance(self.selected_row-1, 0) #Calls backend to send data to wayside
+            # Tell trains to update
+            self.backend.active_line.occupancy_change = True
             #self.test_bench.print_maintenance(block_info['block_id'], 0)
     
     def update_maintenance(self, block_info):

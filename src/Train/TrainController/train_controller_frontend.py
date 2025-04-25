@@ -1,7 +1,7 @@
 """
 Author: Aragya Goyal and Connor Marsh
-Date: 03-20-2025
-Description:
+Date: 2025-04-24
+Description: This file implements the frontend of the Train Controller. The Train Controller frontend only interacts with the Train Controller backend to update the UI to be displayed to the Train Driver. In manual mode however, the frontend writes to some of the values of the backend such as desired speed and new control constants.
 """
 import sys
 import os
@@ -16,6 +16,16 @@ os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
 
 class TrainControllerFrontend(QMainWindow):
     def __init__(self, collection, train_integrated=True):
+        """
+        Initializes the Train Controller Frontend UI.
+
+        Args:
+            collection (class) : The train collection class to reference for multiple trains.  
+            train_integrated (bool) : Whether the train has been integrated with the rest of the system
+
+        Returns:
+            None
+        """
         super().__init__()
         self.train_integrated = train_integrated
         self.collection = collection
@@ -58,8 +68,15 @@ class TrainControllerFrontend(QMainWindow):
         self.timer.start(100)
 
     def get_ui_state(self, train):
-        """Return the UI state dictionary for the given train, initializing with defaults if needed.
+        """
+        Return the UI state dictionary for the given train, initializing with defaults if needed.
         Tracks door button states, cabin temperature, and control mode (auto/manual).
+        
+        Args:
+            train (object) : Current Train Object to display info about.
+
+        Returns:
+            None
         """
         key = id(train)
         if key not in self.ui_states:
@@ -77,8 +94,15 @@ class TrainControllerFrontend(QMainWindow):
         return self.ui_states[key]
 
     def save_current_ui_state(self):
-        """Save current UI state to the state dictionary,
+        """
+        Save current UI state to the state dictionary,
         then propagate door states to the backend.
+        
+        Args:
+            None
+
+        Returns:
+            None
         """
         if self.current_train is not None:
             state = self.get_ui_state(self.current_train)
@@ -95,8 +119,14 @@ class TrainControllerFrontend(QMainWindow):
             self.current_train.door_right = state['door_right']
 
     def load_ui_state(self, train):
-        """Load the UI state for the given train;
+        """
+        Load the UI state for the given train;
         update UI controls and propagate door states to backend.
+        Args:
+            train (object) : Current Train Object to display info about.
+
+        Returns:
+            None
         """
         state = self.get_ui_state(train)
         self.ui.door_left_button.setChecked(state['door_left'])
@@ -114,6 +144,16 @@ class TrainControllerFrontend(QMainWindow):
         train.door_right = state['door_right']
 
     def on_train_selection_changed(self, index):
+        """
+        Switching between Train UIs when ID changes
+        
+        Args:
+            index (int) : Train ID for the train to be displayed.
+
+        Returns:
+            None
+        """
+        
         if len(self.collection.train_list)==0:
             return
         """Handle switching trains from the dropdown."""
@@ -125,6 +165,16 @@ class TrainControllerFrontend(QMainWindow):
         self.load_ui_state(self.current_train)
 
     def update_train_dropdown(self):
+        """
+        Updating the train_dropdown for how many trains there are.
+        
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        
         if self.collection:
             self.ui.train_id_dropdown.clear()
             self.ui.train_id_dropdown.addItems([str(i+1) for i in range(len(self.collection.train_list))])
@@ -140,6 +190,15 @@ class TrainControllerFrontend(QMainWindow):
                     self.load_ui_state(self.current_train)
 
     def update(self):
+        """
+        General update function to refresh the UI with most recent values.
+        
+        Args:
+            None
+
+        Returns:
+            None
+        """
         # Set the display values
         if len(self.collection.train_list)>0:
             self.current_train = self.collection.train_list[int(self.ui.train_id_dropdown.currentText())-1]
@@ -213,6 +272,9 @@ class TrainControllerFrontend(QMainWindow):
         # Set next station and on-air light
         self.display_next_station()
 
+    """
+        The rest of these functions below are helper functions for the above functions.
+    """
     def display_next_station(self):
         self.ui.next_station_label.setText(self.current_train.next_station)
 

@@ -35,7 +35,7 @@ class WaysideControllerFrontend(QMainWindow):
         self.current_controller_index = 0 # Tells the ui which backend controller from the collection to reference
         self.ui = WaysideUi() # create a ui from the exported file
         self.ui.setupUi(self) 
-        self.setWindowTitle("Wayside Controller Module")
+        self.setWindowTitle("Wayside Controller")
         
 
         # Initialize any Ui elements that are dynamic
@@ -43,6 +43,7 @@ class WaysideControllerFrontend(QMainWindow):
         self.init_combo_box()
         
         self.controller_changed = True
+        self.show_oneshot = False
          # Create a timer
         self.timer = QTimer(self)
         self.timer.setInterval(300) # Below 50ms and weird stuff happens since i prob wrote my update weird
@@ -58,11 +59,9 @@ class WaysideControllerFrontend(QMainWindow):
         # read data from the currently indexed backend to show in the table
 
         if(auto_import_programs): # auto import the programs if necessary
-            for i in range(3):
-                # i sure hope these filepaths exists
-                if self.collection.LINE_NAME == 'Green':
-                    filepath = "src\Track\WaysideController\PLC\green_line_plc_" + str(i+1) + ".py"
-                    self.auto_get_program(i,filepath)
+            for i in range(self.collection.CONTROLLER_COUNT):
+                filepath = "src\Track\WaysideController\PLC\\" + self.collection.LINE_NAME.lower() + "_line_plc_" + str(i+1) + ".py"
+                self.auto_get_program(i,filepath)
 
         self.timer.start()
     
@@ -224,13 +223,25 @@ class WaysideControllerFrontend(QMainWindow):
 
 
 
-    def closeEvent(self, event):
+    def closeEvent(self, event, source=False):
         """
         Overridden Mainwindow function that handles when the user clicks the exit button in the corner of the window
+
+        :param event: A pyqt event that tracks when the window is closed
+
+        :param source: source is a boolean that indicates the closeEvent was not a self call, True indicates that it was not a self call
         """
-        for testbench in self.collection.testbenches: # Close every testbench that is active as well
-            testbench.close() 
-        event.accept()
+        
+        if not source:
+            for testbench in self.collection.testbenches: # Close every testbench that is active as well
+                testbench.close() 
+            event.accept()
+        else:
+            self.hide()
+            self.show_oneshot = True
+            for testbench in self.collection.testbenches: # Close every testbench that is active as well
+                 testbench.hide() 
+            event.ignore()
 
 
 
@@ -257,11 +268,13 @@ class WaysideControllerFrontend(QMainWindow):
         self.show_current_selected_output(self.ui.light_list, self.ui.light_label)
         self.show_current_selected_output(self.ui.crossing_list, self.ui.crossing_label)
 
-
-
-        # SHOULD PROB HANDLE SOME OF THOSE EXCEPTIONS HUH
-  
-
+        # when the line changes need to open all appropriate windows
+        
+        if not self.isHidden() and self.show_oneshot:
+            self.show_oneshot = False
+            for i, testbench in enumerate(self.collection.testbenches):
+                if self.collection.controllers[i].maintenance_mode:
+                    testbench.show()
 
     @pyqtSlot(int)
     def handle_controller_selection(self, controller_index):
@@ -357,27 +370,22 @@ class WaysideControllerTestbench(QMainWindow):
         self.first_open = True # Used to check to see if the testbench has been open before
         self.block_range = self.collection.BLOCK_RANGES[idx] # this never changes
 
-        # Uncomment this loop to correspond the range to the relative index (writing plc programs)
-        #print(self.controller_index)
-        #relative_index = 0
-        #for absolute_index in range(*self.block_range):
-        #    print(self.collection.blocks[absolute_index].id, absolute_index, relative_index, relative_index + 1)
-        #    relative_index += 1
+        
 
 
         # Used for storing the values input by the user
         self.block_occupancies =     [None] * self.collection.BLOCK_COUNTS[idx]
-        self.suggested_authorities = [None] * self.collection.BLOCK_COUNTS[idx] 
-        self.suggested_speeds =      [None] * self.collection.BLOCK_COUNTS[idx]
-        self.switch_positions =      [None] * self.collection.BLOCK_COUNTS[idx]
-        self.light_signals =         [None] * self.collection.BLOCK_COUNTS[idx]
-        self.crossing_signals =      [None] * self.collection.BLOCK_COUNTS[idx]
+        self.switch_positions =      [None] * self.collection.SWITCH_COUNTS[idx]
+        self.light_signals =         [None] * self.collection.LIGHT_COUNTS[idx]
+        self.crossing_signals =      [None] * self.collection.CROSSING_COUNTS[idx]
+
+        self.switch_locations = {}
+        self.crossing_locations = {}
+        self.light_locations = {}
 
         # Connecting the list signals to the slot
         self.ui.select_block_list.itemClicked.connect(self.handle_block_selection) 
         self.ui.block_occupancy_confirm_button.clicked.connect(self.handle_occupancy_confirmation)
-        self.ui.suggested_speed_confirm_button.clicked.connect(self.handle_speed_confirmation)
-        self.ui.suggested_authority_confirm_button.clicked.connect(self.handle_authority_confirmation)
         self.ui.switch_position_confirm_button.clicked.connect(self.handle_switch_confirmation)
         self.ui.light_signal_confirm_button.clicked.connect(self.handle_light_confirmation)
         self.ui.crossing_signal_confirm_button.clicked.connect(self.handle_crossing_confirmation)
@@ -390,6 +398,12 @@ class WaysideControllerTestbench(QMainWindow):
         """
         self.current_block_index = self.ui.select_block_list.currentRow() # get the current block by checking which item is clicked
 
+        self.ui.switch_position_combo_box.clear()
+
+        if self.collection.blocks[self.controller_index][self.current_block_index].switch:
+            self.ui.switch_position_combo_box.addItem(self.collection.switches[self.collection.blocks[self.controller_index][self.current_block_index].id].positions[0])
+            self.ui.switch_position_combo_box.addItem(self.collection.switches[self.collection.blocks[self.controller_index][self.current_block_index].id].positions[1])               
+        
         # Update the suggested speed fields to match the corresponding blocks user input, otherwise clear the block since it has nothing 
         if self.current_block_index != None:
             if self.block_occupancies[self.current_block_index] != None: # Check to update the occupancy
@@ -397,15 +411,24 @@ class WaysideControllerTestbench(QMainWindow):
             else:
                 self.ui.block_occupancy_combo_box.setCurrentIndex(-1) # Set to the default no option selected
 
-            if self.suggested_speeds[self.current_block_index] != None: 
-                self.ui.suggested_speed_line_edit.setText(self.suggested_speeds[self.current_block_index])
+            if self.collection.blocks[self.controller_index][self.current_block_index].switch:
+                if self.switch_positions[self.switch_locations[self.current_block_index]] != None:
+                    self.ui.switch_position_combo_box.setCurrentIndex(1 if self.switch_positions[self.switch_locations[self.current_block_index]] else 0)
             else:
-                self.ui.suggested_speed_line_edit.clear()
+                self.ui.switch_position_combo_box.setCurrentIndex(-1)
 
-            if self.suggested_authorities[self.current_block_index] != None: 
-               self.ui.suggested_authority_line_edit.setText(self.suggested_authorities[self.current_block_index])
+            if self.collection.blocks[self.controller_index][self.current_block_index].light:
+                if self.light_signals[self.light_locations[self.current_block_index]] != None:
+                    self.ui.light_signal_combo_box.setCurrentIndex(1 if self.light_signals[self.light_locations[self.current_block_index]] else 0)
             else:
-                self.ui.suggested_authority_line_edit.clear()
+                self.ui.light_signal_combo_box.setCurrentIndex(-1)
+            
+            if self.collection.blocks[self.controller_index][self.current_block_index].crossing:
+                if self.crossing_signals[self.crossing_locations[self.current_block_index]] != None:                 
+                    self.ui.crossing_signal_combo_box.setCurrentIndex(1 if self.crossing_signals[self.crossing_locations[self.current_block_index]] else 0)
+            else:
+                self.ui.crossing_signal_combo_box.setCurrentIndex(-1)
+           
 
     @pyqtSlot()
     def handle_occupancy_confirmation(self):
@@ -421,35 +444,16 @@ class WaysideControllerTestbench(QMainWindow):
     
             self.block_occupancies[self.current_block_index] = self.ui.block_occupancy_combo_box.currentIndex()
     
-
-
-    @pyqtSlot()
-    def handle_speed_confirmation(self):
-        """
-        Called when the confirmation next to the suggested speed is clicked, writes values directly to corresponding backend controller
-        """
-        if self.current_block_index != None:
-            self.suggested_speeds[self.current_block_index] = self.ui.suggested_speed_line_edit.text()
-            self.collection.controllers[self.controller_index].suggested_speeds[self.current_block_index] = float(self.ui.suggested_speed_line_edit.text())
-
-    @pyqtSlot()
-    def handle_authority_confirmation(self):
-        """
-        Called when the confirmation next to the suggested authority is clicked, writes values directly to corresponding backend controller
-        """
-        if self.current_block_index != None:
-            self.suggested_authorities[self.current_block_index] = self.ui.suggested_authority_line_edit.text()
-            self.collection.controllers[self.controller_index].suggested_authorities[self.current_block_index] = float(self.ui.suggested_authority_line_edit.text())
-    
+       
     @pyqtSlot()
     def handle_switch_confirmation(self):
         """
         Called when the confirmation next to the switch is clicked, writes values directly to corresponding backend controller
         """
-        block = self.collection.blocks[self.current_block_index][self.current_block_index + self.block_range[0]] # lookup if the block has a switch
+        block = self.collection.blocks[self.controller_index][self.current_block_index + self.block_range[0]] # lookup if the block has a switch
         if block.switch:
-            self.switch_positions[self.current_block_index] = self.ui.switch_position_combo_box.currentIndex()
-            self.collection.controllers[self.controller_index].switch_positions[self.current_block_index] = self.ui.switch_position_combo_box.currentIndex()
+            self.switch_positions[self.switch_locations[self.current_block_index]] = self.ui.switch_position_combo_box.currentIndex()
+            self.collection.controllers[self.controller_index].switch_positions[self.switch_locations[self.current_block_index]] = self.ui.switch_position_combo_box.currentIndex() == 1
 
     
     @pyqtSlot()
@@ -457,20 +461,20 @@ class WaysideControllerTestbench(QMainWindow):
         """
         Called when the confirmation next to the switch is clicked, writes values directly to corresponding backend controller
         """
-        block = self.collection.blocks[self.current_block_index][self.current_block_index + self.block_range[0]] # lookup if the block has a light
+        block = self.collection.blocks[self.controller_index][self.current_block_index + self.block_range[0]] # lookup if the block has a light
         if block.light:
-            self.light_signals[self.current_block_index] = self.ui.light_signal_combo_box.currentIndex()
-            self.collection.controllers[self.controller_index].light_signals[self.current_block_index] = self.ui.light_signal_combo_box.currentIndex()
+            self.light_signals[self.light_locations[self.current_block_index]] = self.ui.light_signal_combo_box.currentIndex()
+            self.collection.controllers[self.controller_index].light_signals[self.light_locations[self.current_block_index]] = self.ui.light_signal_combo_box.currentIndex() == 1
 
     @pyqtSlot()
     def handle_crossing_confirmation(self):
         """
         Called when the confirmation next to the switch is clicked, writes values directly to corresponding backend controller
         """
-        block = self.collection.blocks[self.current_block_index][self.current_block_index + self.block_range[0]] # lookup if the block has a crossing
+        block = self.collection.blocks[self.controller_index][self.current_block_index + self.block_range[0]] # lookup if the block has a crossing
         if block.crossing:
-            self.crossing_signals[self.current_block_index] = self.ui.crossing_signal_combo_box.currentIndex()
-            self.collection.controllers[self.controller_index].crossing_signals[self.current_block_index] = self.ui.crossing_signal_combo_box.currentIndex()
+            self.crossing_signals[self.crossing_locations[self.current_block_index]] = self.ui.crossing_signal_combo_box.currentIndex()
+            self.collection.controllers[self.controller_index].crossing_signals[self.crossing_locations[self.current_block_index]] = self.ui.crossing_signal_combo_box.currentIndex() == 1
 
     def open_window(self, window_name: str):
         """
@@ -496,19 +500,18 @@ class WaysideControllerTestbench(QMainWindow):
         # Reset the testbench values
         self.current_block_index =    None
         self.block_occupancies =     [None] * len(self.block_occupancies)
-        self.suggested_speeds =      [None] * len(self.suggested_speeds)
-        self.suggested_authorities = [None] * len(self.suggested_authorities)
-
+       
         
         # Reset the values set to the wayside
         active_controller.block_occupancies =     [False] * len(active_controller.block_occupancies)
-        active_controller.suggested_speeds =      [None] * len(active_controller.suggested_speeds)
-        active_controller.suggested_authorities = [None] * len(active_controller.suggested_authorities)
-
+        active_controller.switch_positions = [False]* len(active_controller.switch_positions)
+        active_controller.light_signals = [False]* len(active_controller.light_signals)
+        active_controller.crossing_signals = [False]* len(active_controller.crossing_signals)
         # Reset UI elements
         self.ui.block_occupancy_combo_box.setCurrentIndex(-1)
-        self.ui.suggested_authority_line_edit.clear()
-        self.ui.suggested_speed_line_edit.clear()
+        self.ui.switch_position_combo_box.setCurrentIndex(-1)
+        self.ui.light_signal_combo_box.setCurrentIndex(-1)
+        self.ui.crossing_signal_combo_box.setCurrentIndex(-1)
         self.ui.select_block_list.setCurrentRow(-1)
         
         self.collection.controllers[self.controller_index].maintenance_mode = False # User has closed the window so maintenance mode should no longer be active
@@ -525,13 +528,22 @@ class WaysideControllerTestbench(QMainWindow):
         """
         Adds entries to the list on the testbench ui corresponding to the territory the wayside controller testbench is connected to
         """
-        for block in self.collection.blocks[self.controller_index]: # unpacking operator, remember ranges are [lower, upper)
+        switch_counter = 0
+        light_counter = 0
+        crossing_counter = 0
+        for i, block in enumerate(self.collection.blocks[self.controller_index]):
             text = "Block " + block.id
             if block.switch:
+                self.switch_locations[i] = switch_counter
+                switch_counter += 1
                 text = text + ', Has Switch'
             if block.light:
+                self.light_locations[i] = light_counter
+                light_counter += 1
                 text = text + ', Has Light'
             if block.crossing:
+                self.crossing_locations[i] = crossing_counter
+                crossing_counter += 1
                 text = text + ', Has Crossing'
             item = QListWidgetItem(text)
             self.ui.select_block_list.addItem(item)
